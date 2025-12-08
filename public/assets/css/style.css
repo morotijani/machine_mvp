@@ -1,0 +1,96 @@
+:root {
+  --md-sys-color-primary: #005cbb;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #d7e3ff;
+  --md-sys-color-on-primary-container: #001b3f;
+  --md-sys-color-secondary: #565e71;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-surface: #fdfcff;
+  --md-sys-color-on-surface: #1a1c1e;
+  --md-sys-color-outline: #74777f;
+  --md-font-family: 'Roboto', sans-serif;
+}
+
+body {
+  font-family: var(--md-font-family);
+  background-color: #f5f5f5;
+  color: var(--md-sys-color-on-surface);
+  margin: 0;
+  padding: 0;
+}
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+}
+
+.card {
+  border: none;
+  border-radius: 16px; /* Material 3 curve */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: var(--md-sys-color-surface);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary {
+  background-color: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+  border-radius: 100px; /* Pill shape */
+  padding: 10px 24px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #004080;
+  border-color: #004080;
+}
+
+.form-control {
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--md-sys-color-outline);
+}
+
+.form-control:focus {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 0.25rem rgba(0, 92, 187, 0.25);
+}
+
+.sidebar {
+  background-color: var(--md-sys-color-surface);
+  min-height: 100vh;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+
+.nav-link {
+  color: var(--md-sys-color-on-surface);
+  border-radius: 100px;
+  padding: 12px 24px;
+  margin: 4px 16px;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background-color: rgba(0, 92, 187, 0.08); /* 8% opacity primary */
+  color: var(--md-sys-color-primary);
+}
+
+.nav-link.active {
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

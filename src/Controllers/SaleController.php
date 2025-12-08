@@ -1,0 +1,98 @@
+<?php
+namespace App\Controllers;
+
+use App\Config\Database;
+use App\Models\Sale;
+use App\Models\Item;
+use App\Models\Customer;
+use App\Middleware\AuthMiddleware;
+use Exception;
+
+class SaleController {
+    
+    public function index() {
+        AuthMiddleware::requireLogin();
+        $pdo = Database::getInstance();
+        $saleModel = new Sale($pdo);
+        $sales = $saleModel->getAll();
+        require __DIR__ . '/../../views/sales/index.php';
+    }
+
+    public function create() {
+        AuthMiddleware::requireLogin();
+        $pdo = Database::getInstance();
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Decode JSON input if sent as JSON, or handle Form Data
+            // We'll assume Form Data for simplicity or JSON if needed.
+            // Let's support JSON for the complex cart structure
+            $input = json_decode(file_get_contents('php://input'), true);
+
+            if ($input) {
+                try {
+                    $saleModel = new Sale($pdo);
+                    $saleId = $saleModel->createSale(
+                        $input['customer_id'], 
+                        $_SESSION['user_id'], 
+                        $input['items'], 
+                        $input['payment_amount']
+                    );
+                    echo json_encode(['success' => true, 'sale_id' => $saleId]);
+                } catch (Exception $e) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                }
+                exit;
+            }
+        }
+
+        // Prepare data for the View
+        $itemModel = new Item($pdo);
+        $customerModel = new Customer($pdo);
+        $items = $itemModel->getAll();
+        $customers = $customerModel->getAll();
+        
+        require __DIR__ . '/../../views/sales/create.php';
+    }
+
+    public function view() {
+        AuthMiddleware::requireLogin();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . BASE_URL . '/sales');
+            exit;
+        }
+
+        $pdo = Database::getInstance();
+        $saleModel = new Sale($pdo);
+        $sale = $saleModel->getById($id);
+
+        if (!$sale) {
+            header('Location: ' . BASE_URL . '/sales');
+            exit;
+        }
+
+        // Fetch payment history
+        $stmt = $pdo->prepare("SELECT p.*, u.username FROM payments p JOIN users u ON p.recorded_by = u.id WHERE p.sale_id = :sid ORDER BY p.payment_date DESC");
+        $stmt->execute(['sid' => $id]);
+        $payments = $stmt->fetchAll();
+
+        require __DIR__ . '/../../views/sales/view.php';
+    }
+
+    public function pay() {
+        AuthMiddleware::requireLogin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $saleId = $_POST['sale_id'];
+            $amount = $_POST['amount'];
+            
+            $pdo = Database::getInstance();
+            $paymentModel = new \App\Models\Payment($pdo);
+            $paymentModel->recordPayment($saleId, $amount, $_SESSION['user_id']);
+            
+            header('Location: ' . BASE_URL . '/sales/view?id=' . $saleId);
+            exit;
+        }
+    }
+}
+
