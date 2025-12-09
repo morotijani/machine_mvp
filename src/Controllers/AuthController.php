@@ -22,7 +22,7 @@ class AuthController {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
                 
-                header('Location: ' . BASE_URL . '/dashboard');
+                header('Location: ' . BASE_URL . '/sales/create');
                 exit;
             } else {
                 $error = "Invalid username or password";

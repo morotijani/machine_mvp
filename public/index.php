@@ -24,7 +24,7 @@ define('BASE_URL', $baseUrl);
 // Routes
 $router->get('/', function() {
     if (AuthMiddleware::isAuthenticated()) {
-        header('Location: ' . BASE_URL . '/dashboard');
+        header('Location: ' . BASE_URL . '/sales/create');
     } else {
         header('Location: ' . BASE_URL . '/login');
     }

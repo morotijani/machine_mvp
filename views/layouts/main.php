@@ -11,44 +11,57 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <h5 class="px-3 mb-4 text-primary fw-bold">Machine MVP</h5>
-                    <ul class="nav flex-column">
+            <nav class="sidebar collapse d-md-block" id="sidebarMenu">
+                <div class="sidebar-sticky">
+                    <div class="px-3 mb-4 mt-2">
+                         <!-- G-style Logo/Header -->
+                         <div class="d-flex align-items-center">
+                            <span class="fs-4 text-primary fw-bold">Machine MVP</span>
+                            <!-- <span class="badge bg-primary text-white ms-2 rounded-pill">Admin</span> -->
+                         </div>
+                         <div class="text-muted small mt-1"><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></div>
+                    </div>
+
+                    <ul class="nav flex-column nav-flex-column">
                         <li class="nav-item">
                             <a class="nav-link <?php echo ($_SERVER['REQUEST_URI'] == BASE_URL . '/dashboard') ? 'active' : ''; ?>" href="<?= BASE_URL ?>/dashboard">
-                                Dashboard
+                                <span class="icon">📊</span> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/sales') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/sales/create">
+                                <span class="icon">🛒</span> Sales / POS
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/items') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/items">
-                                Items / Machines
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/sales') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/sales">
-                                Sales
+                                <span class="icon">📦</span> Items / Stock
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/customers') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/customers">
-                                Customers
+                                <span class="icon">👥</span> Customers
                             </a>
                         </li>
-                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                        
+                        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                        <div class="my-2 border-top"></div>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/users') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/users">
-                                Users
+                                <span class="icon">👤</span> Manage Users
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/reports') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/reports">
-                                Reports
+                                <span class="icon">📈</span> Reports
                             </a>
                         </li>
                         <?php endif; ?>
-                        <li class="nav-item mt-4">
-                            <a class="nav-link text-danger" href="<?= BASE_URL ?>/logout">Logout</a>
+
+                        <li class="nav-item mt-5">
+                             <a class="nav-link text-danger" href="<?= BASE_URL ?>/logout">
+                                <span class="icon">🚪</span> Logout
+                            </a>
                         </li>
                     </ul>
                 </div>

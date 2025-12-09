@@ -1,92 +1,201 @@
 :root {
-  --md-sys-color-primary: #005cbb;
+  --md-sys-color-primary: #1a73e8;
+  /* Google Blue */
   --md-sys-color-on-primary: #ffffff;
-  --md-sys-color-primary-container: #d7e3ff;
-  --md-sys-color-on-primary-container: #001b3f;
-  --md-sys-color-secondary: #565e71;
+  --md-sys-color-primary-container: #d2e3fc;
+  /* Light Blue for active state */
+  --md-sys-color-on-primary-container: #174ea6;
+  /* Dark Blue for text on active */
+  --md-sys-color-secondary: #5f6368;
+  /* Google Grey */
   --md-sys-color-on-secondary: #ffffff;
-  --md-sys-color-surface: #fdfcff;
-  --md-sys-color-on-surface: #1a1c1e;
-  --md-sys-color-outline: #74777f;
+  --md-sys-color-surface: #ffffff;
+  --md-sys-color-on-surface: #202124;
+  --md-sys-color-outline: #dadce0;
   --md-font-family: 'Roboto', sans-serif;
+  --md-nav-width: 280px;
 }
 
 body {
   font-family: var(--md-font-family);
-  background-color: #f5f5f5;
+  background-color: #ffffff;
   color: var(--md-sys-color-on-surface);
   margin: 0;
   padding: 0;
 }
 
-.auth-container {
-  min-height: 100vh;
+/* Auth / Login Page Styles */
+.auth-wrapper {
   display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+  background-color: #f0f2f5;
+  /* Or white if strictly following the simplistic login page, but usually it's centered on a page. */
+  padding: 20px;
 }
 
-.card {
-  border: none;
-  border-radius: 16px; /* Material 3 curve */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  background: var(--md-sys-color-surface);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+.auth-card {
+  background: #fff;
+  padding: 48px 40px 36px;
+  border-radius: 28px;
+  /* High radius */
+  border: 1px solid #dadce0;
+  width: 100%;
+  max-width: 450px;
+  /* transition: box-shadow .2s; */
 }
 
-.card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+/* @media (min-width: 601px) {
+    .auth-card {
+        border: 1px solid #dadce0;
+        border-radius: 8px;
+    }
+} */
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 400;
+  margin-bottom: 8px;
+  color: #202124;
+}
+
+.auth-subtitle {
+  font-size: 16px;
+  color: #202124;
+  margin-bottom: 40px;
+}
+
+/* Form Floating label overrides for Google Style */
+.form-floating>.form-control {
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+}
+
+.form-floating>.form-control:focus {
+  border-color: #1a73e8;
+  box-shadow: none;
+  border-width: 2px;
+}
+
+.form-floating>label {
+  color: #5f6368;
+  padding-left: 14px;
 }
 
 .btn-primary {
   background-color: var(--md-sys-color-primary);
   border-color: var(--md-sys-color-primary);
-  border-radius: 100px; /* Pill shape */
-  padding: 10px 24px;
+  border-radius: 4px;
+  /* Slightly rounded */
+  padding: 8px 24px;
   font-weight: 500;
-  letter-spacing: 0.5px;
-  transition: background-color 0.2s;
+  letter-spacing: 0.25px;
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .btn-primary:hover {
-  background-color: #004080;
-  border-color: #004080;
+  background-color: #1557d5;
+  border-color: #1557d5;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
 }
 
-.form-control {
-  border-radius: 8px;
-  padding: 12px;
-  border: 1px solid var(--md-sys-color-outline);
+.auth-footer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 450px;
 }
 
-.form-control:focus {
-  border-color: var(--md-sys-color-primary);
-  box-shadow: 0 0 0 0.25rem rgba(0, 92, 187, 0.25);
-}
-
+/* Dashboard / Sidebar Layout */
 .sidebar {
-  background-color: var(--md-sys-color-surface);
-  min-height: 100vh;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  padding: 48px 0 0;
+  /* Height of navbar */
+  box-shadow: none;
+  background-color: #ffffff;
+  width: var(--md-nav-width) !important;
+}
+
+@media (max-width: 767.98px) {
+  .sidebar {
+    top: 5rem;
+  }
+}
+
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 48px);
+  padding-top: .5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* Scrollable contents if viewport is shorter than content. */
+}
+
+/* Sidebar Links */
+.nav-flex-column {
+  padding-right: 12px;
+  /* Space for the pill shape end */
+}
+
+.nav-item {
+  margin-bottom: 4px;
 }
 
 .nav-link {
-  color: var(--md-sys-color-on-surface);
-  border-radius: 100px;
-  padding: 12px 24px;
-  margin: 4px 16px;
+  color: #3c4043;
   font-weight: 500;
+  font-size: 14px;
+  padding: 10px 12px 10px 26px;
+  /* Specific indent */
+  border-radius: 0 50px 50px 0;
+  /* Bullet shape on right */
+  margin-right: 0;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.1s;
 }
 
 .nav-link:hover {
-  background-color: rgba(0, 92, 187, 0.08); /* 8% opacity primary */
-  color: var(--md-sys-color-primary);
+  background-color: #f1f3f4;
+  color: #202124;
 }
 
 .nav-link.active {
   background-color: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
+}
+
+.nav-link .icon {
+  margin-right: 16px;
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+/* Main Content Area */
+main {
+  margin-left: var(--md-nav-width);
+  /* Align with sidebar width */
+  padding-top: 2rem;
+}
+
+/* Card overrides for Dashboard */
+.card {
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.card-header {
+  background-color: #fff;
+  border-bottom: 1px solid #dadce0;
 }
 
 @media print {
