@@ -1,205 +1,211 @@
-:root {
-  --md-sys-color-primary: #1a73e8;
-  /* Google Blue */
-  --md-sys-color-on-primary: #ffffff;
-  --md-sys-color-primary-container: #d2e3fc;
-  /* Light Blue for active state */
-  --md-sys-color-on-primary-container: #174ea6;
-  /* Dark Blue for text on active */
-  --md-sys-color-secondary: #5f6368;
-  /* Google Grey */
-  --md-sys-color-on-secondary: #ffffff;
-  --md-sys-color-surface: #ffffff;
-  --md-sys-color-on-surface: #202124;
-  --md-sys-color-outline: #dadce0;
-  --md-font-family: 'Roboto', sans-serif;
-  --md-nav-width: 280px;
-}
+  /* Import Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Roboto:wght@300;400;500;700&display=swap');
 
-body {
-  font-family: var(--md-font-family);
-  background-color: #ffffff;
-  color: var(--md-sys-color-on-surface);
-  margin: 0;
-  padding: 0;
-}
+  :root {
+    --md-sys-color-primary: #1a73e8;
+    /* Google Blue */
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: #d2e3fc;
+    /* Light Blue for active state */
+    --md-sys-color-on-primary-container: #174ea6;
+    /* Dark Blue for text on active */
+    --md-sys-color-secondary: #5f6368;
+    /* Google Grey */
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-surface: #ffffff;
+    --md-sys-color-on-surface: #202124;
+    --md-sys-color-outline: #dadce0;
+    --md-font-family: 'Google Sans Flex',
+      'Roboto Flex',
+      'Roboto',
+      sans-serif;
+    --md-nav-width: 280px;
+  }
 
-/* Auth / Login Page Styles */
-.auth-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  background-color: #f0f2f5;
-  /* Or white if strictly following the simplistic login page, but usually it's centered on a page. */
-  padding: 20px;
-}
+  body {
+    font-family: var(--md-font-family);
+    background-color: #f0f4f9;
+    color: var(--md-sys-color-on-surface);
+    margin: 0;
+    padding: 0;
+  }
 
-.auth-card {
-  background: #fff;
-  padding: 48px 40px 36px;
-  border-radius: 28px;
-  /* High radius */
-  border: 1px solid #dadce0;
-  width: 100%;
-  max-width: 450px;
-  /* transition: box-shadow .2s; */
-}
+  /* Auth / Login Page Styles */
+  .auth-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f2f5;
+    /* Or white if strictly following the simplistic login page, but usually it's centered on a page. */
+    padding: 20px;
+  }
 
-/* @media (min-width: 601px) {
+  .auth-card {
+    background: #fff;
+    padding: 48px 40px 36px;
+    border-radius: 28px;
+    /* High radius */
+    border: 1px solid #dadce0;
+    width: 100%;
+    max-width: 450px;
+    /* transition: box-shadow .2s; */
+  }
+
+  /* @media (min-width: 601px) {
     .auth-card {
         border: 1px solid #dadce0;
         border-radius: 8px;
     }
 } */
 
-.auth-title {
-  font-size: 24px;
-  font-weight: 400;
-  margin-bottom: 8px;
-  color: #202124;
-}
+  .auth-title {
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 8px;
+    color: #202124;
+  }
 
-.auth-subtitle {
-  font-size: 16px;
-  color: #202124;
-  margin-bottom: 40px;
-}
+  .auth-subtitle {
+    font-size: 16px;
+    color: #202124;
+    margin-bottom: 40px;
+  }
 
-/* Form Floating label overrides for Google Style */
-.form-floating>.form-control {
-  border-radius: 4px;
-  border: 1px solid #dadce0;
-}
+  /* Form Floating label overrides for Google Style */
+  .form-floating>.form-control {
+    border-radius: 4px;
+    border: 1px solid #dadce0;
+  }
 
-.form-floating>.form-control:focus {
-  border-color: #1a73e8;
-  box-shadow: none;
-  border-width: 2px;
-}
+  .form-floating>.form-control:focus {
+    border-color: #1a73e8;
+    box-shadow: none;
+    border-width: 2px;
+  }
 
-.form-floating>label {
-  color: #5f6368;
-  padding-left: 14px;
-}
+  .form-floating>label {
+    color: #5f6368;
+    padding-left: 14px;
+  }
 
-.btn-primary {
-  background-color: var(--md-sys-color-primary);
-  border-color: var(--md-sys-color-primary);
-  border-radius: 4px;
-  /* Slightly rounded */
-  padding: 8px 24px;
-  font-weight: 500;
-  letter-spacing: 0.25px;
-  transition: background-color 0.2s, box-shadow 0.2s;
-}
+  .btn-primary {
+    background-color: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+    border-radius: 4px;
+    /* Slightly rounded */
+    padding: 8px 24px;
+    font-weight: 500;
+    letter-spacing: 0.25px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+  }
 
-.btn-primary:hover {
-  background-color: #1557d5;
-  border-color: #1557d5;
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-}
+  .btn-primary:hover {
+    background-color: #1557d5;
+    border-color: #1557d5;
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  }
 
-.auth-footer {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 450px;
-}
+  .auth-footer {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 450px;
+  }
 
-/* Dashboard / Sidebar Layout */
-.sidebar {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 100;
-  padding: 48px 0 0;
-  /* Height of navbar */
-  box-shadow: none;
-  background-color: #ffffff;
-  width: var(--md-nav-width) !important;
-}
-
-@media (max-width: 767.98px) {
+  /* Dashboard / Sidebar Layout */
   .sidebar {
-    top: 5rem;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 48px 0 0;
+    /* Height of navbar */
+    box-shadow: none;
+    background-color: #f0f4f9;
+    width: var(--md-nav-width) !important;
   }
-}
 
-.sidebar-sticky {
-  position: relative;
-  top: 0;
-  height: calc(100vh - 48px);
-  padding-top: .5rem;
-  overflow-x: hidden;
-  overflow-y: auto;
-  /* Scrollable contents if viewport is shorter than content. */
-}
-
-/* Sidebar Links */
-.nav-flex-column {
-  padding-right: 12px;
-  /* Space for the pill shape end */
-}
-
-.nav-item {
-  margin-bottom: 4px;
-}
-
-.nav-link {
-  color: #3c4043;
-  font-weight: 500;
-  font-size: 14px;
-  padding: 10px 12px 10px 26px;
-  /* Specific indent */
-  border-radius: 0 50px 50px 0;
-  /* Bullet shape on right */
-  margin-right: 0;
-  display: flex;
-  align-items: center;
-  transition: background-color 0.1s;
-}
-
-.nav-link:hover {
-  background-color: #f1f3f4;
-  color: #202124;
-}
-
-.nav-link.active {
-  background-color: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
-}
-
-.nav-link .icon {
-  margin-right: 16px;
-  font-size: 20px;
-  width: 24px;
-  text-align: center;
-}
-
-/* Main Content Area */
-main {
-  margin-left: var(--md-nav-width);
-  /* Align with sidebar width */
-  padding-top: 2rem;
-}
-
-/* Card overrides for Dashboard */
-.card {
-  border: 1px solid #dadce0;
-  border-radius: 8px;
-  box-shadow: none;
-}
-
-.card-header {
-  background-color: #fff;
-  border-bottom: 1px solid #dadce0;
-}
-
-@media print {
-  .no-print {
-    display: none !important;
+  @media (max-width: 767.98px) {
+    .sidebar {
+      top: 5rem;
+    }
   }
-}
+
+  .sidebar-sticky {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 48px);
+    padding-top: .5rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* Scrollable contents if viewport is shorter than content. */
+  }
+
+  /* Sidebar Links */
+  .nav-flex-column {
+    padding-right: 12px;
+    /* Space for the pill shape end */
+  }
+
+  .nav-item {
+    margin-bottom: 4px;
+  }
+
+  .nav-link {
+    color: #3c4043;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 10px 12px 10px 26px;
+    /* Specific indent */
+    border-radius: 0 50px 50px 0;
+    /* Bullet shape on right */
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.1s;
+  }
+
+  .nav-link:hover {
+    background-color: #f1f3f4;
+    color: #202124;
+  }
+
+  .nav-link.active {
+    background-color: #fff;
+    color: var(--md-sys-color-on-primary-container);
+  }
+
+  .nav-link .icon {
+    margin-right: 16px;
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+  }
+
+  /* Main Content Area */
+  main {
+    margin-left: var(--md-nav-width);
+    /* Align with sidebar width */
+    padding-top: 2rem;
+  }
+
+  /* Card overrides for Dashboard */
+  .card {
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+  .card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #dadce0;
+  }
+
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+  }

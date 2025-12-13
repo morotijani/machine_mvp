@@ -58,10 +58,24 @@
                         </li>
                         <?php endif; ?>
 
-                        <li class="nav-item mt-5">
-                             <a class="nav-link text-danger" href="<?= BASE_URL ?>/logout">
-                                <span class="icon">🚪</span> Logout
-                            </a>
+                        <li class="nav-item mt-3">
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                                <span>Account</span>
+                            </h6>
+                            <ul class="nav flex-column mb-2">
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex align-items-center gap-2 <?php echo (strpos($_SERVER['REQUEST_URI'], '/profile') !== false) ? 'active' : 'text-dark'; ?>" href="<?= BASE_URL ?>/profile">
+                                        <span class="fs-5">👤</span> <!-- Simple icon placeholder -->
+                                        My Profile
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex align-items-center gap-2 text-danger" href="<?= BASE_URL ?>/logout">
+                                        <span class="fs-5">🚪</span>
+                                        Sign out
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </div>

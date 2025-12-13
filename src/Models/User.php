@@ -33,4 +33,16 @@ class User {
         $stmt = $this->pdo->query("SELECT id, username, role, created_at FROM users ORDER BY created_at DESC");
         return $stmt->fetchAll();
     }
+
+    public function find($id) {
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch();
+    }
+
+    public function updatePassword($id, $newPassword) {
+        $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $this->pdo->prepare("UPDATE users SET password = :password WHERE id = :id");
+        return $stmt->execute(['password' => $hash, 'id' => $id]);
+    }
 }

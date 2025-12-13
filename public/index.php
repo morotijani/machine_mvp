@@ -49,6 +49,11 @@ $router->get('/users', [$userController, 'index']);
 $router->get('/users/create', [$userController, 'create']);
 $router->post('/users/create', [$userController, 'create']);
 
+// Profile
+$profileController = new \App\Controllers\ProfileController();
+$router->get('/profile', [$profileController, 'index']);
+$router->post('/profile/update', [$profileController, 'update']);
+
 // Items
 $itemController = new ItemController();
 $router->get('/items', [$itemController, 'index']);

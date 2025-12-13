@@ -120,32 +120,36 @@ document.getElementById('itemSearch').addEventListener('input', function(e) {
     });
 });
 
-document.querySelectorAll('.item-row').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const id = btn.dataset.id;
-        const name = btn.dataset.name;
-        const price = parseFloat(btn.dataset.price);
-        let stock = parseInt(btn.dataset.stock);
-        if (isNaN(stock)) stock = 0;
+document.getElementById('itemList').addEventListener('click', function(e) {
+    const btn = e.target.closest('.item-row');
+    if (!btn) return;
 
-        // Visual feedback for debugging or user clarity
-        if(stock <= 0) {
-            alert('Item is Out of Stock!');
+    const id = btn.dataset.id;
+    const name = btn.dataset.name;
+    const price = parseFloat(btn.dataset.price);
+    
+    // Parse stock carefully
+    let stock = parseFloat(btn.dataset.stock);
+    if (isNaN(stock)) stock = 0;
+
+    console.log('Clicked item:', name, 'Stock:', stock); // Debug log
+
+    if(stock <= 0) {
+        alert('Item is Out of Stock!');
+        return;
+    }
+
+    const existing = cart.find(i => i.id === id);
+    if (existing) {
+        if (existing.quantity >= stock) {
+            alert('Max stock reached (' + stock + ')');
             return;
         }
-
-        const existing = cart.find(i => i.id === id);
-        if (existing) {
-            if (existing.quantity >= stock) {
-                alert('Max stock reached');
-                return;
-            }
-            existing.quantity++;
-        } else {
-            cart.push({ id, name, price, quantity: 1, max: stock });
-        }
-        renderCart();
-    });
+        existing.quantity++;
+    } else {
+        cart.push({ id, name, price, quantity: 1, max: stock });
+    }
+    renderCart();
 });
 
 function renderCart() {
