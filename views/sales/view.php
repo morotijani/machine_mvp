@@ -78,24 +78,24 @@ ob_start();
                         <td class="fw-bold"><?php echo htmlspecialchars($item['item_name']); ?></td>
                         <td class="text-center small text-muted"><?php echo htmlspecialchars($item['sku']); ?></td>
                         <td class="text-center"><?php echo $item['quantity']; ?></td>
-                        <td class="text-end">$<?php echo number_format($item['price_at_sale'], 2); ?></td>
-                        <td class="text-end">$<?php echo number_format($item['subtotal'], 2); ?></td>
+                        <td class="text-end">₵<?php echo number_format($item['price_at_sale'], 2); ?></td>
+                        <td class="text-end">₵<?php echo number_format($item['subtotal'], 2); ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
                         <td colspan="4" class="text-end fw-bold">Total Amount</td>
-                        <td class="text-end fw-bold fs-5">$<?php echo number_format($sale['total_amount'], 2); ?></td>
+                        <td class="text-end fw-bold fs-5">₵<?php echo number_format($sale['total_amount'], 2); ?></td>
                     </tr>
                     <tr>
                         <td colspan="4" class="text-end">Amount Paid</td>
-                        <td class="text-end text-success fw-bold">-$<?php echo number_format($sale['paid_amount'], 2); ?></td>
+                        <td class="text-end text-success fw-bold">-₵<?php echo number_format($sale['paid_amount'], 2); ?></td>
                     </tr>
                     <?php if ($sale['total_amount'] - $sale['paid_amount'] > 0): ?>
                     <tr>
                         <td colspan="4" class="text-end fw-bold text-danger">Balance Due</td>
-                        <td class="text-end fw-bold text-danger fs-5">$<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></td>
+                        <td class="text-end fw-bold text-danger fs-5">₵<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></td>
                     </tr>
                     <?php endif; ?>
                 </tfoot>
@@ -118,7 +118,7 @@ ob_start();
                         <?php foreach ($payments as $payment): ?>
                         <tr>
                             <td><?php echo date('M j, Y H:i', strtotime($payment['payment_date'])); ?></td>
-                            <td class="text-success fw-bold">$<?php echo number_format($payment['amount'], 2); ?></td>
+                            <td class="text-success fw-bold">₵<?php echo number_format($payment['amount'], 2); ?></td>
                             <td><?php echo htmlspecialchars($payment['username']); ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -131,7 +131,7 @@ ob_start();
         <!-- Footer -->
         <div class="text-center mt-5 text-muted no-print">
             <?php if ($sale['total_amount'] - $sale['paid_amount'] > 0): ?>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#payModal">$$ Record Payment</button>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#payModal">₵₵ Record Payment</button>
             <?php else: ?>
                 <p class="text-success fw-bold">Fully Paid</p>
             <?php endif; ?>
@@ -157,10 +157,10 @@ ob_start();
                 <div class="mb-3">
                     <label class="form-label">Amount Received</label>
                     <div class="input-group">
-                        <span class="input-group-text">$</span>
+                        <span class="input-group-text">₵</span>
                         <input type="number" name="amount" step="0.01" class="form-control" max="<?php echo round($sale['total_amount'] - $sale['paid_amount'], 2); ?>" required>
                     </div>
-                    <div class="form-text">Max due: $<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></div>
+                    <div class="form-text">Max due: ₵<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></div>
                 </div>
           </div>
           <div class="modal-footer">

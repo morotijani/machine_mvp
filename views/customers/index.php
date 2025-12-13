@@ -33,7 +33,7 @@ ob_start();
                         <td><?php echo htmlspecialchars($customer['address']); ?></td>
                         <td class="text-end">
                             <?php if ($customer['total_debt'] > 0): ?>
-                                <span class="text-danger fw-bold">$<?php echo number_format($customer['total_debt'], 2); ?></span>
+                                <span class="text-danger fw-bold">₵<?php echo number_format($customer['total_debt'], 2); ?></span>
                             <?php else: ?>
                                 <span class="text-success small">Paid</span>
                             <?php endif; ?>

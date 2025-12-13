@@ -14,7 +14,7 @@ ob_start();
     <div class="col-md-8">
         <div class="card shadow-sm">
             <div class="card-body">
-                <form action="<?= BASE_URL ?>/items/edit?id=<?php echo $item['id']; ?>" method="POST">
+                <form action="<?= BASE_URL ?>/items/edit?id=<?php echo $item['id']; ?>" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Item Name</label>
                         <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($item['name']); ?>" required>
@@ -60,12 +60,44 @@ ob_start();
                             <label class="form-label fw-bold">Location</label>
                             <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($item['location']); ?>" required>
                         </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Item Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="previewImage(this)">
+                        
+                        <div class="mt-2 text-center bg-light p-2 rounded" style="min-height: 100px;">
+                             <?php if (!empty($item['image_path'])): ?>
+                                <img id="imagePreview" src="<?= BASE_URL ?>/<?= $item['image_path'] ?>" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                            <?php else: ?>
+                                <img id="imagePreview" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; display: none; border-radius: 8px;">
+                                <span id="noImageText" class="text-muted small">No image uploaded</span>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end mt-3">
+                        <a href="<?= BASE_URL ?>/items" class="btn btn-outline-secondary me-2">Cancel</a>
                         <button type="submit" class="btn btn-primary px-4">Update Item</button>
                     </div>
                 </form>
+
+                <script>
+                function previewImage(input) {
+                    if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            var img = document.getElementById('imagePreview');
+                            img.src = e.target.result;
+                            img.style.display = 'block';
+                            var noText = document.getElementById('noImageText');
+                            if(noText) noText.style.display = 'none';
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+                </script>
             </div>
         </div>
     </div>

@@ -48,7 +48,7 @@ ob_start();
                         <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><?php echo htmlspecialchars($item['category']); ?></span></td>
                         <td><small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?></small></td>
                         <td><?php echo htmlspecialchars($item['location']); ?></td>
-                        <td class="text-end fw-bold text-primary">$<?php echo number_format($item['price'], 2); ?></td>
+                        <td class="text-end fw-bold text-primary">₵<?php echo number_format($item['price'], 2); ?></td>
                         <td class="text-center">
                             <?php if ($item['quantity'] <= 5): ?>
                                 <span class="badge bg-danger"><?php echo $item['quantity']; ?> <?php echo $item['unit']; ?></span>

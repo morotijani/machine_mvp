@@ -45,9 +45,9 @@ ob_start();
                         <td><a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="fw-bold text-decoration-none">#<?php echo $sale['id']; ?></a></td>
                         <td><?php echo htmlspecialchars($sale['customer_name'] ?? ''); ?></td>
                         <td><span class="badge <?php echo $statusClass; ?> rounded-pill"><?php echo ucfirst($sale['payment_status']); ?></span></td>
-                        <td class="text-end fw-bold">$<?php echo number_format($sale['total_amount'], 2); ?></td>
-                        <td class="text-end text-success">$<?php echo number_format($sale['paid_amount'], 2); ?></td>
-                        <td class="text-end text-danger"><?php echo ($balance > 0) ? '$'.number_format($balance, 2) : '-'; ?></td>
+                        <td class="text-end fw-bold">₵<?php echo number_format($sale['total_amount'], 2); ?></td>
+                        <td class="text-end text-success">₵<?php echo number_format($sale['paid_amount'], 2); ?></td>
+                        <td class="text-end text-danger"><?php echo ($balance > 0) ? '₵'.number_format($balance, 2) : '-'; ?></td>
                         <td><small><?php echo htmlspecialchars($sale['seller_name']); ?></small></td>
                         <td class="text-end">
                             <a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="btn btn-sm btn-outline-secondary">View</a>

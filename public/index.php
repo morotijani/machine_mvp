@@ -38,8 +38,16 @@ $router->post('/login', [new AuthController(), 'login']);
 $router->get('/logout', [new AuthController(), 'logout']);
 
 // Dashboard
-// Change this to use ReportController instead of closure
 $router->get('/dashboard', [new ReportController(), 'dashboard']);
+
+// Reports
+$router->get('/reports', [new ReportController(), 'index']);
+
+// Users
+$userController = new \App\Controllers\UserController();
+$router->get('/users', [$userController, 'index']);
+$router->get('/users/create', [$userController, 'create']);
+$router->post('/users/create', [$userController, 'create']);
 
 // Items
 $itemController = new ItemController();

@@ -36,7 +36,7 @@ ob_start();
                                 <small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?> | Stock: <?php echo $item['quantity']; ?></small>
                             </div>
                         </div>
-                        <span class="badge bg-primary rounded-pill">$<?php echo number_format($item['price'], 2); ?></span>
+                        <span class="badge bg-primary rounded-pill">₵<?php echo number_format($item['price'], 2); ?></span>
                     </button>
                     <?php endforeach; ?>
                 </div>
@@ -83,11 +83,14 @@ ob_start();
                 <div class="border-top pt-2">
                     <div class="d-flex justify-content-between mb-2">
                         <span class="fw-bold">Total:</span>
-                        <span class="fw-bold fs-5" id="cartTotal">$0.00</span>
+                        <span class="fw-bold fs-5" id="cartTotal">₵0.00</span>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Amount Paid</label>
-                        <input type="number" id="payAmount" class="form-control" step="0.01" value="0.00">
+                        <div class="input-group">
+                            <input type="number" id="payAmount" class="form-control" step="0.01" value="0.00">
+                            <button class="btn btn-outline-warning" type="button" id="btnPayLater" title="Mark as Credit / Pay Later">Pay Later</button>
+                        </div>
                     </div>
                     <div class="d-grid">
                         <button id="btnCompleteSale" class="btn btn-success btn-lg">Complete Sale & Print</button>
@@ -150,13 +153,13 @@ function renderCart() {
         tr.innerHTML = `
             <td><small>${item.name}</small></td>
             <td><input type="number" class="form-control form-control-sm qty-input" min="1" max="${item.max}" value="${item.quantity}" data-index="${index}"></td>
-            <td class="text-end">$${lineTotal.toFixed(2)}</td>
+            <td class="text-end">₵${lineTotal.toFixed(2)}</td>
             <td class="text-end"><button class="btn btn-sm btn-link text-danger remove-btn" data-index="${index}">&times;</button></td>
         `;
         tbody.appendChild(tr);
     });
 
-    document.getElementById('cartTotal').textContent = '$' + total.toFixed(2);
+    document.getElementById('cartTotal').textContent = '₵' + total.toFixed(2);
     document.getElementById('payAmount').value = total.toFixed(2);
 }
 
@@ -182,19 +185,33 @@ document.getElementById('cartTableBody').addEventListener('click', (e) => {
     }
 });
 
+
+
+document.getElementById('btnPayLater').addEventListener('click', () => {
+    document.getElementById('payAmount').value = 0;
+});
+
 document.getElementById('btnCompleteSale').addEventListener('click', () => {
     const customerId = document.getElementById('customerSelect').value;
     const payAmount = parseFloat(document.getElementById('payAmount').value);
+
+    // If Pay Later (credit sale), enforce Customer selection
+     const total = parseFloat(document.getElementById('cartTotal').textContent.replace('₵', ''));
+    if (payAmount < total && !customerId) {
+        alert('For Credit/Partial payments, you MUST select a Customer to record the debt.');
+        return;
+    }
 
     if (cart.length === 0) {
         alert('Cart is empty');
         return;
     }
+    
     if (!customerId) {
-        if(!confirm('No customer selected. Proceed as Walk-in? (Sales are not tracked to profiles without selection)')) {
+        // Confirmation for walk-in
+        if(!confirm('No customer selected. Proceed as Walk-in?')) {
             return; 
         }
-        // Actually, schema allows null customer_id
     }
 
     const payload = {

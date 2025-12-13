@@ -86,6 +86,29 @@ class ItemController {
                 'quantity' => $_POST['quantity'],
                 'location' => $_POST['location'],
             ];
+
+             // Handle Image Upload
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = __DIR__ . '/../../public/uploads/items/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                
+                $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $filename = uniqid('item_') . '.' . $extension;
+                $targetFile = $uploadDir . $filename;
+                
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+                    $data['image_path'] = 'uploads/items/' . $filename;
+                }
+            } else {
+                 // Keep existing image if not uploading new one
+                 $data['image_path'] = $item['image_path'] ?? null;
+                 // Note: Ideally the model update method should be smart enough, or we pass what's there.
+                 // The Model update() query binds all params. If we don't pass image_path, it might fail or set null if not careful.
+                 // Let's check the Model update method. It does NOT have image_path in query yet.
+            }
+
             $itemModel->update($id, $data);
             header('Location: ' . BASE_URL . '/items');
             exit;

@@ -25,7 +25,7 @@ ob_start();
                 <h6 class="text-muted text-uppercase small fw-bold mb-0">Daily Sales</h6>
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill"><?php echo date('M d'); ?></span>
             </div>
-            <h2 class="text-primary mb-0">$<?php echo number_format($dailySales, 2); ?></h2>
+            <h2 class="text-primary mb-0">₵<?php echo number_format($dailySales, 2); ?></h2>
         </div>
     </div>
     <div class="col-md-4 mb-4">
@@ -34,7 +34,7 @@ ob_start();
                 <h6 class="text-muted text-uppercase small fw-bold mb-0">Total Outstanding Debt</h6>
                 <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">Action Needed</span>
             </div>
-            <h2 class="text-danger mb-0">$<?php echo number_format($totalDebt, 2); ?></h2>
+            <h2 class="text-danger mb-0">₵<?php echo number_format($totalDebt, 2); ?></h2>
             <small class="text-muted mt-2"><a href="<?= BASE_URL ?>/customers" class="text-decoration-none">View Debtors &rarr;</a></small>
         </div>
     </div>
@@ -64,15 +64,15 @@ ob_start();
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Total Revenue Generated
-                        <span class="fw-bold">$<?php echo number_format($monthlyStats['total'], 2); ?></span>
+                        <span class="fw-bold">₵<?php echo number_format($monthlyStats['total'], 2); ?></span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Cash Collected
-                        <span class="fw-bold text-success">$<?php echo number_format($monthlyStats['collected'], 2); ?></span>
+                        <span class="fw-bold text-success">₵<?php echo number_format($monthlyStats['collected'], 2); ?></span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Balance Pending
-                        <span class="fw-bold text-danger">$<?php echo number_format($monthlyStats['total'] - $monthlyStats['collected'], 2); ?></span>
+                        <span class="fw-bold text-danger">₵<?php echo number_format($monthlyStats['total'] - $monthlyStats['collected'], 2); ?></span>
                     </li>
                 </ul>
             </div>

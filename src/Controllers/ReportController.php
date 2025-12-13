@@ -37,4 +37,16 @@ class ReportController {
 
         require __DIR__ . '/../../views/dashboard/index.php';
     }
+    public function index() {
+        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
+        
+        $pdo = Database::getInstance();
+        
+        // Simple Sales Report - Last 30 Days
+        $stmt = $pdo->query("SELECT DATE(created_at) as sale_date, COUNT(*) as count, SUM(total_amount) as total FROM sales GROUP BY DATE(created_at) ORDER BY sale_date DESC LIMIT 30");
+        $dailyReports = $stmt->fetchAll();
+        
+        require __DIR__ . '/../../views/reports/index.php';
+    }
 }
