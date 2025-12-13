@@ -13,26 +13,56 @@ class ReportController {
 
         // 1. Total Daily Sales (Today)
         $today = date('Y-m-d');
-        $stmt = $pdo->prepare("SELECT SUM(total_amount) FROM sales WHERE DATE(created_at) = :today");
-        $stmt->execute(['today' => $today]);
+        $sql = "SELECT SUM(total_amount) FROM sales WHERE DATE(created_at) = :today";
+        $params = ['today' => $today];
+
+        if ($_SESSION['role'] === 'sales') {
+            $sql .= " AND user_id = :uid";
+            $params['uid'] = $_SESSION['user_id'];
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $dailySales = $stmt->fetchColumn() ?: 0;
 
-        // 2. Outstanding Debt (Total)
-        $stmt = $pdo->query("SELECT SUM(total_amount - paid_amount) FROM sales WHERE payment_status != 'paid'");
+        // 2. Outstanding Debt (Total) - Keep global or customer based? 
+        // Usually global debt tracking is fine, or arguably sales person specific. 
+        // Requirement: "what he/she has done so far". Debt is tied to customer, which is shared.
+        // Salesperson mostly cares about their sales. Let's keep Debt and Low Stock global for now as they are system/inventory status.
+        // User asked: "only see update of dashboard upon what he/she has done so far". 
+        // This strongly implies SALES stats. Debt/Stock are arguably store-wide properties.
+        // Let's filter debt by sales they made? "Money owed on sales I made".
+        
+        $sqlDebt = "SELECT SUM(total_amount - paid_amount) FROM sales WHERE payment_status != 'paid'";
+        $paramsDebt = [];
+        if ($_SESSION['role'] === 'sales') {
+            $sqlDebt .= " AND user_id = :uid";
+            $paramsDebt['uid'] = $_SESSION['user_id'];
+        }
+        $stmt = $pdo->prepare($sqlDebt);
+        $stmt->execute($paramsDebt);
         $totalDebt = $stmt->fetchColumn() ?: 0;
 
-        // 3. Low Stock Items (Count)
+        // 3. Low Stock Items (Count) - Global
         $stmt = $pdo->query("SELECT COUNT(*) FROM items WHERE quantity <= 5");
         $lowStockCount = $stmt->fetchColumn() ?: 0;
         
         // 4. Monthly Stats (for Chart/Table)
         $monthStart = date('Y-m-01');
-        $stmt = $pdo->prepare("SELECT 
+        $sqlMonthly = "SELECT 
             COUNT(id) as count, 
             SUM(total_amount) as total, 
             SUM(paid_amount) as collected 
-            FROM sales WHERE created_at >= :start");
-        $stmt->execute(['start' => $monthStart]);
+            FROM sales WHERE created_at >= :start";
+        $paramsMonthly = ['start' => $monthStart];
+        
+        if ($_SESSION['role'] === 'sales') {
+            $sqlMonthly .= " AND user_id = :uid";
+            $paramsMonthly['uid'] = $_SESSION['user_id'];
+        }
+
+        $stmt = $pdo->prepare($sqlMonthly);
+        $stmt->execute($paramsMonthly);
         $monthlyStats = $stmt->fetch();
 
         require __DIR__ . '/../../views/dashboard/index.php';

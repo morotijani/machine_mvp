@@ -24,6 +24,7 @@ ob_start();
                                 <th>Address</th>
                                 <th class="text-end">Outstanding Debt</th>
                                 <th>Last Purchase</th>
+                                <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,6 +41,17 @@ ob_start();
                                     <?php endif; ?>
                                 </td>
                                 <td><small class="text-muted"><?php echo $customer['last_purchase'] ? date('M j, Y', strtotime($customer['last_purchase'])) : '-'; ?></small></td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editCustomerModal"
+                                            data-id="<?php echo $customer['id']; ?>"
+                                            data-name="<?php echo htmlspecialchars($customer['name']); ?>"
+                                            data-phone="<?php echo htmlspecialchars($customer['phone']); ?>"
+                                            data-address="<?php echo htmlspecialchars($customer['address']); ?>">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
+                                    </button>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                             
@@ -85,6 +97,57 @@ ob_start();
                 </div>
             </div>
         </div>
+
+        <!-- Edit Customer Modal -->
+        <div class="modal fade" id="editCustomerModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="<?= BASE_URL ?>/customers/edit" method="POST">
+                <input type="hidden" name="id" id="edit_id">
+                <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="phone" id="edit_phone" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" id="edit_address" class="form-control" rows="2"></textarea>
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Update Customer</button>
+                </div>
+                </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Populate Edit Modal
+            var editCustomerModal = document.getElementById('editCustomerModal');
+            editCustomerModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var name = button.getAttribute('data-name');
+                var phone = button.getAttribute('data-phone');
+                var address = button.getAttribute('data-address');
+                
+                var modal = this;
+                modal.querySelector('#edit_id').value = id;
+                modal.querySelector('#edit_name').value = name;
+                modal.querySelector('#edit_phone').value = phone;
+                modal.querySelector('#edit_address').value = address;
+            });
+        </script>
     </div>
 </div>
 

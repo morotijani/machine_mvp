@@ -47,4 +47,13 @@ class User {
         $stmt = $this->pdo->prepare("UPDATE users SET password = :password WHERE id = :id");
         return $stmt->execute(['password' => $hash, 'id' => $id]);
     }
+    public function updateProfile($id, $fullname, $profileImage) {
+        if ($profileImage) {
+            $stmt = $this->pdo->prepare("UPDATE users SET fullname = :fullname, profile_image = :image WHERE id = :id");
+            return $stmt->execute(['fullname' => $fullname, 'image' => $profileImage, 'id' => $id]);
+        } else {
+            $stmt = $this->pdo->prepare("UPDATE users SET fullname = :fullname WHERE id = :id");
+            return $stmt->execute(['fullname' => $fullname, 'id' => $id]);
+        }
+    }
 }

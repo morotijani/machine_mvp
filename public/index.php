@@ -66,6 +66,8 @@ $router->post('/items/edit', [$itemController, 'edit']);
 $customerController = new CustomerController();
 $router->get('/customers', [$customerController, 'index']);
 $router->post('/customers/create', [$customerController, 'create']);
+$router->get('/customers/edit', [$customerController, 'edit']);
+$router->post('/customers/edit', [$customerController, 'edit']);
 $router->get('/api/customers/search', [$customerController, 'apiSearch']);
 
 // Sales

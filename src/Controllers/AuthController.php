@@ -20,6 +20,8 @@ class AuthController {
                 }
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
+                $_SESSION['fullname'] = $user['fullname'];
+                $_SESSION['profile_image'] = $user['profile_image'];
                 $_SESSION['role'] = $user['role'];
                 
                 header('Location: ' . BASE_URL . '/sales/create');

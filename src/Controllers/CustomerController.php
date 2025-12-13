@@ -44,4 +44,21 @@ class CustomerController {
         echo json_encode($stmt->fetchAll());
         exit;
     }
+    public function edit() {
+        AuthMiddleware::requireLogin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'];
+            $name = $_POST['name'];
+            $phone = $_POST['phone'] ?? '';
+            $address = $_POST['address'] ?? '';
+
+            $pdo = Database::getInstance();
+            $customerModel = new Customer($pdo);
+            $customerModel->update($id, $name, $phone, $address);
+            
+            header('Location: ' . BASE_URL . '/customers');
+            exit;
+        }
+        header('Location: ' . BASE_URL . '/customers');
+    }
 }

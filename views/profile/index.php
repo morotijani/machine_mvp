@@ -9,29 +9,10 @@ ob_start();
         </div>
 
         <div class="row">
-            <div class="col-md-6">
-                <div class="card shadow-sm">
+            <div class="col">
+                <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white fw-bold">
-                        Account Details
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label text-muted">Username</label>
-                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['username']); ?>" readonly disabled>
-                            <div class="form-text">Username cannot be changed.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted">Role</label>
-                            <input type="text" class="form-control text-capitalize" value="<?php echo htmlspecialchars($user['role']); ?>" readonly disabled>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white fw-bold">
-                        Change Password
+                        Edit Profile
                     </div>
                     <div class="card-body">
                         <?php if (isset($error)): ?>
@@ -40,18 +21,44 @@ ob_start();
                         <?php if (isset($success)): ?>
                             <div class="alert alert-success"><?php echo $success; ?></div>
                         <?php endif; ?>
-                        
-                        <form action="<?= BASE_URL ?>/profile/update" method="POST">
+
+                        <form action="<?= BASE_URL ?>/profile/update" method="POST" enctype="multipart/form-data">
+                            <div class="text-center mb-4">
+                                <?php if (!empty($user['profile_image'])): ?>
+                                    <img src="<?= BASE_URL ?>/<?php echo $user['profile_image']; ?>" class="rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
+                                <?php else: ?>
+                                    <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center fw-bold text-secondary mx-auto mb-2" style="width: 100px; height: 100px; font-size: 2rem;">
+                                        <?php echo strtoupper(substr($user['username'], 0, 1)); ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" name="fullname" class="form-control" value="<?php echo htmlspecialchars($user['fullname'] ?? ''); ?>" placeholder="Enter full name">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Profile Picture</label>
+                                <input type="file" name="profile_image" class="form-control" accept="image/*">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Username</label>
+                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['username']); ?>" readonly disabled>
+                            </div>
+                            
+                            <hr class="my-4">
+                            <h6 class="mb-3">Change Password (Optional)</h6>
+                            
                             <div class="mb-3">
                                 <label class="form-label">New Password</label>
-                                <input type="password" name="new_password" class="form-control" required>
+                                <input type="password" name="new_password" class="form-control">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Confirm New Password</label>
-                                <input type="password" name="confirm_password" class="form-control" required>
+                                <input type="password" name="confirm_password" class="form-control">
                             </div>
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">Update Password</button>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
                             </div>
                         </form>
                     </div>

@@ -32,9 +32,13 @@
              <div class="nav-item text-nowrap d-flex align-items-center">
                  <span class="d-none d-md-inline-block me-3 text-secondary"><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></span>
                  <a href="<?= BASE_URL ?>/profile" class="d-block link-dark text-decoration-none" title="My Profile">
-                     <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-weight: bold;">
-                         <?= strtoupper(substr($_SESSION['username'] ?? 'U', 0, 1)) ?>
-                     </div>
+                     <?php if (!empty($_SESSION['profile_image'])): ?>
+                         <img src="<?= BASE_URL ?>/<?= htmlspecialchars($_SESSION['profile_image']) ?>" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                     <?php else: ?>
+                         <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-weight: bold;">
+                             <?= strtoupper(substr($_SESSION['username'] ?? 'U', 0, 1)) ?>
+                         </div>
+                     <?php endif; ?>
                  </a>
              </div>
         </div>

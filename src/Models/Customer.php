@@ -40,4 +40,8 @@ class Customer {
         $stmt->execute(['name' => $name, 'phone' => $phone, 'address' => $address]);
         return $this->pdo->lastInsertId();
     }
+    public function update($id, $name, $phone, $address) {
+        $stmt = $this->pdo->prepare("UPDATE customers SET name = :name, phone = :phone, address = :address WHERE id = :id");
+        return $stmt->execute(['name' => $name, 'phone' => $phone, 'address' => $address, 'id' => $id]);
+    }
 }
