@@ -8,7 +8,7 @@ ob_start();
             <h1 class="h2">Customers</h1>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                    <span class="fs-5">+</span> New Customer
+                    <span class="material-symbols-outlined" style="font-size: 20px;">person_add</span> New Customer
                 </button>
             </div>
         </div>

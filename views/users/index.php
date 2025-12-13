@@ -7,8 +7,8 @@ ob_start();
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
             <h1 class="h2">Manage Users</h1>
             <div class="btn-toolbar mb-2 mb-md-0">
-                <a href="<?= BASE_URL ?>/users/create" class="btn btn-sm btn-primary">
-                    <span class="fs-5">+</span> Not New User
+                <a href="<?= BASE_URL ?>/users/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">add</span> New User
                 </a>
             </div>
         </div>

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $title ?? 'Machine MVP'; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
 </head>
@@ -46,22 +48,22 @@
                     <ul class="nav flex-column nav-flex-column mt-3">
                         <li class="nav-item">
                             <a class="nav-link <?php echo ($_SERVER['REQUEST_URI'] == BASE_URL . '/dashboard') ? 'active' : ''; ?>" href="<?= BASE_URL ?>/dashboard">
-                                <span class="icon">📊</span> Dashboard
+                                <span class="material-symbols-outlined icon">dashboard</span> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/sales') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/sales/create">
-                                <span class="icon">🛒</span> Sales / POS
+                                <span class="material-symbols-outlined icon">point_of_sale</span> Sales / POS
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/items') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/items">
-                                <span class="icon">📦</span> Items / Stock
+                                <span class="material-symbols-outlined icon">inventory_2</span> Items / Stock
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/customers') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/customers">
-                                <span class="icon">👥</span> Customers
+                                <span class="material-symbols-outlined icon">group</span> Customers
                             </a>
                         </li>
                         
@@ -69,12 +71,12 @@
                         <div class="my-2 border-top mx-3"></div>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/users') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/users">
-                                <span class="icon">👤</span> Manage Users
+                                <span class="material-symbols-outlined icon">manage_accounts</span> Manage Users
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/reports') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/reports">
-                                <span class="icon">📈</span> Reports
+                                <span class="material-symbols-outlined icon">bar_chart</span> Reports
                             </a>
                         </li>
                         <?php endif; ?>
@@ -86,13 +88,13 @@
                             <ul class="nav flex-column mb-2">
                                 <li class="nav-item">
                                     <a class="nav-link d-flex align-items-center gap-2 <?php echo (strpos($_SERVER['REQUEST_URI'], '/profile') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/profile">
-                                        <span class="icon">⚙️</span>
+                                        <span class="material-symbols-outlined icon">settings</span>
                                         Settings
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link d-flex align-items-center gap-2 text-danger" href="<?= BASE_URL ?>/logout">
-                                        <span class="icon">🚪</span>
+                                        <span class="material-symbols-outlined icon">logout</span>
                                         Sign out
                                     </a>
                                 </li>

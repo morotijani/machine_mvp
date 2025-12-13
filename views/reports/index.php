@@ -63,7 +63,7 @@ ob_start();
                                 <td class="text-end">
                                     <?php 
                                         $growth = $row['growth'];
-                                        $icon = ($growth >= 0) ? 'fa-arrow-up' : 'fa-arrow-down'; // Just placeholder icons logic if fontawesome existed
+                                        $icon = ($growth >= 0) ? 'trending_up' : 'trending_down'; 
                                         $badgeClass = ($growth >= 0) ? 'bg-success' : 'bg-danger';
                                         
                                         if ($row['last_year'] == 0 && $row['current_year'] > 0) {
@@ -71,7 +71,7 @@ ob_start();
                                         } elseif ($row['last_year'] == 0 && $row['current_year'] == 0) {
                                             echo '<span class="text-muted">-</span>';
                                         } else {
-                                            echo '<span class="badge '.$badgeClass.'">' . number_format($growth, 1) . '%</span>';
+                                            echo '<span class="badge '.$badgeClass.' d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size: 14px;">'.$icon.'</span> ' . number_format($growth, 1) . '%</span>';
                                         }
                                     ?>
                                 </td>

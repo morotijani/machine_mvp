@@ -10,7 +10,7 @@ ob_start();
                 <?php if ($_SESSION['role'] === 'admin'): ?>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                        <span class="fs-5">+</span> Add New Item
+                        <span class="material-symbols-outlined" style="font-size: 20px;">add</span> Add New Item
                     </a>
                 </div>
                 <?php endif; ?>
