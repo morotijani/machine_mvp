@@ -54,6 +54,11 @@ $profileController = new \App\Controllers\ProfileController();
 $router->get('/profile', [$profileController, 'index']);
 $router->post('/profile/update', [$profileController, 'update']);
 
+// Company Settings (Admin)
+$settingController = new \App\Controllers\SettingController();
+$router->get('/settings', [$settingController, 'index']);
+$router->post('/settings/update', [$settingController, 'update']);
+
 // Items
 $itemController = new ItemController();
 $router->get('/items', [$itemController, 'index']);

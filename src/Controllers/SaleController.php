@@ -98,6 +98,10 @@ class SaleController {
         $stmt->execute(['sid' => $id]);
         $payments = $stmt->fetchAll();
 
+        // Fetch Settings
+        $settingModel = new \App\Models\Setting($pdo);
+        $settings = $settingModel->get();
+
         require __DIR__ . '/../../views/sales/view.php';
     }
 

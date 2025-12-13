@@ -83,6 +83,11 @@
                                 <span class="material-symbols-outlined icon">bar_chart</span> Reports
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/settings') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/settings">
+                                <span class="material-symbols-outlined icon">admin_panel_settings</span> Company Settings
+                            </a>
+                        </li>
                         <?php endif; ?>
 
                         <li class="nav-item mt-3">
