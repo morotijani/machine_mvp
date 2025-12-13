@@ -3,7 +3,7 @@
     ob_start();
 ?>
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-10">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
             <h1 class="h2">Dashboard</h1>
             <!-- <div class="btn-toolbar mb-2 mb-md-0">
@@ -21,7 +21,7 @@
         <div class="row mt-4">
             <!-- Stat Cards -->
             <div class="col-md-4 mb-4">
-                <div class="card p-3 h-100 border-primary border-start border-4 shadow-sm">
+                <div class="card p-3 h-100 bg-primary-subtle">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="text-muted text-uppercase small fw-bold mb-0">Daily Sales</h6>
                         <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill"><?php echo date('M d'); ?></span>
@@ -30,7 +30,7 @@
                 </div>
             </div>
             <div class="col-md-4 mb-4">
-                <div class="card p-3 h-100 border-danger border-start border-4 shadow-sm">
+                <div class="card p-3 h-100 bg-danger-subtle">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="text-muted text-uppercase small fw-bold mb-0">Total Outstanding Debt</h6>
                         <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">Action Needed</span>
@@ -40,7 +40,7 @@
                 </div>
             </div>
             <div class="col-md-4 mb-4">
-                <div class="card p-3 h-100 border-warning border-start border-4 shadow-sm">
+                <div class="card p-3 h-100 bg-warning-subtle">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="text-muted text-uppercase small fw-bold mb-0">Low Stock Items</h6>
                         <span class="badge bg-warning bg-opacity-10 text-dark rounded-pill">Alert</span>

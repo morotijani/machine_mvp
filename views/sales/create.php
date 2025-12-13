@@ -16,9 +16,7 @@ ob_start();
             <!-- Left Column: Item Selection -->
             <div class="col-md-7">
                 <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-white">
-                        <input type="text" id="itemSearch" class="form-control" placeholder="Search items by name or SKU...">
-                    </div>
+                    <!-- Removed Local Search Header -->
                     <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
                         <div class="list-group list-group-flush" id="itemList">
                             <?php foreach ($items as $item): ?>
@@ -110,20 +108,33 @@ ob_start();
 const items = <?php echo json_encode($items); ?>;
 const cart = [];
 
-document.getElementById('itemSearch').addEventListener('input', function(e) {
-    const term = e.target.value.toLowerCase();
-    const rows = document.querySelectorAll('.item-row');
-    rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        if (text.includes(term)) {
-            row.classList.remove('d-none');
-            row.classList.add('d-flex');
-        } else {
-            row.classList.remove('d-flex');
-            row.classList.add('d-none');
-        }
+// GLOBAL SEARCH INTEGRATION
+const globalSearch = document.getElementById('globalSearch');
+if (globalSearch) {
+    globalSearch.focus(); // Focus on load
+    globalSearch.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('.item-row');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            if (text.includes(term)) {
+                row.classList.remove('d-none');
+                row.classList.add('d-flex');
+            } else {
+                row.classList.remove('d-flex');
+                row.classList.add('d-none');
+            }
+        });
     });
+}
+// End Global Search Integration
+
+/* Old event listener was here */
+/*
+document.getElementById('itemSearch').addEventListener('input', function(e) {
+    ...
 });
+*/
 
 document.getElementById('itemList').addEventListener('click', function(e) {
     const btn = e.target.closest('.item-row');
