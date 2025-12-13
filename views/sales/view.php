@@ -178,7 +178,7 @@ ob_start();
                 <p>Thank you for your business!</p>
                 <span style="font-size: 12px;">Printed on: <?php echo date('M j, Y H:i'); ?></span>
                 <br>
-                <span style="font-size: 10px;"><?= htmlspecialchars($settings['company_name']) ?> | POS System</span>
+                <span style="font-size: 10px;">Mijma Inc. | POS System</span>
             </div>
         </div>
     </div>
