@@ -125,10 +125,12 @@ document.querySelectorAll('.item-row').forEach(btn => {
         const id = btn.dataset.id;
         const name = btn.dataset.name;
         const price = parseFloat(btn.dataset.price);
-        const stock = parseInt(btn.dataset.stock);
+        let stock = parseInt(btn.dataset.stock);
+        if (isNaN(stock)) stock = 0;
 
+        // Visual feedback for debugging or user clarity
         if(stock <= 0) {
-            alert('Out of stock!');
+            alert('Item is Out of Stock!');
             return;
         }
 
