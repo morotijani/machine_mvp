@@ -12,7 +12,7 @@ ob_start();
         </div>
 
         <div class="row">
-            <div class="col-md-8">
+            <div class="col">
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <form action="<?= BASE_URL ?>/items/create" method="POST" enctype="multipart/form-data">
@@ -59,7 +59,7 @@ ob_start();
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Location</label>
-                                    <input type="text" name="location" class="form-control" placeholder="Office, Warehouse A..." required>
+                                    <input type="text" name="location" class="form-control" placeholder="Office, Warehouse A..." value="Warehouse A" required>
                                 </div>
                             </div>
 

@@ -12,7 +12,7 @@ ob_start();
         </div>
 
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-10">
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <form action="<?= BASE_URL ?>/items/edit?id=<?php echo $item['id']; ?>" method="POST" enctype="multipart/form-data">
@@ -64,7 +64,7 @@ ob_start();
                                 </div>
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-3 p-4">
                                 <label class="form-label fw-bold">Item Image</label>
                                 <input type="file" name="image" class="form-control" accept="image/*" onchange="previewImage(this)">
                                 
@@ -78,7 +78,7 @@ ob_start();
                                 </div>
                             </div>
 
-                            <div class="d-flex justify-content-end mt-3">
+                            <div class="d-flex justify-content-end mt-3 mb-4 p-4">
                                 <a href="<?= BASE_URL ?>/items" class="btn btn-outline-secondary me-2">Cancel</a>
                                 <button type="submit" class="btn btn-primary px-4">Update Item</button>
                             </div>
