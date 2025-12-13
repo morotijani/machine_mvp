@@ -29,7 +29,24 @@ class ItemController {
                 'cost_price' => $_POST['cost_price'],
                 'quantity' => $_POST['quantity'],
                 'location' => $_POST['location'],
+                'image_path' => null,
             ];
+
+            // Handle Image Upload
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = __DIR__ . '/../../public/uploads/items/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                
+                $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $filename = uniqid('item_') . '.' . $extension;
+                $targetFile = $uploadDir . $filename;
+                
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+                    $data['image_path'] = 'uploads/items/' . $filename;
+                }
+            }
 
             $pdo = Database::getInstance();
             $itemModel = new Item($pdo);

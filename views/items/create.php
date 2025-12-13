@@ -14,7 +14,7 @@ ob_start();
     <div class="col-md-8">
         <div class="card shadow-sm">
             <div class="card-body">
-                <form action="<?= BASE_URL ?>/items/create" method="POST">
+                <form action="<?= BASE_URL ?>/items/create" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Item Name</label>
                         <input type="text" name="name" class="form-control" required>
@@ -62,10 +62,32 @@ ob_start();
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Item Image (Optional)</label>
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="previewImage(this)">
+                        <div class="mt-2">
+                            <img id="imagePreview" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; display: none; border-radius: 8px;">
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end mt-3">
                         <button type="submit" class="btn btn-primary px-4">Save Item</button>
                     </div>
                 </form>
+
+                <script>
+                function previewImage(input) {
+                    if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            var img = document.getElementById('imagePreview');
+                            img.src = e.target.result;
+                            img.style.display = 'block';
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+                </script>
             </div>
         </div>
     </div>

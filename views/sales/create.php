@@ -25,9 +25,16 @@ ob_start();
                         data-name="<?php echo htmlspecialchars($item['name']); ?>" 
                         data-price="<?php echo $item['price']; ?>"
                         data-stock="<?php echo $item['quantity']; ?>">
-                        <div>
-                            <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
-                            <small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?> | Stock: <?php echo $item['quantity']; ?></small>
+                        <div class="d-flex align-items-center">
+                            <?php if (!empty($item['image_path'])): ?>
+                                <img src="<?= BASE_URL ?>/<?php echo $item['image_path']; ?>" alt="Item" class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                            <?php else: ?>
+                                <div class="rounded me-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary small" style="width: 40px; height: 40px;">Img</div>
+                            <?php endif; ?>
+                            <div>
+                                <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
+                                <small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?> | Stock: <?php echo $item['quantity']; ?></small>
+                            </div>
                         </div>
                         <span class="badge bg-primary rounded-pill">$<?php echo number_format($item['price'], 2); ?></span>
                     </button>
@@ -145,6 +152,17 @@ function renderCart() {
             <td><input type="number" class="form-control form-control-sm qty-input" min="1" max="${item.max}" value="${item.quantity}" data-index="${index}"></td>
             <td class="text-end">$${lineTotal.toFixed(2)}</td>
             <td class="text-end"><button class="btn btn-sm btn-link text-danger remove-btn" data-index="${index}">&times;</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('cartTotal').textContent = '$' + total.toFixed(2);
+    document.getElementById('payAmount').value = total.toFixed(2);
+}
+
+document.getElementById('cartTableBody').addEventListener('change', (e) => {
+    if (e.target.classList.contains('qty-input')) {
+        const idx = e.target.dataset.index;
         let val = parseInt(e.target.value);
         if (val < 1) val = 1;
         if (val > cart[idx].max) {

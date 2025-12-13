@@ -22,8 +22,8 @@ class Item {
     }
 
     public function create($data) {
-        $sql = "INSERT INTO items (name, category, sku, unit, price, cost_price, quantity, location) 
-                VALUES (:name, :category, :sku, :unit, :price, :cost_price, :quantity, :location)";
+        $sql = "INSERT INTO items (name, category, sku, unit, price, cost_price, quantity, location, image_path) 
+                VALUES (:name, :category, :sku, :unit, :price, :cost_price, :quantity, :location, :image_path)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($data);
         return $this->pdo->lastInsertId();

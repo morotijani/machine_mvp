@@ -18,7 +18,8 @@ $router = new Router();
 
 // Define Base URL for subfolder support
 $scriptName = dirname($_SERVER['SCRIPT_NAME']);
-$baseUrl = ($scriptName === '/' || $scriptName === '\\') ? '' : $scriptName;
+$scriptName = str_replace('\\', '/', $scriptName); // Normalize slashes for Windows
+$baseUrl = ($scriptName === '/') ? '' : $scriptName;
 define('BASE_URL', $baseUrl);
 
 // Routes

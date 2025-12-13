@@ -20,6 +20,7 @@ ob_start();
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
+                        <th style="width: 60px;">Image</th>
                         <th>Name</th>
                         <th>Category</th>
                         <th>SKU</th>
@@ -34,6 +35,13 @@ ob_start();
                 <tbody>
                     <?php foreach ($items as $item): ?>
                     <tr>
+                        <td>
+                            <?php if (!empty($item['image_path'])): ?>
+                                <img src="<?= BASE_URL ?>/<?php echo $item['image_path']; ?>" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                            <?php else: ?>
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted small" style="width: 40px; height: 40px;">No Img</div>
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
                         </td>
@@ -58,7 +66,7 @@ ob_start();
                     
                     <?php if (empty($items)): ?>
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">No items found.</td>
+                        <td colspan="8" class="text-center py-4 text-muted">No items found.</td>
                     </tr>
                     <?php endif; ?>
                 </tbody>
