@@ -3,103 +3,108 @@ $title = "New Sale (POS)";
 ob_start();
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">New Sale</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="<?= BASE_URL ?>/sales" class="btn btn-sm btn-outline-secondary">History</a>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Left Column: Item Selection -->
-    <div class="col-md-7">
-        <div class="card shadow-sm mb-3">
-            <div class="card-header bg-white">
-                <input type="text" id="itemSearch" class="form-control" placeholder="Search items by name or SKU...">
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+            <h1 class="h2">New Sale</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a href="<?= BASE_URL ?>/sales" class="btn btn-sm btn-outline-secondary">History</a>
             </div>
-            <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                <div class="list-group list-group-flush" id="itemList">
-                    <?php foreach ($items as $item): ?>
-                    <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center item-row" 
-                        data-id="<?php echo $item['id']; ?>" 
-                        data-name="<?php echo htmlspecialchars($item['name']); ?>" 
-                        data-price="<?php echo $item['price']; ?>"
-                        data-stock="<?php echo $item['quantity']; ?>">
-                        <div class="d-flex align-items-center">
-                            <?php if (!empty($item['image_path'])): ?>
-                                <img src="<?= BASE_URL ?>/<?php echo $item['image_path']; ?>" alt="Item" class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
-                            <?php else: ?>
-                                <div class="rounded me-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary small" style="width: 40px; height: 40px;">Img</div>
-                            <?php endif; ?>
-                            <div>
-                                <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
-                                <small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?> | Stock: <?php echo $item['quantity']; ?></small>
+        </div>
+
+        <div class="row">
+            <!-- Left Column: Item Selection -->
+            <div class="col-md-7">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white">
+                        <input type="text" id="itemSearch" class="form-control" placeholder="Search items by name or SKU...">
+                    </div>
+                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                        <div class="list-group list-group-flush" id="itemList">
+                            <?php foreach ($items as $item): ?>
+                            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center item-row" 
+                                data-id="<?php echo $item['id']; ?>" 
+                                data-name="<?php echo htmlspecialchars($item['name']); ?>" 
+                                data-price="<?php echo $item['price']; ?>"
+                                data-stock="<?php echo $item['quantity']; ?>">
+                                <div class="d-flex align-items-center">
+                                    <?php if (!empty($item['image_path'])): ?>
+                                        <img src="<?= BASE_URL ?>/<?php echo $item['image_path']; ?>" alt="Item" class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <?php else: ?>
+                                        <div class="rounded me-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary small" style="width: 40px; height: 40px;">Img</div>
+                                    <?php endif; ?>
+                                    <div>
+                                        <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
+                                        <small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?> | Stock: <?php echo $item['quantity']; ?></small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">₵<?php echo number_format($item['price'], 2); ?></span>
+                            </button>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Cart -->
+            <div class="col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Current Order</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Customer</label>
+                            <div class="input-group">
+                                <select id="customerSelect" class="form-select">
+                                    <option value="">-- Select Customer --</option>
+                                    <?php foreach ($customers as $cx): ?>
+                                    <option value="<?php echo $cx['id']; ?>"><?php echo htmlspecialchars($cx['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button class="btn btn-outline-primary" type="button" onclick="location.href='<?= BASE_URL ?>/customers'">+</button>
                             </div>
                         </div>
-                        <span class="badge bg-primary rounded-pill">₵<?php echo number_format($item['price'], 2); ?></span>
-                    </button>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Right Column: Cart -->
-    <div class="col-md-5">
-        <div class="card shadow-sm">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Current Order</h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">Customer</label>
-                    <div class="input-group">
-                        <select id="customerSelect" class="form-select">
-                            <option value="">-- Select Customer --</option>
-                            <?php foreach ($customers as $cx): ?>
-                            <option value="<?php echo $cx['id']; ?>"><?php echo htmlspecialchars($cx['name']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <button class="btn btn-outline-primary" type="button" onclick="location.href='<?= BASE_URL ?>/customers'">+</button>
-                    </div>
-                </div>
-
-                <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th style="width: 70px;">Qty</th>
-                                <th class="text-end">Total</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="cartTableBody">
-                            <!-- JS will populate -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="border-top pt-2">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="fw-bold">Total:</span>
-                        <span class="fw-bold fs-5" id="cartTotal">₵0.00</span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount Paid</label>
-                        <div class="input-group">
-                            <input type="number" id="payAmount" class="form-control" step="0.01" value="0.00">
-                            <button class="btn btn-outline-warning" type="button" id="btnPayLater" title="Mark as Credit / Pay Later">Pay Later</button>
+                        <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th style="width: 70px;">Qty</th>
+                                        <th class="text-end">Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cartTableBody">
+                                    <!-- JS will populate -->
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                    <div class="d-grid">
-                        <button id="btnCompleteSale" class="btn btn-success btn-lg">Complete Sale & Print</button>
+
+                        <div class="border-top pt-2">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">Total:</span>
+                                <span class="fw-bold fs-5" id="cartTotal">₵0.00</span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Amount Paid</label>
+                                <div class="input-group">
+                                    <input type="number" id="payAmount" class="form-control" step="0.01" value="0.00">
+                                    <button class="btn btn-outline-warning" type="button" id="btnPayLater" title="Mark as Credit / Pay Later">Pay Later</button>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button id="btnCompleteSale" class="btn btn-success btn-lg">Complete Sale & Print</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 
 <script>
 const items = <?php echo json_encode($items); ?>;

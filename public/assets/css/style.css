@@ -1,5 +1,5 @@
   /* Import Google Fonts */
-  @import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Roboto:wght@300;400;500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
   :root {
     --md-sys-color-primary: #1a73e8;
@@ -16,8 +16,14 @@
     --md-sys-color-on-surface: #202124;
     --md-sys-color-outline: #dadce0;
     --md-font-family: 'Google Sans Flex',
+      'Google Sans',
+      'Product Sans',
       'Roboto Flex',
       'Roboto',
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
       sans-serif;
     --md-nav-width: 280px;
   }
@@ -130,7 +136,8 @@
 
   @media (max-width: 767.98px) {
     .sidebar {
-      top: 5rem;
+      top: 3.5rem;
+      /* Smoother transition */
     }
   }
 
@@ -158,11 +165,13 @@
     color: #3c4043;
     font-weight: 500;
     font-size: 14px;
-    padding: 10px 12px 10px 26px;
+    padding: 12px 12px 12px 26px;
+    /* Increased padding */
     /* Specific indent */
     border-radius: 0 50px 50px 0;
     /* Bullet shape on right */
-    margin-right: 0;
+    margin-right: 16px;
+    /* Separation from edge */
     display: flex;
     align-items: center;
     transition: background-color 0.1s;
@@ -188,15 +197,44 @@
   /* Main Content Area */
   main {
     margin-left: var(--md-nav-width);
-    /* Align with sidebar width */
-    padding-top: 2rem;
+    padding-top: 3rem;
+    /* More top exhale room */
+    max-width: 1000px;
+    /* Constrain width */
+    margin-inline: auto;
+    /* Center content */
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 
-  /* Card overrides for Dashboard */
+  /* Center the container helper */
+  .container-fluid {
+    /* For dashboard layout, we might want to let main handle the centering */
+    max-width: 100%;
+  }
+
+  /* Card overrides for Google Style */
   .card {
     border: 1px solid #dadce0;
-    border-radius: 8px;
+    border-radius: 24px;
+    /* Matches Google Account */
     box-shadow: none;
+    overflow: hidden;
+    /* Clean corners */
+    margin-bottom: 24px;
+  }
+
+  .card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #f1f3f4;
+    /* Subtle divider */
+    padding: 20px 24px;
+    /* More breathing room */
+    font-size: 1.1rem;
+  }
+
+  .card-body {
+    padding: 24px;
   }
 
   .card-header {
