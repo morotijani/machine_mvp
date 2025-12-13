@@ -39,6 +39,15 @@ class ProfileController {
 
                 // Handle Image Upload
                 if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                    
+                    // Delete old image if exists
+                    if (!empty($user['profile_image'])) {
+                        $oldImagePath = __DIR__ . '/../../public/' . $user['profile_image'];
+                        if (file_exists($oldImagePath)) {
+                            unlink($oldImagePath);
+                        }
+                    }
+
                     $uploadDir = __DIR__ . '/../../public/uploads/profiles/';
                     if (!is_dir($uploadDir)) {
                         mkdir($uploadDir, 0777, true);

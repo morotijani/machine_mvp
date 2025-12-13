@@ -88,7 +88,16 @@ class ItemController {
             ];
 
              // Handle Image Upload
+            // Handle Image Upload
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                // Delete old image if exists
+                if (!empty($item['image_path'])) {
+                    $oldImagePath = __DIR__ . '/../../public/' . $item['image_path'];
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+
                 $uploadDir = __DIR__ . '/../../public/uploads/items/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
