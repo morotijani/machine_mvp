@@ -86,13 +86,90 @@ class Sale {
         }
     }
 
-    public function getAll() {
+    public function getAll($filters = [], $page = 1, $limit = 20) {
+        $offset = ($page - 1) * $limit;
+        $params = [];
+        $where = ["1=1"];
+
+        if (!empty($filters['search'])) {
+            $term = $filters['search'];
+            $where[] = "(s.id = :search OR c.name LIKE :searchLike)";
+            $params['search'] = $term; // For exact ID match if numeric
+            $params['searchLike'] = "%$term%";
+        }
+
+        if (!empty($filters['start_date'])) {
+            $where[] = "DATE(s.created_at) >= :start_date";
+            $params['start_date'] = $filters['start_date'];
+        }
+
+        if (!empty($filters['end_date'])) {
+            $where[] = "DATE(s.created_at) <= :end_date";
+            $params['end_date'] = $filters['end_date'];
+        }
+
+        if (!empty($filters['status']) && $filters['status'] !== 'all') {
+            $where[] = "s.payment_status = :status";
+            $params['status'] = $filters['status'];
+        }
+
+        $whereSql = implode(" AND ", $where);
+
         $sql = "SELECT s.*, c.name as customer_name, u.username as seller_name 
                 FROM sales s 
                 LEFT JOIN customers c ON s.customer_id = c.id 
                 JOIN users u ON s.user_id = u.id 
-                ORDER BY s.created_at DESC";
-        return $this->pdo->query($sql)->fetchAll();
+                WHERE $whereSql
+                ORDER BY s.created_at DESC
+                LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function countAll($filters = []) {
+        $params = [];
+        $where = ["1=1"];
+
+        if (!empty($filters['search'])) {
+            $term = $filters['search'];
+            $where[] = "(s.id = :search OR c.name LIKE :searchLike)";
+            $params['search'] = $term;
+            $params['searchLike'] = "%$term%";
+        }
+
+        if (!empty($filters['start_date'])) {
+            $where[] = "DATE(s.created_at) >= :start_date";
+            $params['start_date'] = $filters['start_date'];
+        }
+
+        if (!empty($filters['end_date'])) {
+            $where[] = "DATE(s.created_at) <= :end_date";
+            $params['end_date'] = $filters['end_date'];
+        }
+
+        if (!empty($filters['status']) && $filters['status'] !== 'all') {
+            $where[] = "s.payment_status = :status";
+            $params['status'] = $filters['status'];
+        }
+
+        $whereSql = implode(" AND ", $where);
+
+        $sql = "SELECT COUNT(*) 
+                FROM sales s 
+                LEFT JOIN customers c ON s.customer_id = c.id 
+                WHERE $whereSql";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchColumn();
     }
 
     public function getById($id) {

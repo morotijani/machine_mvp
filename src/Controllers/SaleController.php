@@ -14,7 +14,28 @@ class SaleController {
         AuthMiddleware::requireLogin();
         $pdo = Database::getInstance();
         $saleModel = new Sale($pdo);
-        $sales = $saleModel->getAll();
+        
+        // Filters
+        $filters = [
+            'search' => $_GET['search'] ?? '',
+            'start_date' => $_GET['start_date'] ?? '',
+            'end_date' => $_GET['end_date'] ?? '',
+            'status' => $_GET['status'] ?? 'all'
+        ];
+
+        // Pagination
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = 20;
+
+        $totalRecords = $saleModel->countAll($filters);
+        $totalPages = ceil($totalRecords / $limit);
+        
+        // Ensure page is valid
+        if ($page < 1) $page = 1;
+        if ($page > $totalPages && $totalPages > 0) $page = $totalPages;
+
+        $sales = $saleModel->getAll($filters, $page, $limit);
+        
         require __DIR__ . '/../../views/sales/index.php';
     }
 

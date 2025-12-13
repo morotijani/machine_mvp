@@ -13,6 +13,39 @@ ob_start();
             </div>
         </div>
 
+        <!-- Search & Filter Form -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-body py-3">
+                <form action="<?= BASE_URL ?>/sales" method="GET" class="row g-2 align-items-center">
+                    <div class="col-md-3">
+                        <input type="text" name="search" class="form-control" placeholder="Search Invoice # or Customer" value="<?php echo htmlspecialchars($filters['search']); ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" name="start_date" class="form-control" placeholder="Start Date" value="<?php echo htmlspecialchars($filters['start_date']); ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" name="end_date" class="form-control" placeholder="End Date" value="<?php echo htmlspecialchars($filters['end_date']); ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-select">
+                            <option value="all" <?php echo $filters['status'] === 'all' ? 'selected' : ''; ?>>All Status</option>
+                            <option value="paid" <?php echo $filters['status'] === 'paid' ? 'selected' : ''; ?>>Paid</option>
+                            <option value="partial" <?php echo $filters['status'] === 'partial' ? 'selected' : ''; ?>>Partial</option>
+                            <option value="unpaid" <?php echo $filters['status'] === 'unpaid' ? 'selected' : ''; ?>>Unpaid</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">filter_list</span> Filter
+                        </button>
+                        <a href="<?= BASE_URL ?>/sales" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">restart_alt</span> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="table-responsive">
@@ -51,19 +84,53 @@ ob_start();
                                 <td class="text-end text-danger"><?php echo ($balance > 0) ? '₵'.number_format($balance, 2) : '-'; ?></td>
                                 <td><small><?php echo htmlspecialchars($sale['seller_name']); ?></small></td>
                                 <td class="text-end">
-                                    <a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="btn btn-sm btn-outline-secondary">View</a>
+                                    <a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span> View
+                                    </a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
 
                             <?php if (empty($sales)): ?>
                             <tr>
-                                <td colspan="9" class="text-center py-4 text-muted">No sales found.</td>
+                                <td colspan="9" class="text-center py-4 text-muted">No sales found matching your criteria.</td>
                             </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                <?php if ($totalPages > 1): ?>
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <?php 
+                            // Helper to build query string
+                            $queryParams = $_GET; 
+                        ?>
+                        
+                        <!-- Previous -->
+                        <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                            <?php $queryParams['page'] = $page - 1; ?>
+                            <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($queryParams); ?>">Previous</a>
+                        </li>
+
+                        <!-- Page Numbers -->
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <li class="page-item <?php echo ($page == $i) ? 'active' : ''; ?>">
+                                <?php $queryParams['page'] = $i; ?>
+                                <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($queryParams); ?>"><?php echo $i; ?></a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <!-- Next -->
+                        <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+                            <?php $queryParams['page'] = $page + 1; ?>
+                            <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($queryParams); ?>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                <?php endif; ?>
             </div>
         </div>
     </div>
