@@ -19,8 +19,7 @@ ob_start();
                     <table class="table table-hover align-middle">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Username</th>
+                                <th>User</th>
                                 <th>Role</th>
                                 <th>Created At</th>
                             </tr>
@@ -28,14 +27,29 @@ ob_start();
                         <tbody>
                             <?php foreach ($users as $user): ?>
                             <tr>
-                                <td>#<?php echo $user['id']; ?></td>
-                                <td><?php echo htmlspecialchars($user['username']); ?></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <?php if (!empty($user['profile_image'])): ?>
+                                            <img src="<?= BASE_URL ?>/<?php echo $user['profile_image']; ?>" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <?php else: ?>
+                                            <div class="rounded-circle me-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center fw-bold text-secondary" style="width: 40px; height: 40px;">
+                                                <?php echo strtoupper(substr($user['username'], 0, 1)); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <div>
+                                            <div class="fw-bold"><?php echo htmlspecialchars($user['fullname'] ?? $user['username']); ?></div>
+                                            <?php if (!empty($user['fullname'])): ?>
+                                                <small class="text-muted">@<?php echo htmlspecialchars($user['username']); ?></small>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>
                                     <span class="badge <?php echo $user['role'] === 'admin' ? 'bg-danger' : 'bg-primary'; ?>">
                                         <?php echo ucfirst($user['role']); ?>
                                     </span>
                                 </td>
-                                <td><?php echo $user['created_at']; ?></td>
+                                <td><?php echo date('M j, Y', strtotime($user['created_at'])); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

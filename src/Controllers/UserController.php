@@ -21,10 +21,34 @@ class UserController {
             $username = $_POST['username'];
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
             $role = $_POST['role'];
+            $fullname = $_POST['fullname'] ?? null;
+            
+            // Handle Profile Image Upload
+            $profileImage = null;
+            if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = __DIR__ . '/../../public/uploads/profiles/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                
+                $fileTmpPath = $_FILES['profile_image']['tmp_name'];
+                $fileName = $_FILES['profile_image']['name'];
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                
+                if (in_array($fileExtension, $allowedExtensions)) {
+                    $newFileName = uniqid('user_') . '.' . $fileExtension;
+                    $destPath = $uploadDir . $newFileName;
+                    
+                    if (move_uploaded_file($fileTmpPath, $destPath)) {
+                        $profileImage = 'uploads/profiles/' . $newFileName;
+                    }
+                }
+            }
             
             $pdo = Database::getInstance();
-            $stmt = $pdo->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-            $stmt->execute([$username, $password, $role]);
+            $stmt = $pdo->prepare("INSERT INTO users (username, password, role, fullname, profile_image) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$username, $password, $role, $fullname, $profileImage]);
             
             header('Location: ' . BASE_URL . '/users');
             exit;

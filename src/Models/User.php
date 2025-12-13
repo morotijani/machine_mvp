@@ -18,19 +18,21 @@ class User {
     }
 
     // Create a new user
-    public function create($username, $password, $role) {
+    public function create($username, $password, $role, $fullname = null, $profileImage = null) {
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->pdo->prepare("INSERT INTO users (username, password, role) VALUES (:username, :password, :role)");
+        $stmt = $this->pdo->prepare("INSERT INTO users (username, password, role, fullname, profile_image) VALUES (:username, :password, :role, :fullname, :image)");
         return $stmt->execute([
             'username' => $username,
             'password' => $hash,
-            'role' => $role
+            'role' => $role,
+            'fullname' => $fullname,
+            'image' => $profileImage
         ]);
     }
 
     // List all users
     public function getAll() {
-        $stmt = $this->pdo->query("SELECT id, username, role, created_at FROM users ORDER BY created_at DESC");
+        $stmt = $this->pdo->query("SELECT id, username, role, fullname, profile_image, created_at FROM users ORDER BY created_at DESC");
         return $stmt->fetchAll();
     }
 

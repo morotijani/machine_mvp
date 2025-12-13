@@ -13,23 +13,31 @@ ob_start();
         </div>
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <form action="<?= BASE_URL ?>/users/create" method="POST">
+                        <form action="<?= BASE_URL ?>/users/create" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" name="fullname" class="form-control" placeholder="John Doe">
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label">Username</label>
-                                <input type="text" name="username" class="form-control" required>
+                                <input type="text" name="username" class="form-control" required placeholder="johndoe">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Profile Picture</label>
+                                <input type="file" name="profile_image" class="form-control" accept="image/*">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" required>
+                                <input type="password" name="password" class="form-control" required placeholder="********">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Role</label>
                                 <select name="role" class="form-select">
-                                    <option value="sales">Sales</option>
-                                    <option value="admin">Admin</option>
+                                    <option value="sales">Sales / Cashier</option>
+                                    <option value="admin">Administrator</option>
                                 </select>
                             </div>
                             <div class="d-grid">
