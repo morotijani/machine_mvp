@@ -110,7 +110,13 @@ document.getElementById('itemSearch').addEventListener('input', function(e) {
     const rows = document.querySelectorAll('.item-row');
     rows.forEach(row => {
         const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(term) ? '' : 'none';
+        if (text.includes(term)) {
+            row.classList.remove('d-none');
+            row.classList.add('d-flex');
+        } else {
+            row.classList.remove('d-flex');
+            row.classList.add('d-none');
+        }
     });
 });
 
