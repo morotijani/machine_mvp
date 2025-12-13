@@ -8,12 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="bg-light" style="padding-top: 0px;">
     <div class="auth-wrapper">
         <div class="auth-card">
             <div class="text-center mb-4">
-                <!-- Google G Logo SVG -->
-                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 48 48" class="mb-3">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 48 48" class="mb-2">
                     <g>
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
                         <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
@@ -23,11 +22,11 @@
                     </g>
                 </svg>
                 <h2 class="auth-title">Sign in</h2>
-                <p class="auth-subtitle">with your Machine MVP Admin Account</p>
+                <p class="auth-subtitle mb-4">to continue to Machine MVP</p>
             </div>
 
             <?php if (isset($error)): ?>
-                <div class="alert alert-danger py-2" style="font-size: 14px;"><?php echo $error; ?></div>
+                <div class="alert alert-danger py-2 mb-3" style="font-size: 14px; border-radius: 4px;"><?php echo $error; ?></div>
             <?php endif; ?>
 
             <form action="<?= BASE_URL ?>/login" method="POST">
@@ -40,21 +39,21 @@
                     <label for="passwordInput">Password</label>
                 </div>
                 
-                <div class="d-flex justify-content-end align-items-center mt-5">
-                    <!-- <a href="#" class="text-decoration-none text-primary fw-medium" style="font-size: 14px;">Forgot password?</a> -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <a href="#" class="text-decoration-none text-primary fw-medium" style="font-size: 14px; opacity: 0; pointer-events: none;">Forgot password?</a> 
                     <button type="submit" class="btn btn-primary px-4 py-2 fw-medium">Next</button>
                 </div>
             </form>
         </div>
         
-        <div class="auth-footer mt-4">
-             <div class="text-muted small">English (United States)</div>
-             <div class="text-muted small">
-                 <span class="mx-2">Help</span>
-                 <span class="mx-2">Privacy</span>
-                 <span class="mx-2">Terms</span>
+        <!-- <div class="auth-footer mt-3 d-flex justify-content-between" style="max-width: 450px; font-size: 12px;">
+             <div class="text-muted">English (United States)</div>
+             <div class="text-muted">
+                 <span class="ms-3 cursor-pointer">Help</span>
+                 <span class="ms-3 cursor-pointer">Privacy</span>
+                 <span class="ms-3 cursor-pointer">Terms</span>
              </div>
-        </div>
+        </div> -->
     </div>
 </body>
 </html>
