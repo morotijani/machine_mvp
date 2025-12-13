@@ -28,9 +28,15 @@ class AuthController {
                 exit;
             } else {
                 $error = "Invalid username or password";
+                $pdo = Database::getInstance();
+                $settingModel = new \App\Models\Setting($pdo);
+                $settings = $settingModel->get();
                 require __DIR__ . '/../../views/auth/login.php';
             }
         } else {
+            $pdo = Database::getInstance();
+            $settingModel = new \App\Models\Setting($pdo);
+            $settings = $settingModel->get();
             require __DIR__ . '/../../views/auth/login.php';
         }
     }

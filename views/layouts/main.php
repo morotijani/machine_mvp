@@ -1,9 +1,19 @@
+<?php
+    if (!isset($settings)) {
+        $pdo = \App\Config\Database::getInstance();
+        $settingModel = new \App\Models\Setting($pdo);
+        $settings = $settingModel->get();
+    }
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $title ?? 'Machine MVP'; ?></title>
+    <title><?php echo $settings['company_name'] ?? ($title ?? 'Machine MVP'); ?></title>
+    <?php if (!empty($settings['company_logo'])): ?>
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>">
+    <?php endif; ?>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <!-- Material Symbols -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
