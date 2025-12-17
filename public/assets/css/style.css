@@ -264,13 +264,39 @@
   }
 
   /* Main Content Area */
+  /* Main Content Area */
   main {
-    margin-left: var(--md-nav-width);
-    /* More top exhale room */
-    /* Constrain width */
-    /* Center content */
-    /* padding-left: 2rem; */
-    /* padding-right: 2rem; */
+    /* Default for mobile: no margin */
+    margin-left: 0;
+    padding-top: 1rem;
+  }
+
+  /* Desktop Styles */
+  @media (min-width: 768px) {
+    main {
+      margin-left: 256px; /* Match sidebar width */
+      padding-top: 1.5rem;
+    }
+    
+    .sidebar {
+      top: 64px;
+      height: calc(100vh - 64px);
+    }
+  }
+
+  /* Mobile Sidebar Styles */
+  @media (max-width: 767.98px) {
+    .sidebar {
+      top: 64px; /* Below navbar */
+      width: 100%; /* Full width or fixed width like 256px */
+      max-width: 280px;
+      height: calc(100vh - 64px);
+      background-color: #fff; /* Ensure it has background */
+      box-shadow: 4px 0 24px rgba(0,0,0,0.1); /* Add shadow for depth */
+      border-right: 1px solid #dadce0;
+    }
+    
+    /* When expanded, it will just overlay because of position: fixed from base class */
   }
 
   /* Center the container helper */
