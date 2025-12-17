@@ -16,10 +16,16 @@ ob_start();
     .invoice-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
     .header-title { font-size: 2rem; font-weight: bold; color: #333; }
     .cancel-watermark {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
-        font-size: 5rem; color: rgba(255, 0, 0, 0.2); border: 5px solid rgba(255, 0, 0, 0.2);
-        padding: 10px 40px; border-radius: 10px; pointer-events: none;
+        position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 5rem; font-weight: bold; border: 8px solid;
+        padding: 5px 30px; border-radius: 10px; pointer-events: none;
+        opacity: 0.25; z-index: 0; font-family: 'Courier New', Courier, monospace;
+        text-transform: uppercase;
+        letter-spacing: 5px;
     }
+    .watermark-red { color: #dc3545; border-color: #dc3545; }
+    .watermark-green { color: #198754; border-color: #198754; } /* Success Green */
+    .watermark-yellow { color: #ffca2c; border-color: #ffca2c; } /* Warning Yellow */
 </style>
 
 <div class="row justify-content-center">
@@ -40,7 +46,13 @@ ob_start();
 
         <div class="invoice-card position-relative">
             <?php if (!empty($sale['voided'])): ?>
-                <div class="cancel-watermark">VOIDED</div>
+                <div class="cancel-watermark watermark-red">VOIDED</div>
+            <?php elseif ($sale['payment_status'] === 'paid'): ?>
+                <div class="cancel-watermark watermark-green">PAID</div>
+            <?php elseif ($sale['payment_status'] === 'partial'): ?>
+                <div class="cancel-watermark watermark-yellow">PARTIAL</div>
+            <?php else: ?>
+                <div class="cancel-watermark watermark-red">UNPAID</div>
             <?php endif; ?>
 
             <!-- Header -->
