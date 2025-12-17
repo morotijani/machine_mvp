@@ -81,6 +81,8 @@ $saleController = new SaleController();
 $router->get('/sales', [$saleController, 'index']);
 $router->get('/sales/create', [$saleController, 'create']);
 $router->post('/sales/create', [$saleController, 'create']);
+$router->post('/sales/request-delete', [$saleController, 'requestDelete']);
+$router->post('/sales/process-delete', [$saleController, 'processDeleteRequest']);
 $router->get('/sales/view', [$saleController, 'view']);
 $router->post('/sales/pay', [$saleController, 'pay']);
 

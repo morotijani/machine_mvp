@@ -3,7 +3,7 @@ $title = "Sales History";
 ob_start();
 ?>
 <div class="row justify-content-center">
-    <div class="col-md-10">
+    <div class="col-md-12">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
             <h1 class="h2">Sales History</h1>
             <div class="btn-toolbar mb-2 mb-md-0">
@@ -14,8 +14,8 @@ ob_start();
         </div>
 
         <!-- Search & Filter Form -->
-        <div class="card shadow-sm mb-3">
-            <div class="card-body py-3">
+        <div class="card shadow-sm mb-3" style="overflow-x: auto;">
+            <div class="card-body py-3" style="max-width: 1200px;">
                 <form action="<?= BASE_URL ?>/sales" method="GET" class="row g-2 align-items-center">
                     <div class="col-md-3">
                         <input type="text" name="search" class="form-control" placeholder="Search Invoice # or Customer" value="<?php echo htmlspecialchars($filters['search']); ?>">
@@ -34,7 +34,15 @@ ob_start();
                             <option value="unpaid" <?php echo $filters['status'] === 'unpaid' ? 'selected' : ''; ?>>Unpaid</option>
                         </select>
                     </div>
-                    <div class="col-md-3 d-flex gap-2">
+                    <?php if ($_SESSION['role'] === 'admin'): ?>
+                    <div class="col-md-2">
+                         <select name="delete_request" class="form-select">
+                            <option value="" <?php echo $filters['delete_request'] === '' ? 'selected' : ''; ?>>All Requests</option>
+                            <option value="pending" <?php echo $filters['delete_request'] === 'pending' ? 'selected' : ''; ?>>Pending Deletes</option>
+                        </select>
+                    </div>
+                    <?php endif; ?>
+                    <div class="col-md-<?php echo ($_SESSION['role'] === 'admin') ? '1' : '3'; ?> d-flex gap-2">
                         <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
                             <span class="material-symbols-outlined" style="font-size: 18px;">filter_list</span> Filter
                         </button>
@@ -84,9 +92,34 @@ ob_start();
                                 <td class="text-end text-danger"><?php echo ($balance > 0) ? '₵'.number_format($balance, 2) : '-'; ?></td>
                                 <td><small><?php echo htmlspecialchars($sale['seller_name']); ?></small></td>
                                 <td class="text-end">
-                                    <a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                                    <a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="btn btn-sm btn-outline-secondary">
                                         <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span> View
                                     </a>
+                                    
+                                    <?php if ($sale['voided']): ?>
+                                        <span class="badge bg-dark">Voided</span>
+                                    <?php elseif ($sale['delete_request_status'] === 'pending'): ?>
+                                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                                            <form action="<?= BASE_URL ?>/sales/process-delete" method="POST" style="display:inline;">
+                                                <input type="hidden" name="sale_id" value="<?= $sale['id'] ?>">
+                                                <button type="submit" name="action" value="approve" class="btn btn-sm btn-outline-danger" title="Approve Delete">
+                                                    <span class="material-symbols-outlined" style="font-size: 16px;">check</span>
+                                                </button>
+                                                <button type="submit" name="action" value="reject" class="btn btn-sm btn-outline-success" title="Reject">
+                                                    <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning text-dark">Deletion Pending</span>
+                                        <?php endif; ?>
+                                    <?php elseif ($sale['user_id'] == $_SESSION['user_id'] && $sale['delete_request_status'] == 'none'): ?>
+                                        <form action="<?= BASE_URL ?>/sales/request-delete" method="POST" style="display:inline;" onsubmit="return confirm('Request to delete this sale?');">
+                                            <input type="hidden" name="sale_id" value="<?= $sale['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Request Delete">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

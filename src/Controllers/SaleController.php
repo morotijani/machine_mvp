@@ -20,7 +20,8 @@ class SaleController {
             'search' => $_GET['search'] ?? '',
             'start_date' => $_GET['start_date'] ?? '',
             'end_date' => $_GET['end_date'] ?? '',
-            'status' => $_GET['status'] ?? 'all'
+            'status' => $_GET['status'] ?? 'all',
+            'delete_request' => $_GET['delete_request'] ?? ''
         ];
 
         // Pagination
@@ -116,6 +117,44 @@ class SaleController {
             $paymentModel->recordPayment($saleId, $amount, $_SESSION['user_id']);
             
             header('Location: ' . BASE_URL . '/sales/view?id=' . $saleId);
+            exit;
+        }
+    }
+    public function requestDelete() {
+        AuthMiddleware::requireLogin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $saleId = $_POST['sale_id'];
+            $pdo = Database::getInstance();
+            $saleModel = new Sale($pdo);
+            
+            // Verify ownership (optional: prevent deleting others' sales unless admin, but requirement said 'their purchase')
+            // For now, we assume the UI handles visibility, but backend check is better.
+            $sale = $saleModel->getById($saleId);
+            if ($sale['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin') {
+                $saleModel->requestDelete($saleId);
+            }
+            
+            header('Location: ' . BASE_URL . '/sales');
+            exit;
+        }
+    }
+
+    public function processDeleteRequest() {
+        AuthMiddleware::requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $saleId = $_POST['sale_id'];
+            $action = $_POST['action']; // approve or reject
+            
+            $pdo = Database::getInstance();
+            $saleModel = new Sale($pdo);
+            
+            if ($action === 'approve') {
+                $saleModel->approveDelete($saleId);
+            } elseif ($action === 'reject') {
+                $saleModel->rejectDelete($saleId);
+            }
+            
+            header('Location: ' . BASE_URL . '/sales');
             exit;
         }
     }

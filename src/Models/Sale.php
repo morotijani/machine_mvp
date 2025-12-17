@@ -113,6 +113,11 @@ class Sale {
             $params['status'] = $filters['status'];
         }
 
+        if (!empty($filters['delete_request'])) {
+            $where[] = "s.delete_request_status = :del_status";
+            $params['del_status'] = $filters['delete_request'];
+        }
+
         $whereSql = implode(" AND ", $where);
 
         $sql = "SELECT s.*, c.name as customer_name, u.username as seller_name 
@@ -188,5 +193,20 @@ class Sale {
             $sale['items'] = $stmtItems->fetchAll();
         }
         return $sale;
+    }
+    public function requestDelete($id) {
+        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'pending', delete_requested_at = NOW() WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
+    public function approveDelete($id) {
+        // Approve means voiding the sale
+        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'approved', voided = 1 WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
+    public function rejectDelete($id) {
+        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'rejected' WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
     }
 }
