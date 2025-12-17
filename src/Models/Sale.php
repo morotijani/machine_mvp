@@ -118,6 +118,11 @@ class Sale {
             $params['del_status'] = $filters['delete_request'];
         }
 
+        if (!empty($filters['user_id'])) {
+            $where[] = "s.user_id = :uid";
+            $params['uid'] = $filters['user_id'];
+        }
+
         $whereSql = implode(" AND ", $where);
 
         $sql = "SELECT s.*, c.name as customer_name, u.username as seller_name 

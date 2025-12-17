@@ -24,6 +24,11 @@ class SaleController {
             'delete_request' => $_GET['delete_request'] ?? ''
         ];
 
+        // Restrict non-admins to their own sales
+        if ($_SESSION['role'] !== 'admin') {
+            $filters['user_id'] = $_SESSION['user_id'];
+        }
+
         // Pagination
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $limit = 20;
