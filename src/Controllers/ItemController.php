@@ -120,8 +120,8 @@ class ItemController {
                         }
                     }
 
-                    if ((int)$data['quantity'] < 0) {
-                         throw new \Exception("Bundle quantity cannot be negative.");
+                    if ((int)$data['quantity'] <= 0) {
+                         throw new \Exception("Bundle quantity cannot be less than or equal to 0.");
                     }
 
                     if (empty($newComponents)) {
