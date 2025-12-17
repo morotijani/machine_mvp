@@ -55,4 +55,25 @@ class UserController {
         }
         require __DIR__ . '/../../views/users/create.php';
     }
+    public function toggleStatus() {
+        AuthMiddleware::requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_POST['user_id'];
+            $status = $_POST['status']; // 1 for active, 0 for inactive
+            
+            // Prevent disabling oneself
+            if ($userId == $_SESSION['user_id']) {
+                 // You might want to handle this error more gracefully or just ignore
+                 header('Location: ' . BASE_URL . '/users');
+                 exit;
+            }
+
+            $pdo = Database::getInstance();
+            $userModel = new \App\Models\User($pdo);
+            $userModel->updateStatus($userId, $status);
+            
+            header('Location: ' . BASE_URL . '/users');
+            exit;
+        }
+    }
 }

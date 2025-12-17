@@ -15,6 +15,14 @@ class AuthController {
             $user = $userModel->findByUsername($username);
 
             if ($user && password_verify($password, $user['password'])) {
+                if ($user['is_active'] == 0) {
+                   $error = "Your account has been disabled. Please contact the administrator.";
+                   $pdo = Database::getInstance();
+                   $settingModel = new \App\Models\Setting($pdo);
+                   $settings = $settingModel->get();
+                   require __DIR__ . '/../../views/auth/login.php';
+                   return;
+                }
                 if (session_status() === PHP_SESSION_NONE) {
                     session_start();
                 }

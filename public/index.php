@@ -48,6 +48,7 @@ $userController = new \App\Controllers\UserController();
 $router->get('/users', [$userController, 'index']);
 $router->get('/users/create', [$userController, 'create']);
 $router->post('/users/create', [$userController, 'create']);
+$router->post('/users/toggle-status', [$userController, 'toggleStatus']);
 
 // Profile
 $profileController = new \App\Controllers\ProfileController();

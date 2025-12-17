@@ -21,7 +21,9 @@ ob_start();
                             <tr>
                                 <th>User</th>
                                 <th>Role</th>
+                                <th>Status</th>
                                 <th>Created At</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -49,7 +51,31 @@ ob_start();
                                         <?php echo ucfirst($user['role']); ?>
                                     </span>
                                 </td>
+                                <td>
+                                    <?php if ($user['is_active']): ?>
+                                        <span class="badge bg-success">Active</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">Disabled</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?php echo date('M j, Y', strtotime($user['created_at'])); ?></td>
+                                <td>
+                                    <?php if ($user['id'] != $_SESSION['user_id']): ?>
+                                    <form action="<?= BASE_URL ?>/users/toggle-status" method="POST" style="display:inline;">
+                                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                        <input type="hidden" name="status" value="<?= $user['is_active'] ? 0 : 1 ?>">
+                                        <?php if ($user['is_active']): ?>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Disable User" onclick="return confirm('Are you sure you want to disable this user?')">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">block</span>
+                                            </button>
+                                        <?php else: ?>
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Enable User">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
+                                            </button>
+                                        <?php endif; ?>
+                                    </form>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

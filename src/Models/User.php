@@ -56,4 +56,8 @@ class User {
             return $stmt->execute(['fullname' => $fullname, 'id' => $id]);
         }
     }
+    public function updateStatus($id, $status) {
+        $stmt = $this->pdo->prepare("UPDATE users SET is_active = :status WHERE id = :id");
+        return $stmt->execute(['status' => $status, 'id' => $id]);
+    }
 }
