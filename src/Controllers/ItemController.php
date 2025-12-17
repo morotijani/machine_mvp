@@ -115,7 +115,7 @@ class ItemController {
                                     'quantity' => $qty
                                 ];
                             } elseif ($qty <= 0) {
-                                throw new \Exception("Component quantity must be greater than 0.");
+                                throw new \Exception("Component '$itemId' quantity is invalid ($qty). Must be greater than 0.");
                             }
                         }
                     }

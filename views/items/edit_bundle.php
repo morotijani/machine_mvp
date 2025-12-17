@@ -59,8 +59,8 @@ ob_start();
                         </div>
                         <div class="col-6">
                            <label class="form-label">Bundle Stock (Total)</label>
-                           <input type="number" name="quantity" class="form-control" value="<?= $item['quantity'] ?>" min="0">
-                           <div class="form-text">Adjusting limits available stock of sub-items.</div>
+                           <input type="number" name="quantity" class="form-control" value="<?= $item['quantity'] ?>" min="1">
+                           <div class="form-text">qwAdjusting limits available stock of sub-items.</div>
                         </div>
                     </div>
                     
@@ -181,17 +181,19 @@ ob_start();
 document.addEventListener('DOMContentLoaded', function() {
     const tableBody = document.querySelector('#components-table tbody');
     const addItemBtn = document.getElementById('add-item-btn');
-    // Store initial Bundle Qty
-    const initialBundleQty = <?= $item['quantity'] ?>;
+    const bundleQtyInput = document.querySelector('input[name="quantity"]');
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    // Safe PHP Injection
+    const initialBundleQty = <?= (int)($item['quantity'] ?? 0) ?>;
     
-    // We need a template since PHP loop might be empty or full
-    // Let's create a hidden template row from the first item if exists, or hardcode it
-    // Hardcoding template creation in JS is cleaner
-    // But we need the item options. 
-    // Let's use the first row if exists, else we need the data from PHP.
-    // Easier hack: Always render a hidden template row? Or just clone the first one if present.
-    // Issue: If verified fully working, we can just use the rendered rows.
-  
+    // Build Original Recipe Map
+    // Keys are quoted to handle potential non-numeric IDs safely
+    const originalRecipe = {};
+    <?php foreach ($components as $comp): ?>
+    originalRecipe['<?= $comp['child_item_id'] ?>'] = <?= (int)$comp['quantity'] ?>;
+    <?php endforeach; ?>
+
     function updateStockDisplay(row) {
         const select = row.querySelector('.item-select');
         const stockBadge = row.querySelector('.current-stock');
@@ -204,19 +206,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-     // Initial update of all rows
-    document.querySelectorAll('.component-row').forEach(row => {
-        updateStockDisplay(row);
-    });
-
-    const bundleQtyInput = document.querySelector('input[name="quantity"]');
-    bundleQtyInput.addEventListener('input', validateStock);
-
     function validateStock() {
         const newBundleQty = parseInt(bundleQtyInput.value) || 0;
         const rows = tableBody.querySelectorAll('.component-row');
         let isValid = true;
-        const submitBtn = document.querySelector('button[type="submit"]');
+        let rejectReason = "";
+
+        // Reset UI first
+        rows.forEach(row => {
+            const qtyInput = row.querySelector('.qty-input');
+            const stockBadge = row.querySelector('.current-stock');
+            
+            qtyInput.classList.remove('is-invalid');
+            stockBadge.classList.remove('bg-danger');
+            stockBadge.classList.remove('text-white'); // Ensure readability
+            stockBadge.classList.add('bg-secondary');
+        });
 
         rows.forEach(row => {
             const select = row.querySelector('.item-select');
@@ -224,49 +229,23 @@ document.addEventListener('DOMContentLoaded', function() {
             const stockBadge = row.querySelector('.current-stock');
             const selectedOption = select.options[select.selectedIndex];
             
-            // Get original data from row attribute if it exists (items might change!)
-            // Strategy:
-            // 1. Calculate how many of THIS item we relied on before.
-            //    We need to look up if this item ID was in our "original" map.
-            //    But storing original map in JS is needed.
-            // Let's rely on the fact that stockBadge has "Current Spare Stock".
-            // So: Available = CurrentSpare + (OriginalUsed)
-            // Needed = NewBundleQty * NewRecipeQty
-            
-            // Wait, selectedOption.dataset.stock IS the database's current 'quantity'.
-            // If the item was part of the bundle before, that 'quantity' does NOT include the ones locked in the bundle.
-            // So we can assume `dataset.stock` is purely "Spare on Shelf".
-            
-            // However, if we simply edit the quantity of the bundle, we might be freeing up stock or using more.
-            // Correct Logic:
-            // Net Change = (NewBundleQty * NewRecipeQty) - (OldBundleQty * OldRecipeQty)
-            // If NetChange > 0: We need that many MORE. Check if (Spare >= NetChange).
-            // If NetChange <= 0: We are safe.
-            
-            // To do this, we need to know OldRecipeQty for this specific Item ID.
-            // We can parse the initial PHP render to build a map.
-            
-            // Reset UI
-            qtyInput.classList.remove('is-invalid');
-            stockBadge.classList.remove('bg-danger');
-            stockBadge.classList.add('bg-secondary');
-
             if (selectedOption && selectedOption.value) {
                 const itemId = selectedOption.value;
                 const newRecipeQty = parseInt(qtyInput.value) || 0;
                 
-                // Lookup old recipe qty
-                let oldRecipeQty = 0;
-                // This lookup is tricky because the user might change the SELECT to a different item.
-                // We need a global map of {itemId: originalRecipeQty} generated from server side.
-                if (window.originalRecipe && window.originalRecipe[itemId]) {
-                    oldRecipeQty = window.originalRecipe[itemId];
-                }
-
+                // 1. Strict Recipe Quantity Check
                 if (newRecipeQty <= 0) {
                     isValid = false;
+                    rejectReason = "Invalid Quantity";
                     qtyInput.classList.add('is-invalid');
-                    submitBtn.textContent = "Invalid Quantity";
+                    return; // Skip math for this invalid row
+                }
+                
+                // 2. Net Stock Calculation
+                // Lookup old recipe qty
+                let oldRecipeQty = 0;
+                if (originalRecipe.hasOwnProperty(itemId)) {
+                    oldRecipeQty = originalRecipe[itemId];
                 }
                 
                 const oldTotalUsed = initialBundleQty * oldRecipeQty;
@@ -276,35 +255,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 const spareStock = parseInt(selectedOption.dataset.stock) || 0;
 
                 if (netChange > 0) {
-                    // We need more stock than we used to use.
-                    // Do we have enough spare?
+                    // We need more stock.
                     if (spareStock < netChange) {
                         isValid = false;
-                        qtyInput.classList.add('is-invalid');
+                        rejectReason = "Insufficient Stock";
+                        qtyInput.classList.add('is-invalid'); // Mark as problematic
                         stockBadge.classList.remove('bg-secondary');
                         stockBadge.classList.add('bg-danger');
+                        stockBadge.classList.add('text-white');
                         stockBadge.textContent = `${spareStock} (Need +${netChange})`;
                     } else {
                         stockBadge.textContent = `${spareStock} (Using +${netChange})`;
                     }
                 } else {
-                    // netChange <= 0 means we are freeing up stock or using same. Safe.
+                    // Freeing stock or neutral
                     const freeing = Math.abs(netChange);
                     stockBadge.textContent = `${spareStock} (Freeing ${freeing})`;
                 }
             }
         });
 
+        if (newBundleQty < 0) {
+             isValid = false;
+             rejectReason = "Invalid Bundle Qty";
+             bundleQtyInput.classList.add('is-invalid');
+        } else {
+             bundleQtyInput.classList.remove('is-invalid');
+        }
+
         if (!isValid) {
             submitBtn.disabled = true;
-            submitBtn.textContent = "Insufficient Stock";
+            submitBtn.textContent = rejectReason || "Invalid Input";
         } else {
             submitBtn.disabled = false;
             submitBtn.textContent = "Update Bundle & Stock";
         }
     }
 
-    // Event delegation
+    // Event Listeners
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        // Run validation one last time
+        validateStock();
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn.disabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert("Please fix errors before updating.");
+            return false;
+        }
+    });
+
+    bundleQtyInput.addEventListener('input', validateStock);
+
     tableBody.addEventListener('change', function(e) {
         if (e.target.classList.contains('item-select')) {
             updateStockDisplay(e.target.closest('tr'));
@@ -328,30 +331,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.querySelector('select').value = '';
                 row.querySelector('input').value = '1';
                 updateStockDisplay(row);
+                validateStock();
             }
         }
     });
 
     addItemBtn.addEventListener('click', function() {
         // Clone the first row found (assuming at least one exists)
-        // If list is empty (rare), we'd need a create element logic.
         const rowToClone = tableBody.querySelector('.component-row');
-        const newRow = rowToClone.cloneNode(true);
-        newRow.querySelector('select').value = '';
-        newRow.querySelector('input').value = '1';
-        newRow.querySelector('.current-stock').textContent = '-';
-        newRow.removeAttribute('data-original-id'); // Clear tracking
-        newRow.removeAttribute('data-original-qty');
-        tableBody.appendChild(newRow);
+        if (rowToClone) {
+            const newRow = rowToClone.cloneNode(true);
+            newRow.querySelector('select').value = '';
+            newRow.querySelector('input').value = '1';
+            newRow.querySelector('.current-stock').textContent = '-';
+            newRow.removeAttribute('data-original-id'); 
+            newRow.removeAttribute('data-original-qty');
+            
+            // Clear Validation Classes on clone
+            newRow.querySelector('.qty-input').classList.remove('is-invalid');
+            newRow.querySelector('.current-stock').classList.remove('bg-danger');
+            newRow.querySelector('.current-stock').classList.add('bg-secondary');
+
+            tableBody.appendChild(newRow);
+            validateStock();
+        }
     });
 
+    // Initial Run
+    document.querySelectorAll('.component-row').forEach(row => {
+        updateStockDisplay(row);
+    });
+    validateStock();
 });
-
-// Build Original Recipe Map for JS
-window.originalRecipe = {};
-<?php foreach ($components as $comp): ?>
-window.originalRecipe[<?= $comp['child_item_id'] ?>] = <?= $comp['quantity'] ?>;
-<?php endforeach; ?>
 </script>
 
 <?php
