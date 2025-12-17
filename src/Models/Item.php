@@ -161,4 +161,122 @@ class Item {
             throw $e;
         }
     }
+
+    public function updateBundle($id, $data, $newComponents) {
+        try {
+            $this->pdo->beginTransaction();
+
+            // 1. Fetch Current State
+            $stmt = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id FOR UPDATE");
+            $stmt->execute(['id' => $id]);
+            $currentBundle = $stmt->fetch();
+            $currentBundleQty = $currentBundle['quantity'];
+
+            // If updating bundle quantity (e.g. user manually changed stock field, though usually disabled)
+            // But requirement says "edit bundle stock quantity".
+            // Let's assume $data['quantity'] determines the NEW target quantity for the bundle.
+            $newBundleQty = isset($data['quantity']) ? $data['quantity'] : $currentBundleQty;
+
+            // 2. Fetch Old Components
+            $oldComponents = $this->getBundleComponents($id);
+            // Map old components for easy lookup: [itemId => qtyPerBundle]
+            $oldMap = [];
+            foreach ($oldComponents as $oc) {
+                $oldMap[$oc['child_item_id']] = $oc['quantity'];
+            }
+
+            // 3. Calculate Stock Changes (The "Net Effect")
+            // Concept:
+            // Old Total Used = OldBundleQty * OldRecipeQty
+            // New Total Needed = NewBundleQty * NewRecipeQty
+            // Net Change = New Total Needed - Old Total Used
+            // If Net Change > 0: Deduct from stock (Verify availability first)
+            // If Net Change < 0: Add back to stock
+
+            $processedItemIds = [];
+
+            // A. Process New Components
+            $newTotalCost = 0;
+            foreach ($newComponents as $nc) {
+                $childId = $nc['id'];
+                $newRecipeQty = $nc['quantity'];
+                
+                $oldRecipeQty = isset($oldMap[$childId]) ? $oldMap[$childId] : 0;
+                
+                $oldTotalUsed = $currentBundleQty * $oldRecipeQty;
+                $newTotalNeeded = $newBundleQty * $newRecipeQty;
+                
+                $netChange = $newTotalNeeded - $oldTotalUsed;
+
+                // Validate and Apply
+                if ($netChange > 0) {
+                    // Need more. Check stock.
+                    $stmt = $this->pdo->prepare("SELECT quantity, cost_price FROM items WHERE id = :id");
+                    $stmt->execute(['id' => $childId]);
+                    $childItem = $stmt->fetch();
+
+                    if ($childItem['quantity'] < $netChange) {
+                        throw new \Exception("Insufficient stock for item ID: $childId. Need " . $netChange . " more.");
+                    }
+                    $this->adjustStock($childId, -$netChange);
+                    $newTotalCost += $childItem['cost_price'] * $newRecipeQty;
+                } elseif ($netChange < 0) {
+                    // Returning stock.
+                    // Note: abs($netChange) is the amount to add back.
+                    $this->adjustStock($childId, abs($netChange));
+                    // Cost calculation still based on new recipe
+                    $stmt = $this->pdo->prepare("SELECT cost_price FROM items WHERE id = :id");
+                    $stmt->execute(['id' => $childId]);
+                    $childItem = $stmt->fetch();
+                    $newTotalCost += $childItem['cost_price'] * $newRecipeQty;
+                } else {
+                    // No change in quantity, but need cost for total
+                    $stmt = $this->pdo->prepare("SELECT cost_price FROM items WHERE id = :id");
+                    $stmt->execute(['id' => $childId]);
+                    $childItem = $stmt->fetch();
+                    $newTotalCost += $childItem['cost_price'] * $newRecipeQty;
+                }
+
+                $processedItemIds[] = $childId;
+            }
+
+            // B. Process Removed Components (In Old but not in New)
+            foreach ($oldMap as $childId => $oldRecipeQty) {
+                if (!in_array($childId, $processedItemIds)) {
+                    // This item was removed from the bundle entirely.
+                    // Return all used stock.
+                    $oldTotalUsed = $currentBundleQty * $oldRecipeQty;
+                    $this->adjustStock($childId, $oldTotalUsed);
+                }
+            }
+
+            // 4. Update Bundle Item Details
+            if (empty($data['cost_price'])) {
+                $data['cost_price'] = $newTotalCost;
+            }
+            
+            // Allow updating quantity here since we handled the stock implications above
+            $this->update($id, $data);
+
+            // 5. Update Relations (Replace all)
+            $stmt = $this->pdo->prepare("DELETE FROM item_bundles WHERE parent_item_id = :id");
+            $stmt->execute(['id' => $id]);
+
+            $stmt = $this->pdo->prepare("INSERT INTO item_bundles (parent_item_id, child_item_id, quantity) VALUES (:pid, :cid, :qty)");
+            foreach ($newComponents as $nc) {
+                $stmt->execute([
+                    'pid' => $id,
+                    'cid' => $nc['id'],
+                    'qty' => $nc['quantity']
+                ]);
+            }
+
+            $this->pdo->commit();
+            return true;
+
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
 }

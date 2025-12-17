@@ -23,7 +23,7 @@ class ItemController {
             $data = [
                 'name' => $_POST['name'],
                 'category' => $_POST['category'],
-                'sku' => $_POST['sku'] ?: null,
+                'sku' => !empty($_POST['sku']) ? $_POST['sku'] : strtoupper(substr(uniqid('SKU'), 0, 10)),
                 'unit' => $_POST['unit'] ?: 'pcs',
                 'price' => $_POST['price'],
                 'cost_price' => $_POST['cost_price'],
@@ -78,46 +78,64 @@ class ItemController {
         // Redirect to Bundle Edit if it is a bundle
         if ($item['type'] === 'bundle') {
             $components = $itemModel->getBundleComponents($id);
+            $allItems = $itemModel->getAll(); // Need all items for the select list in edit view
             
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                // Handle Bundle Edit (Metadata only for now)
-                $data = [
-                    'name' => $_POST['name'],
-                    'category' => $_POST['category'],
-                    'sku' => $_POST['sku'] ?: null,
-                    'price' => $_POST['price'],
-                    'location' => $_POST['location'],
-                ];
-                
-                // Keep image logic shared or repeat? Repeat for safety in block.
-                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                     // Delete old
-                     if (!empty($item['image_path']) && file_exists(__DIR__ . '/../../public/' . $item['image_path'])) {
-                        unlink(__DIR__ . '/../../public/' . $item['image_path']);
+                try {
+                    $data = [
+                        'name' => $_POST['name'],
+                        'category' => $_POST['category'],
+                        'sku' => !empty($_POST['sku']) ? $_POST['sku'] : $item['sku'],
+                        'price' => $_POST['price'],
+                        'location' => $_POST['location'],
+                        'quantity' => $_POST['quantity'], // New Bundle Quantity
+                        'unit' => 'bundle'
+                    ];
+                    
+                    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                         if (!empty($item['image_path']) && file_exists(__DIR__ . '/../../public/' . $item['image_path'])) {
+                            unlink(__DIR__ . '/../../public/' . $item['image_path']);
+                        }
+                        $uploadDir = __DIR__ . '/../../public/uploads/items/';
+                        $filename = uniqid('item_') . '.' . pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                        move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename);
+                        $data['image_path'] = 'uploads/items/' . $filename;
+                    } else {
+                        $data['image_path'] = $item['image_path'];
                     }
-                    $uploadDir = __DIR__ . '/../../public/uploads/items/';
-                    $filename = uniqid('item_') . '.' . pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                    move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename);
-                    $data['image_path'] = 'uploads/items/' . $filename;
-                } else {
-                    $data['image_path'] = $item['image_path'];
+
+                    // Process Components
+                    $newComponents = [];
+                    if (isset($_POST['items']) && is_array($_POST['items'])) {
+                        foreach ($_POST['items'] as $index => $itemId) {
+                            $qty = (int)$_POST['quantities'][$index];
+                            if (!empty($itemId) && $qty > 0) {
+                                $newComponents[] = [
+                                    'id' => $itemId,
+                                    'quantity' => $qty
+                                ];
+                            } elseif ($qty <= 0) {
+                                throw new \Exception("Component quantity must be greater than 0.");
+                            }
+                        }
+                    }
+
+                    if ((int)$data['quantity'] < 0) {
+                         throw new \Exception("Bundle quantity cannot be negative.");
+                    }
+
+                    if (empty($newComponents)) {
+                        throw new \Exception("A bundle must have at least one item.");
+                    }
+                    
+                    $itemModel->updateBundle($id, $data, $newComponents);
+                    header('Location: ' . BASE_URL . '/items');
+                    exit;
+
+                } catch (\Exception $e) {
+                    $error = $e->getMessage();
+                    // Fallthrough to load view with error
                 }
-                
-                // We use the same update method because it handles the fields we are changing
-                // But we must NOT change the quantity/stock here as that breaks the bundle logic.
-                // The update() method in Item.php updates quantity. We need to be careful.
-                // Item::update updates 'quantity'. If we pass it, it blindly updates.
-                // We should probably NOT pass quantity for bundle edit, OR pass the existing quantity.
-                // Passing existing quantity is safer to avoid drift.
-                $data['quantity'] = $item['quantity'];
-                
-                // Wait, Item::update expects 'unit'.
-                $data['unit'] = 'bundle';
-                $data['cost_price'] = $item['cost_price']; // Keep cost price same for now or allow update?
-                
-                $itemModel->update($id, $data);
-                header('Location: ' . BASE_URL . '/items');
-                exit;
             }
 
             require __DIR__ . '/../../views/items/edit_bundle.php';
@@ -185,7 +203,7 @@ class ItemController {
                 $data = [
                     'name' => $_POST['name'],
                     'category' => $_POST['category'],
-                    'sku' => $_POST['sku'],
+                    'sku' => !empty($_POST['sku']) ? $_POST['sku'] : strtoupper(substr(uniqid('BND'), 0, 10)),
                     'price' => $_POST['price'],
                     'quantity' => $_POST['quantity'],
                     'location' => $_POST['location'],
@@ -251,7 +269,7 @@ class ItemController {
             
             try {
                 $itemModel->disassembleBundle($bundleId, $quantity);
-                header('Location: ' . BASE_URL . '/items/edit?id=' . $bundleId . '&success=Ungrouped successfully');
+                header('Location: ' . BASE_URL . '/items?success=Ungrouped successfully');
             } catch (\Exception $e) {
                 header('Location: ' . BASE_URL . '/items/edit?id=' . $bundleId . '&error=' . urlencode($e->getMessage()));
             }
