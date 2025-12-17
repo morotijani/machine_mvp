@@ -18,20 +18,20 @@
     <!-- Material Symbols -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
+    <link href="<?= BASE_URL ?>/assets/css/style.css?v=1.1" rel="stylesheet">
 </head>
 <body>
     <!-- Top Fixed Navbar -->
-    <header class="navbar navbar-top fixed-top flex-md-nowrap p-0">
+    <header class="navbar navbar-top fixed-top flex-md-nowrap p-0 shadow-sm bg-white">
+        <!-- Mobile Toggle (Left aligned) -->
+        <button class="navbar-toggler d-lg-none collapsed border-0" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation" style="margin-left: 10px;">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
         <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-5 fw-bold d-flex align-items-center" href="<?= BASE_URL ?>/dashboard">
             <span class="text-primary me-2">Machine MVP</span>
         </a>
         
-        <!-- Mobile Toggle -->
-        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation" style="right: 10px; top: 15px;">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
         <!-- Search Bar -->
         <div class="search-bar-container d-none d-md-block mx-auto">
             <input class="form-control form-control-search w-100" type="text" placeholder="Search items in POS..." aria-label="Search" id="globalSearch">
@@ -54,10 +54,9 @@
         </div>
     </header>
 
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="sidebar collapse d-md-block" id="sidebarMenu">
-                <div class="sidebar-sticky">
+    <div class="d-flex align-items-stretch w-100">
+        <nav class="sidebar collapse d-lg-block" id="sidebarMenu">
+            <div class="sidebar-sticky">
                     <!-- Removed Branding from here -->
                     <ul class="nav flex-column nav-flex-column mt-3">
                         <li class="nav-item">
@@ -123,10 +122,9 @@
                 </div>
             </nav>
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <?php echo $content; ?>
-            </main>
-        </div>
+        <main class="flex-grow-1 px-md-4">
+            <?php echo $content; ?>
+        </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -264,45 +264,65 @@
   }
 
   /* Main Content Area */
-  /* Main Content Area */
   main {
-    /* Default for mobile: no margin */
-    margin-left: 0;
-    padding-top: 1rem;
+    transition: margin-left 0.3s;
+    padding-top: 20px;
+    width: 100%;
   }
 
-  /* Desktop Styles */
-  @media (min-width: 768px) {
-    main {
-      margin-left: 256px; /* Match sidebar width */
-      padding-top: 1.5rem;
-    }
-    
+  /* Desktop Styles (Large Screens) */
+  @media (min-width: 992px) {
     .sidebar {
       top: 64px;
       height: calc(100vh - 64px);
+      width: 256px;
+      /* Explicit width */
+      position: fixed;
+      left: 0;
+      z-index: 100;
+      background-color: #f0f4f9;
+      border-right: 1px solid #dadce0;
+    }
+
+    main {
+      margin-left: 256px;
+      /* Push content to right of fixed sidebar */
+      width: auto;
+      /* Let it fill naturally */
+      padding: 24px;
+      padding-top: 1.5rem;
     }
   }
 
-  /* Mobile Sidebar Styles */
-  @media (max-width: 767.98px) {
+  /* Tablet/Mobile Styles (Medium & Small Screens) */
+  @media (max-width: 991.98px) {
     .sidebar {
-      top: 64px; /* Below navbar */
-      width: 100%; /* Full width or fixed width like 256px */
-      max-width: 280px;
+      top: 64px;
+      width: 280px;
       height: calc(100vh - 64px);
-      background-color: #fff; /* Ensure it has background */
-      box-shadow: 4px 0 24px rgba(0,0,0,0.1); /* Add shadow for depth */
-      border-right: 1px solid #dadce0;
+      background-color: #fff;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+      border-right: none;
+      z-index: 1050;
+      /* Above content */
     }
-    
-    /* When expanded, it will just overlay because of position: fixed from base class */
+
+    main {
+      margin-left: 0;
+      padding: 16px;
+      width: 100%;
+    }
   }
 
   /* Center the container helper */
   .container-fluid {
-    /* For dashboard layout, we might want to let main handle the centering */
-    max-width: 100%;
+    padding: 0;
+  }
+
+  /* Remove row margins that might cause scroll */
+  .row {
+    margin-right: 0;
+    margin-left: 0;
   }
 
   /* Card overrides for Google Style */
@@ -329,13 +349,18 @@
     padding: 24px;
   }
 
-  .card-header {
-    background-color: #fff;
-    border-bottom: 1px solid #dadce0;
-  }
-
+  /* Print Styles */
   @media print {
     .no-print {
+      display: none !important;
+    }
+
+    main {
+      margin-left: 0 !important;
+      width: 100% !important;
+    }
+
+    .sidebar {
       display: none !important;
     }
   }
