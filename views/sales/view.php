@@ -124,7 +124,36 @@ ob_start();
                     <tbody>
                         <?php foreach ($sale['items'] as $item): ?>
                         <tr>
-                            <td class="fw-bold"><?php echo htmlspecialchars($item['item_name']); ?></td>
+                            <td class="fw-bold">
+                                <?php echo htmlspecialchars($item['item_name']); ?>
+                                <?php 
+                                    // Hacky check: In a real app we'd join 'type' from items table. 
+                                    // For now, let's assume if it has sub-components we fetch them. 
+                                    // But wait, the sale_items table stores the snapshot. 
+                                    // To satisfy the requirement "list full items under them", we should ideally store this snapshots 
+                                    // OR look up the bundle definition. Looking up definition is easier but historical accuracy depends on bundle not changing.
+                                    // Let's do a live lookup for now as an MVP.
+                                    $pdo = \App\Config\Database::getInstance();
+                                    $itemModel = new \App\Models\Item($pdo);
+                                    // We need to know if it is a bundle. 
+                                    // Optimization: Sale::getById already defines 'items'. 
+                                    // I'll add a quick lookup here or update Sale Model. 
+                                    // Updating Sale Model is cleaner.
+                                    // ...
+                                    // Actually, let's just do a direct query for simplicity in the view for this specific MVP requirement 
+                                    // since I cannot change the Sale Model return structure easily without potentially breaking other things.
+                                    $stmtBundle = $pdo->prepare("SELECT i.name, ib.quantity FROM item_bundles ib JOIN items i ON ib.child_item_id = i.id WHERE ib.parent_item_id = :id");
+                                    $stmtBundle->execute(['id' => $item['item_id']]);
+                                    $components = $stmtBundle->fetchAll();
+                                ?>
+                                <?php if (!empty($components)): ?>
+                                    <div class="small text-muted fw-normal mt-1 ps-3 border-start border-3">
+                                        <?php foreach ($components as $comp): ?>
+                                            <div><?= $comp['quantity'] ?>x <?= htmlspecialchars($comp['name']) ?></div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-center small text-muted"><?php echo htmlspecialchars($item['sku']); ?></td>
                             <td class="text-center"><?php echo $item['quantity']; ?></td>
                             <td class="text-end">₵<?php echo number_format($item['price_at_sale'], 2); ?></td>

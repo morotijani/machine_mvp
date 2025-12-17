@@ -67,6 +67,9 @@ $router->get('/items/create', [$itemController, 'create']);
 $router->post('/items/create', [$itemController, 'create']);
 $router->get('/items/edit', [$itemController, 'edit']);
 $router->post('/items/edit', [$itemController, 'edit']);
+$router->get('/items/create-bundle', [$itemController, 'createBundle']);
+$router->post('/items/create-bundle', [$itemController, 'createBundle']);
+$router->post('/items/ungroup-bundle', [$itemController, 'ungroupBundle']);
 
 // Customers
 $customerController = new CustomerController();

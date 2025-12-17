@@ -8,11 +8,14 @@ ob_start();
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                 <h1 class="h2">Items & Machines</h1>
                 <?php if ($_SESSION['role'] === 'admin'): ?>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                        <span class="material-symbols-outlined" style="font-size: 20px;">add</span> Add New Item
-                    </a>
-                </div>
+                <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+                <a href="<?= BASE_URL ?>/items/create-bundle" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span> New Bundle
+                </a>
+                <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+                    <span class="fs-5">+</span> New Item
+                </a>
+            </div>
                 <?php endif; ?>
             </div>
 
