@@ -29,7 +29,14 @@
         </button>
 
         <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-5 fw-bold d-flex align-items-center" href="<?= BASE_URL ?>/dashboard">
-            <span class="text-primary me-2">Machine MVP</span>
+            <span class="text-primary me-2">
+                <?php if (!empty($settings['company_logo'])): ?>
+                    <img src="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>" alt="Company Logo" class="img-fluid" style="max-height: 32px;">
+                <?php else: ?>
+                    <span class="material-symbols-outlined icon">dashboard</span>
+                    <?= htmlspecialchars($settings['company_name'] ?? 'POS') ?>
+                <?php endif; ?>
+            </span>
         </a>
         
         <!-- Search Bar -->
