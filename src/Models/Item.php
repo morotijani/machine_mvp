@@ -10,9 +10,58 @@ class Item {
         $this->pdo = $pdo;
     }
 
-    public function getAll() {
-        $stmt = $this->pdo->query("SELECT * FROM items ORDER BY name ASC");
+    public function getAll($limit = null, $offset = 0, $search = null) {
+        $sql = "SELECT * FROM items";
+        $params = [];
+        
+        if ($search) {
+            $sql .= " WHERE name LIKE :s1 OR sku LIKE :s2 OR category LIKE :s3";
+            $params['search'] = "%$search%";
+        }
+        
+        $sql .= " ORDER BY name ASC";
+        
+        if ($limit) {
+            $sql .= " LIMIT :limit OFFSET :offset";
+        }
+        
+        $stmt = $this->pdo->prepare($sql);
+        
+        if ($search) {
+            $stmt->bindValue(':s1', $params['search']);
+            $stmt->bindValue(':s2', $params['search']);
+            $stmt->bindValue(':s3', $params['search']);
+        }
+        
+        if ($limit) {
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        }
+        
+        $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    public function countAll($search = null) {
+        $sql = "SELECT COUNT(*) FROM items";
+        $params = [];
+        
+        if ($search) {
+            $sql .= " WHERE name LIKE :s1 OR sku LIKE :s2 OR category LIKE :s3";
+            $params['search'] = "%$search%";
+        }
+        
+        $stmt = $this->pdo->prepare($sql);
+        if ($search) {
+            $stmt->bindValue(':s1', $params['search']);
+            $stmt->bindValue(':s2', $params['search']);
+            $stmt->bindValue(':s3', $params['search']);
+            $stmt->execute();
+        } else {
+            $stmt->execute();
+        }
+        
+        return $stmt->fetchColumn();
     }
 
     public function find($id) {

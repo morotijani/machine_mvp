@@ -35,8 +35,11 @@ ob_start();
                         <input type="text" name="category" class="form-control" list="categories" required value="<?= htmlspecialchars($item['category']) ?>">
                         <datalist id="categories">
                             <option value="Bundles">
+                            <option value="Spare parts">
                             <option value="Sets">
-                            <option value="Promotions">
+                            <option value="Tools">
+                            <option value="Mining">
+                            <option value="Machine">
                         </datalist>
                     </div>
                     <div class="row g-2 mb-3">
@@ -58,10 +61,17 @@ ob_start();
                             </div>
                         </div>
                         <div class="col-6">
-                           <label class="form-label">Bundle Stock (Total)</label>
-                           <input type="number" name="quantity" class="form-control" value="<?= $item['quantity'] ?>" min="1">
-                           <div class="form-text">qwAdjusting limits available stock of sub-items.</div>
+                            <label class="form-label">Bundle Cost (Calculated)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₵</span>
+                                <input type="number" name="cost_price" id="bundle-cost" step="0.01" class="form-control" readonly value="<?= $item['cost_price'] ?>">
+                            </div>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                         <label class="form-label">Bundle Stock (Total)</label>
+                         <input type="number" name="quantity" class="form-control" value="<?= $item['quantity'] ?>" min="0">
+                         <div class="form-text">Adjusting limits available stock of sub-items.</div>
                     </div>
                     
                     <div class="mb-3">
@@ -91,9 +101,10 @@ ob_start();
                         <table class="table table-striped mb-0" id="components-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 50%;">Item</th>
+                                    <th style="width: 40%;">Item</th>
                                     <th style="width: 20%;">Qty per Bundle</th>
-                                    <th style="width: 20%;">Available Stock</th>
+                                    <th style="width: 15%;">Available Stock</th>
+                                    <th style="width: 15%;">Selling Price</th>
                                     <th style="width: 10%;"></th>
                                 </tr>
                             </thead>
@@ -125,6 +136,7 @@ ob_start();
                                         <!-- Simplified: Just show spare stock of item. Validation handles logic. -->
                                         <span class="badge bg-secondary current-stock">-</span>
                                     </td>
+                                    <td><span class="text-dark item-price">-</span></td>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-sm text-danger remove-row">
                                             <span class="material-symbols-outlined">delete</span>
@@ -197,12 +209,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateStockDisplay(row) {
         const select = row.querySelector('.item-select');
         const stockBadge = row.querySelector('.current-stock');
+        const priceSpan = row.querySelector('.item-price');
         const selectedOption = select.options[select.selectedIndex];
         
         if (selectedOption && selectedOption.value) {
             stockBadge.textContent = selectedOption.dataset.stock;
+            const price = parseFloat(selectedOption.dataset.price) || 0;
+            priceSpan.textContent = '₵' + price.toFixed(2);
         } else {
             stockBadge.textContent = '-';
+            priceSpan.textContent = '-';
         }
     }
 
@@ -211,6 +227,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const rows = tableBody.querySelectorAll('.component-row');
         let isValid = true;
         let rejectReason = "";
+        
+        // Price Calculation Variables
+        let totalSelling = 0;
+        let totalCost = 0;
+        let hasSelection = false;
+        
+        const bundlePriceInput = document.getElementById('bundle-price');
+        const bundleCostInput = document.getElementById('bundle-cost');
 
         // Reset UI first
         rows.forEach(row => {
@@ -230,14 +254,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedOption = select.options[select.selectedIndex];
             
             if (selectedOption && selectedOption.value) {
+                hasSelection = true;
                 const itemId = selectedOption.value;
                 const newRecipeQty = parseInt(qtyInput.value) || 0;
+                
+                // Price Math
+                const price = parseFloat(selectedOption.dataset.price) || 0;
+                const cost = parseFloat(selectedOption.dataset.cost) || 0;
+                totalSelling += price * newRecipeQty;
+                totalCost += cost * newRecipeQty;
                 
                 // 1. Strict Recipe Quantity Check
                 if (newRecipeQty <= 0) {
                     isValid = false;
                     rejectReason = "Invalid Quantity";
-                    qtyInput.classList.add('is-invalid');
+                    qtyInput.classList.add('is-invalid'); // Mark as problematic
                     return; // Skip math for this invalid row
                 }
                 
@@ -274,6 +305,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+
+        // Update Price Inputs
+        if (hasSelection) {
+            // Only update if user hasn't manually overridden it? 
+            // Strict requirement: "automatically calculating". usually implies it overwrites.
+            // Let's overwrite for consistency with Create Bundle.
+            if(bundlePriceInput) bundlePriceInput.value = totalSelling.toFixed(2);
+            if(bundleCostInput) bundleCostInput.value = totalCost.toFixed(2);
+        }
 
         if (newBundleQty < 0) {
              isValid = false;
@@ -344,6 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
             newRow.querySelector('select').value = '';
             newRow.querySelector('input').value = '1';
             newRow.querySelector('.current-stock').textContent = '-';
+            newRow.querySelector('.item-price').textContent = '-';
             newRow.removeAttribute('data-original-id'); 
             newRow.removeAttribute('data-original-qty');
             

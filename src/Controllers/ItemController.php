@@ -11,7 +11,16 @@ class ItemController {
         AuthMiddleware::requireLogin();
         $pdo = Database::getInstance();
         $itemModel = new Item($pdo);
-        $items = $itemModel->getAll();
+        
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $search = isset($_GET['search']) ? trim($_GET['search']) : null;
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+        
+        $items = $itemModel->getAll($limit, $offset, $search);
+        $totalItems = $itemModel->countAll($search);
+        $totalPages = ceil($totalItems / $limit);
+        
         require __DIR__ . '/../../views/items/index.php';
     }
 

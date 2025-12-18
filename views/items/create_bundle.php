@@ -31,7 +31,10 @@ ob_start();
                         <datalist id="categories">
                             <option value="Bundles">
                             <option value="Sets">
-                            <option value="Promotions">
+                            <option value="Spare parts">
+                            <option value="Tools">
+                            <option value="Mining">
+                            <option value="Machine">
                         </datalist>
                     </div>
                     <div class="row g-2 mb-3">
@@ -41,7 +44,7 @@ ob_start();
                         </div>
                         <div class="col-6">
                             <label class="form-label">Location (Shelf)</label>
-                            <input type="text" name="location" class="form-control">
+                            <input type="text" name="location" class="form-control" placeholder="Shelf A">
                         </div>
                     </div>
                     <div class="row g-2 mb-3">
@@ -90,9 +93,10 @@ ob_start();
                         <table class="table table-striped mb-0" id="components-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 50%;">Item</th>
+                                    <th style="width: 40%;">Item</th>
                                     <th style="width: 20%;">Qty per Bundle</th>
-                                    <th style="width: 20%;">Current Stock</th>
+                                    <th style="width: 15%;">Stock</th>
+                                    <th style="width: 15%;">Selling Price</th>
                                     <th style="width: 10%;"></th>
                                 </tr>
                             </thead>
@@ -103,7 +107,10 @@ ob_start();
                                             <option value="" data-price="0" data-cost="0">Select Item...</option>
                                             <?php foreach ($items as $item): ?>
                                                 <?php if($item['type'] !== 'bundle'): ?>
-                                                <option value="<?= $item['id'] ?>" data-stock="<?= $item['quantity'] ?>" data-price="<?= $item['price'] ?>" data-cost="<?= $item['cost_price'] ?>">
+                                                <option value="<?= $item['id'] ?>" 
+                                                    data-stock="<?= $item['quantity'] ?>" 
+                                                    data-price="<?= $item['price'] ?>"
+                                                    data-cost="<?= $item['cost_price'] ?>">
                                                     <?= htmlspecialchars($item['name']) ?> (<?= $item['sku'] ?>)
                                                 </option>
                                                 <?php endif; ?>
@@ -113,9 +120,8 @@ ob_start();
                                     <td>
                                         <input type="number" name="quantities[]" class="form-control qty-input" min="1" value="1" required>
                                     </td>
-                                    <td>
-                                        <span class="badge bg-secondary current-stock">-</span>
-                                    </td>
+                                    <td><span class="badge bg-secondary current-stock">-</span></td>
+                                    <td><span class="text-dark item-price">-</span></td>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-sm text-danger remove-row">
                                             <span class="material-symbols-outlined">delete</span>
@@ -144,100 +150,85 @@ ob_start();
 document.addEventListener('DOMContentLoaded', function() {
     const tableBody = document.querySelector('#components-table tbody');
     const addItemBtn = document.getElementById('add-item-btn');
-    const firstRow = tableBody.querySelector('.component-row');
     const bundlePriceInput = document.getElementById('bundle-price');
     const bundleCostInput = document.getElementById('bundle-cost');
-
-    function updateStockDisplay(row) {
-        const select = row.querySelector('.item-select');
-        const stockBadge = row.querySelector('.current-stock');
-        const selectedOption = select.options[select.selectedIndex];
-        
-        if (selectedOption && selectedOption.value) {
-            stockBadge.textContent = selectedOption.dataset.stock;
-        } else {
-            stockBadge.textContent = '-';
-        }
-        calculateTotals();
-    }
+    const bundleQuantityInput = document.querySelector('input[name="quantity"]');
+    const submitBtn = document.querySelector('button[type="submit"]');
 
     function calculateTotals() {
         let totalSelling = 0;
         let totalCost = 0;
-        const rows = tableBody.querySelectorAll('.component-row');
-
-        rows.forEach(row => {
-            const select = row.querySelector('.item-select');
-            const qtyInput = row.querySelector('.qty-input');
-            const selectedOption = select.options[select.selectedIndex];
-            const quantity = parseFloat(qtyInput.value) || 0;
-
-            if (selectedOption && selectedOption.value) {
-                const price = parseFloat(selectedOption.dataset.price) || 0;
-                const cost = parseFloat(selectedOption.dataset.cost) || 0;
-                
-                totalSelling += (price * quantity);
-                totalCost += (cost * quantity);
-            }
-        });
-
-        // Update inputs
-        bundlePriceInput.value = totalSelling.toFixed(2);
-        bundleCostInput.value = totalCost.toFixed(2);
+        let hasSelection = false;
+        let isValidStock = true;
         
-        validateStock();
-    }
+        const bundleQty = parseInt(bundleQuantityInput.value) || 0;
 
-    function validateStock() {
-        const bundleQty = parseInt(document.querySelector('input[name="quantity"]').value) || 0;
-        const rows = tableBody.querySelectorAll('.component-row');
-        let isValid = true;
-        const submitBtn = document.querySelector('button[type="submit"]');
-
-        rows.forEach(row => {
+        tableBody.querySelectorAll('.component-row').forEach(row => {
             const select = row.querySelector('.item-select');
             const qtyInput = row.querySelector('.qty-input');
             const stockBadge = row.querySelector('.current-stock');
+            const priceSpan = row.querySelector('.item-price');
             
             const selectedOption = select.options[select.selectedIndex];
             
-            // Reset styles
+            // Reset styles for current row
             qtyInput.classList.remove('is-invalid');
             stockBadge.classList.remove('bg-danger');
             stockBadge.classList.add('bg-secondary');
 
             if (selectedOption && selectedOption.value) {
-                const currentStock = parseInt(selectedOption.dataset.stock) || 0;
-                const neededPerBundle = parseInt(qtyInput.value) || 0;
-                const totalNeeded = neededPerBundle * bundleQty;
+                hasSelection = true;
+                const price = parseFloat(selectedOption.dataset.price) || 0;
+                const cost = parseFloat(selectedOption.dataset.cost) || 0;
+                const stock = parseInt(selectedOption.dataset.stock) || 0;
+                const qty = parseInt(qtyInput.value) || 0;
 
-                if (totalNeeded > currentStock) {
-                    isValid = false;
+                totalSelling += price * qty;
+                totalCost += cost * qty;
+                
+                // Update Price Display
+                priceSpan.textContent = '₵' + price.toFixed(2);
+                
+                // Validate Stock
+                const required = qty * bundleQty;
+                if (required > stock) {
+                    isValidStock = false;
                     qtyInput.classList.add('is-invalid');
                     stockBadge.classList.remove('bg-secondary');
                     stockBadge.classList.add('bg-danger');
-                    stockBadge.textContent = `${currentStock} (Need ${totalNeeded})`;
+                    stockBadge.textContent = `${stock} (Need ${required})`;
                 } else {
-                     stockBadge.textContent = currentStock;
+                    stockBadge.textContent = `${stock} (Use ${required})`;
                 }
+            } else {
+                stockBadge.textContent = '-';
+                priceSpan.textContent = '-';
             }
         });
 
-        if (!isValid) {
+        if (hasSelection) {
+            bundlePriceInput.value = totalSelling.toFixed(2);
+            bundleCostInput.value = totalCost.toFixed(2);
+        } else {
+            bundlePriceInput.value = '0.00';
+            bundleCostInput.value = '0.00';
+        }
+        
+        if (!isValidStock) {
             submitBtn.disabled = true;
-            submitBtn.textContent = "Insufficient Stock";
+            submitBtn.textContent = 'Insufficient Stock';
         } else {
             submitBtn.disabled = false;
-            submitBtn.textContent = "Create Bundle";
+            submitBtn.textContent = 'Create Bundle';
         }
     }
-    
-    document.querySelector('input[name="quantity"]').addEventListener('input', calculateTotals);
 
-    // Event delegation for validation and dynamic rows
+    // Initial calculation on page load
+    calculateTotals();
+
     tableBody.addEventListener('change', function(e) {
         if (e.target.classList.contains('item-select')) {
-            updateStockDisplay(e.target.closest('tr'));
+            calculateTotals();
         }
     });
 
@@ -246,6 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
             calculateTotals();
         }
     });
+    
+    bundleQuantityInput.addEventListener('input', calculateTotals);
 
     tableBody.addEventListener('click', function(e) {
         if (e.target.closest('.remove-row')) {
@@ -257,17 +250,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Clear inputs if it's the last row
                 row.querySelector('select').value = '';
                 row.querySelector('input').value = '1';
-                updateStockDisplay(row);
+                row.querySelector('.item-price').textContent = '-';
+                row.querySelector('.current-stock').textContent = '-';
+                row.querySelector('.current-stock').classList.remove('bg-danger');
+                row.querySelector('.current-stock').classList.add('bg-secondary');
+                row.querySelector('.qty-input').classList.remove('is-invalid');
+                calculateTotals();
             }
         }
     });
 
     addItemBtn.addEventListener('click', function() {
-        const newRow = firstRow.cloneNode(true);
+        const rowToClone = tableBody.querySelector('.component-row');
+        const newRow = rowToClone.cloneNode(true);
         newRow.querySelector('select').value = '';
         newRow.querySelector('input').value = '1';
         newRow.querySelector('.current-stock').textContent = '-';
+        newRow.querySelector('.item-price').textContent = '-';
+        newRow.querySelector('.current-stock').classList.remove('bg-danger');
+        newRow.querySelector('.current-stock').classList.add('bg-secondary');
+        newRow.querySelector('.qty-input').classList.remove('is-invalid');
         tableBody.appendChild(newRow);
+        calculateTotals(); // Recalculate totals after adding a new row
     });
 });
 </script>

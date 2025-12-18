@@ -7,15 +7,27 @@ ob_start();
         <div class="col-md-10">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                 <h1 class="h2">Items & Machines</h1>
-                <?php if ($_SESSION['role'] === 'admin'): ?>
-                <div class="btn-toolbar mb-2 mb-md-0 gap-2">
-                <a href="<?= BASE_URL ?>/items/create-bundle" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span> New Bundle
-                </a>
-                <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                    <span class="fs-5">+</span> New Item
-                </a>
-            </div>
+                <div class="d-flex gap-3 align-items-center">
+                    <form action="" method="GET" class="d-flex">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <span class="material-symbols-outlined text-muted" style="font-size: 20px;">search</span>
+                            </span>
+                            <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search items..." value="<?= htmlspecialchars($search ?? '') ?>">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+
+                    <?php if ($_SESSION['role'] === 'admin'): ?>
+                    <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+                        <a href="<?= BASE_URL ?>/items/create-bundle" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span> New Bundle
+                        </a>
+                        <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+                            <span class="fs-5">+</span> New Item
+                        </a>
+                    </div>
+                </div>
                 <?php endif; ?>
             </div>
 
@@ -75,7 +87,30 @@ ob_start();
                             </tr>
                             <?php endif; ?>
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <?php if ($totalPages > 1): ?>
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>">Previous</a>
+                            </li>
+                            
+                            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
+                                <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
+                            </li>
+                            <?php endfor; ?>
+                            
+                            <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <?php endif; ?>
+
                 </div>
             </div>
         </div>

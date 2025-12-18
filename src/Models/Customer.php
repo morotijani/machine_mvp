@@ -10,10 +10,60 @@ class Customer {
         $this->pdo = $pdo;
     }
 
-    public function getAll() {
-        // Just basic info
-        $stmt = $this->pdo->query("SELECT * FROM customers ORDER BY name ASC");
+    public function getAll($limit = null, $offset = 0, $search = null) {
+        $sql = "SELECT c.*, 
+                (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
+                MAX(s.created_at) as last_purchase
+                FROM customers c
+                LEFT JOIN sales s ON c.id = s.customer_id";
+        
+        $params = [];
+        
+        if ($search) {
+            $sql .= " WHERE c.name LIKE :search1 OR c.phone LIKE :search2";
+            $params['search'] = "%$search%";
+        }
+        
+        $sql .= " GROUP BY c.id ORDER BY total_debt DESC, c.name ASC";
+        
+        if ($limit) {
+            $sql .= " LIMIT :limit OFFSET :offset";
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        
+        if ($search) {
+            $stmt->bindValue(':search1', $params['search']);
+            $stmt->bindValue(':search2', $params['search']);
+        }
+        
+        if ($limit) {
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        }
+        
+        $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    public function countAll($search = null) {
+        $sql = "SELECT COUNT(*) FROM customers";
+        $params = [];
+        
+        if ($search) {
+            $sql .= " WHERE name LIKE :s1 OR phone LIKE :s2";
+            $params['search'] = "%$search%";
+        }
+        
+        $stmt = $this->pdo->prepare($sql);
+        if ($search) {
+            $stmt->bindValue(':s1', $params['search']);
+            $stmt->bindValue(':s2', $params['search']);
+            $stmt->execute();
+        } else {
+            $stmt->execute();
+        }
+        return $stmt->fetchColumn();
     }
 
     public function getWithDebt() {

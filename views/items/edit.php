@@ -26,9 +26,10 @@ ob_start();
                                     <label class="form-label fw-bold">Category</label>
                                     <input type="text" name="category" class="form-control" list="categories" value="<?php echo htmlspecialchars($item['category']); ?>">
                                     <datalist id="categories">
-                                        <option value="changfan">
-                                        <option value="mining">
-                                        <option value="spare parts">
+                                        <option value="Spare parts">
+                                        <option value="Tools">
+                                        <option value="Mining">
+                                        <option value="Machine">
                                     </datalist>
                                 </div>
                                 <div class="col-md-6 mb-3">

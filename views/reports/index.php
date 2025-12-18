@@ -48,33 +48,24 @@ ob_start();
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($comparisonData as $row): ?>
-                            <tr>
-                                <td class="fw-bold"><?php echo $row['month_name']; ?></td>
-                                <td class="text-end text-muted">₵<?php echo number_format($row['last_year'], 2); ?></td>
-                                <td class="text-end fw-bold">₵<?php echo number_format($row['current_year'], 2); ?></td>
-                                <td class="text-end">
-                                    <?php 
-                                        $diff = $row['difference'];
-                                        $color = ($diff >= 0) ? 'text-success' : 'text-danger';
-                                        echo '<span class="'.$color.'">' . ($diff >= 0 ? '+' : '') . '₵' . number_format($diff, 2) . '</span>';
-                                    ?>
-                                </td>
-                                <td class="text-end">
-                                    <?php 
-                                        $growth = $row['growth'];
-                                        $icon = ($growth >= 0) ? 'trending_up' : 'trending_down'; 
-                                        $badgeClass = ($growth >= 0) ? 'bg-success' : 'bg-danger';
-                                        
-                                        if ($row['last_year'] == 0 && $row['current_year'] > 0) {
-                                            echo '<span class="badge bg-success">New</span>';
-                                        } elseif ($row['last_year'] == 0 && $row['current_year'] == 0) {
-                                            echo '<span class="text-muted">-</span>';
-                                        } else {
-                                            echo '<span class="badge '.$badgeClass.' d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size: 14px;">'.$icon.'</span> ' . number_format($growth, 1) . '%</span>';
-                                        }
-                                    ?>
-                                </td>
+                            <?php foreach ($comparisonData as $monthNum => $data): 
+                                $isCurrentMonth = ($selectedYear == date('Y') && $monthNum == date('n'));
+                            ?>
+                            <tr class="<?= $isCurrentMonth ? 'table-info fw-bold' : '' ?>">
+                                <td><?= $data['month_name'] ?></td>
+                                <td class="text-end text-muted">₵<?= number_format($data['last_year'], 2) ?></td>
+                                <td class="text-end fw-bold">₵<?= number_format($data['current_year'], 2) ?></td>
+                                
+                                <?php if ($data['difference'] > 0): ?>
+                                    <td class="text-end text-success">+₵<?= number_format($data['difference'], 2) ?></td>
+                                    <td class="text-end text-success"><span class="material-symbols-outlined align-middle fs-6">trending_up</span> <?= number_format($data['growth'], 1) ?>%</td>
+                                <?php elseif ($data['difference'] < 0): ?>
+                                    <td class="text-end text-danger">-₵<?= number_format(abs($data['difference']), 2) ?></td>
+                                    <td class="text-end text-danger"><span class="material-symbols-outlined align-middle fs-6">trending_down</span> <?= number_format($data['growth'], 1) ?>%</td>
+                                <?php else: ?>
+                                    <td class="text-end text-muted">-</td>
+                                    <td class="text-end text-muted">-</td>
+                                <?php endif; ?>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

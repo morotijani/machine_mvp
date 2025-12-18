@@ -24,11 +24,12 @@ ob_start();
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Category</label>
-                                    <input type="text" name="category" class="form-control" list="categories" placeholder="e.g. changfan">
+                                    <input type="text" name="category" class="form-control" list="categories" placeholder="e.g. Spare parts">
                                     <datalist id="categories">
-                                        <option value="changfan">
-                                        <option value="mining">
-                                        <option value="spare parts">
+                                        <option value="Spare parts">
+                                        <option value="Tools">
+                                        <option value="Mining">
+                                        <option value="Machine">
                                     </datalist>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -59,7 +60,7 @@ ob_start();
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Location</label>
-                                    <input type="text" name="location" class="form-control" placeholder="Office, Warehouse A..." value="Warehouse A" required>
+                                    <input type="text" name="location" class="form-control" placeholder="Office, Warehouse A..." value="Shelf A" required>
                                 </div>
                             </div>
 
