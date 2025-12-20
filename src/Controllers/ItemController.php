@@ -195,6 +195,10 @@ class ItemController {
             }
 
             $itemModel->update($id, $data);
+            
+            // Trigger recursive update for any bundles containing this item
+            $itemModel->updateParentBundlePrices($id);
+            
             header('Location: ' . BASE_URL . '/items');
             exit;
         }

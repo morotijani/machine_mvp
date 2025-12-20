@@ -328,4 +328,43 @@ class Item {
             throw $e;
         }
     }
+    public function updateParentBundlePrices($childItemId) {
+        // 1. Find all bundles that contain this item
+        $stmt = $this->pdo->prepare("SELECT DISTINCT parent_item_id FROM item_bundles WHERE child_item_id = :cid");
+        $stmt->execute(['cid' => $childItemId]);
+        $parentIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        foreach ($parentIds as $parentId) {
+            // 2. For each parent, recalculate totals
+            $components = $this->getBundleComponents($parentId);
+            
+            $newPrice = 0;
+            $newCost = 0;
+            
+            foreach ($components as $comp) {
+                // Ensure we use the *current* price from the items table, not cached/old values
+                // getBundleComponents already joins with items table to get current name/sku? 
+                // Let's check getBundleComponents implementation. 
+                // It selects i.name, i.sku. It does NOT select i.price or i.cost_price.
+                // We need to fetch current prices.
+                
+                $stmtPrice = $this->pdo->prepare("SELECT price, cost_price FROM items WHERE id = :id");
+                $stmtPrice->execute(['id' => $comp['child_item_id']]);
+                $priceData = $stmtPrice->fetch(PDO::FETCH_ASSOC);
+                
+                if ($priceData) {
+                    $newPrice += $priceData['price'] * $comp['quantity'];
+                    $newCost += $priceData['cost_price'] * $comp['quantity'];
+                }
+            }
+            
+            // 3. Update Parent Bundle
+            $stmtUpdate = $this->pdo->prepare("UPDATE items SET price = :price, cost_price = :cost WHERE id = :id");
+            $stmtUpdate->execute([
+                'price' => $newPrice,
+                'cost' => $newCost,
+                'id' => $parentId
+            ]);
+        }
+    }
 }

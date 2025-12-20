@@ -27,8 +27,8 @@ ob_start();
                             <span class="fs-5">+</span> New Item
                         </a>
                     </div>
-                </div>
                 <?php endif; ?>
+                </div>
             </div>
 
             <div class="card shadow-sm">

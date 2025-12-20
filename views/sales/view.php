@@ -240,7 +240,8 @@ ob_start();
                         <label class="form-label">Amount Received</label>
                         <div class="input-group">
                             <span class="input-group-text">₵</span>
-                            <input type="number" name="amount" step="0.01" class="form-control" max="<?php echo round($sale['total_amount'] - $sale['paid_amount'], 2); ?>" required>
+                            <input type="number" name="amount" id="payment-amount" step="0.01" class="form-control" max="<?php echo round($sale['total_amount'] - $sale['paid_amount'], 2); ?>" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('payment-amount').value = '<?php echo round($sale['total_amount'] - $sale['paid_amount'], 2); ?>'">Pay All</button>
                         </div>
                         <div class="form-text">Max due: ₵<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></div>
                     </div>
