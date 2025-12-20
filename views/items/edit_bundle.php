@@ -222,17 +222,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Flag to prevent auto-calculation if user manually edits price
+    let isManualPrice = false;
+    const bundlePriceInput = document.getElementById('bundle-price');
+    const bundleCostInput = document.getElementById('bundle-cost');
+
+    if (bundlePriceInput) {
+        bundlePriceInput.addEventListener('input', function() {
+            isManualPrice = true;
+        });
+    }
+
+    function calculatePrices() {
+        let totalSelling = 0;
+        let totalCost = 0;
+        let hasSelection = false;
+        
+        const rows = tableBody.querySelectorAll('.component-row');
+        
+        rows.forEach(row => {
+            const select = row.querySelector('.item-select');
+            const qtyInput = row.querySelector('.qty-input');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption && selectedOption.value) {
+                hasSelection = true;
+                const qty = parseInt(qtyInput.value) || 0;
+                const price = parseFloat(selectedOption.dataset.price) || 0;
+                const cost = parseFloat(selectedOption.dataset.cost) || 0;
+                
+                totalSelling += price * qty;
+                totalCost += cost * qty;
+            }
+        });
+
+        if (hasSelection) {
+            if (bundleCostInput) bundleCostInput.value = totalCost.toFixed(2);
+            
+            // Auto-update selling price ONLY if user hasn't manually edited it
+            if (bundlePriceInput && !isManualPrice) {
+                 bundlePriceInput.value = totalSelling.toFixed(2);
+            }
+        }
+    }
+
     function validateStock() {
         const newBundleQty = parseInt(bundleQtyInput.value) || 0;
         const rows = tableBody.querySelectorAll('.component-row');
         let isValid = true;
         let rejectReason = "";
         
-        // Price Calculation Variables
-        let totalSelling = 0;
-        let totalCost = 0;
-        let hasSelection = false;
         
+        // Price inputs not needed in validation
         const bundlePriceInput = document.getElementById('bundle-price');
         const bundleCostInput = document.getElementById('bundle-cost');
 
@@ -254,15 +295,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedOption = select.options[select.selectedIndex];
             
             if (selectedOption && selectedOption.value) {
-                hasSelection = true;
+                // Price logic moved to calculatePrices()
+                // let hasSelection = true; // Not needed
                 const itemId = selectedOption.value;
                 const newRecipeQty = parseInt(qtyInput.value) || 0;
-                
-                // Price Math
-                const price = parseFloat(selectedOption.dataset.price) || 0;
-                const cost = parseFloat(selectedOption.dataset.cost) || 0;
-                totalSelling += price * newRecipeQty;
-                totalCost += cost * newRecipeQty;
                 
                 // 1. Strict Recipe Quantity Check
                 if (newRecipeQty <= 0) {
@@ -307,13 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Update Price Inputs
-        if (hasSelection) {
-            // Only update if user hasn't manually overridden it? 
-            // Strict requirement: "automatically calculating". usually implies it overwrites.
-            // Let's overwrite for consistency with Create Bundle.
-            if(bundlePriceInput) bundlePriceInput.value = totalSelling.toFixed(2);
-            if(bundleCostInput) bundleCostInput.value = totalCost.toFixed(2);
-        }
+        // Price update removed from validation. Handled in calculatePrices.
 
         if (newBundleQty < 0) {
              isValid = false;
@@ -335,8 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event Listeners
     const form = document.querySelector('form');
     form.addEventListener('submit', function(e) {
-        // Run validation one last time
-        validateStock();
+        validateStock(); // Only validate, DO NOT recalculate price
         const submitBtn = document.querySelector('button[type="submit"]');
         if (submitBtn.disabled) {
             e.preventDefault();
@@ -346,18 +375,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Bundle Stock Change: Only Validate
     bundleQtyInput.addEventListener('input', validateStock);
 
+    // Component Changes: Update Prices AND Validate
     tableBody.addEventListener('change', function(e) {
         if (e.target.classList.contains('item-select')) {
             updateStockDisplay(e.target.closest('tr'));
-            validateStock();
+            calculatePrices(); // Update Price
+            validateStock();   // Validate Stock
         }
     });
 
     tableBody.addEventListener('input', function(e) {
         if (e.target.classList.contains('qty-input')) {
-            validateStock();
+            calculatePrices(); // Update Price
+            validateStock();   // Validate Stock
         }
     });
 
@@ -366,13 +399,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = e.target.closest('tr');
             if (tableBody.querySelectorAll('.component-row').length > 1) {
                 row.remove();
-                validateStock();
             } else {
                 row.querySelector('select').value = '';
                 row.querySelector('input').value = '1';
                 updateStockDisplay(row);
-                validateStock();
             }
+            calculatePrices(); // Update Price
+            validateStock();   // Validate Stock
         }
     });
 
@@ -402,6 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.component-row').forEach(row => {
         updateStockDisplay(row);
     });
+    // Do NOT calculatePrices on load
     validateStock();
 });
 </script>
