@@ -49,6 +49,7 @@ $router->get('/users', [$userController, 'index']);
 $router->get('/users/create', [$userController, 'create']);
 $router->post('/users/create', [$userController, 'create']);
 $router->post('/users/toggle-status', [$userController, 'toggleStatus']);
+$router->post('/users/delete', [$userController, 'delete']);
 
 // Profile
 $profileController = new \App\Controllers\ProfileController();
@@ -70,6 +71,7 @@ $router->post('/items/edit', [$itemController, 'edit']);
 $router->get('/items/create-bundle', [$itemController, 'createBundle']);
 $router->post('/items/create-bundle', [$itemController, 'createBundle']);
 $router->post('/items/ungroup-bundle', [$itemController, 'ungroupBundle']);
+$router->post('/items/delete', [$itemController, 'delete']);
 
 // Customers
 $customerController = new CustomerController();

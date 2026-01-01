@@ -61,12 +61,22 @@ ob_start();
                                 <td><?php echo date('M j, Y', strtotime($user['created_at'])); ?></td>
                                 <td>
                                     <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                                    <form action="<?= BASE_URL ?>/users/delete" method="POST" style="display:inline;">
-                                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete User" onclick="return confirm('WARNING: Are you sure you want to delete this user? This will remove them from the active list but keep their sales history.')">
-                                            <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                                        </button>
-                                    </form>
+                                    <div class="d-flex gap-2 justify-content-start">
+                                        <form action="<?= BASE_URL ?>/users/toggle-status" method="POST" style="display:inline;">
+                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                            <input type="hidden" name="status" value="<?= $user['is_active'] ? 0 : 1 ?>">
+                                            <button type="submit" class="btn btn-sm <?= $user['is_active'] ? 'btn-outline-warning' : 'btn-outline-success' ?>" title="<?= $user['is_active'] ? 'Disable User' : 'Enable User' ?>">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;"><?= $user['is_active'] ? 'person_off' : 'person_check' ?></span>
+                                            </button>
+                                        </form>
+                                        
+                                        <form action="<?= BASE_URL ?>/users/delete" method="POST" style="display:inline;">
+                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete User" onclick="return confirm('WARNING: Are you sure you want to delete this user? This will remove them from the active list but keep their sales history.')">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
                                     <?php endif; ?>
                                 </td>
                             </tr>

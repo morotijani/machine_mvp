@@ -32,7 +32,7 @@ class User {
 
     // List all users
     public function getAll() {
-        $stmt = $this->pdo->query("SELECT id, username, role, fullname, profile_image, created_at FROM users WHERE is_deleted = 0 ORDER BY created_at DESC");
+        $stmt = $this->pdo->query("SELECT id, username, role, fullname, profile_image, is_active, created_at FROM users WHERE is_deleted = 0 ORDER BY created_at DESC");
         return $stmt->fetchAll();
     }
 
