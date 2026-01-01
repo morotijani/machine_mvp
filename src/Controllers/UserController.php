@@ -10,8 +10,8 @@ class UserController {
     public function index() {
         AuthMiddleware::requireAdmin();
         $pdo = Database::getInstance();
-        $stmt = $pdo->query("SELECT * FROM users ORDER BY created_at DESC");
-        $users = $stmt->fetchAll();
+        $userModel = new \App\Models\User($pdo);
+        $users = $userModel->getAll();
         require __DIR__ . '/../../views/users/index.php';
     }
 
