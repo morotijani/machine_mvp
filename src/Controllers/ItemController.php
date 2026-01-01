@@ -289,4 +289,16 @@ class ItemController {
             exit;
         }
     }
+
+    public function delete() {
+        AuthMiddleware::requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'];
+            $pdo = Database::getInstance();
+            $itemModel = new Item($pdo);
+            $itemModel->delete($id);
+            header('Location: ' . BASE_URL . '/items');
+            exit;
+        }
+    }
 }

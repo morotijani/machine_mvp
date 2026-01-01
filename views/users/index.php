@@ -61,18 +61,11 @@ ob_start();
                                 <td><?php echo date('M j, Y', strtotime($user['created_at'])); ?></td>
                                 <td>
                                     <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                                    <form action="<?= BASE_URL ?>/users/toggle-status" method="POST" style="display:inline;">
+                                    <form action="<?= BASE_URL ?>/users/delete" method="POST" style="display:inline;">
                                         <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
-                                        <input type="hidden" name="status" value="<?= $user['is_active'] ? 0 : 1 ?>">
-                                        <?php if ($user['is_active']): ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Disable User" onclick="return confirm('Are you sure you want to disable this user?')">
-                                                <span class="material-symbols-outlined" style="font-size: 16px;">block</span>
-                                            </button>
-                                        <?php else: ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Enable User">
-                                                <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
-                                            </button>
-                                        <?php endif; ?>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete User" onclick="return confirm('WARNING: Are you sure you want to delete this user? This will remove them from the active list but keep their sales history.')">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                                        </button>
                                     </form>
                                     <?php endif; ?>
                                 </td>

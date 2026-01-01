@@ -11,29 +11,29 @@ class Item {
     }
 
     public function getAll($limit = null, $offset = 0, $search = null) {
-        $sql = "SELECT * FROM items";
+        $sql = "SELECT * FROM items WHERE is_deleted = 0";
         $params = [];
         
         if ($search) {
-            $sql .= " WHERE name LIKE :s1 OR sku LIKE :s2 OR category LIKE :s3";
-            $params['search'] = "%$search%";
+            $sql .= " AND (name LIKE :s1 OR sku LIKE :s2 OR category LIKE :s3)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
         }
         
-        $sql .= " ORDER BY name ASC";
+        $sql .= " ORDER BY created_at DESC";
         
-        if ($limit) {
+        if ($limit !== null) {
             $sql .= " LIMIT :limit OFFSET :offset";
         }
-        
+
         $stmt = $this->pdo->prepare($sql);
-        
         if ($search) {
-            $stmt->bindValue(':s1', $params['search']);
-            $stmt->bindValue(':s2', $params['search']);
-            $stmt->bindValue(':s3', $params['search']);
+            $stmt->bindValue(':s1', $params['s1']);
+            $stmt->bindValue(':s2', $params['s2']);
+            $stmt->bindValue(':s3', $params['s3']);
         }
-        
-        if ($limit) {
+        if ($limit !== null) {
             $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
             $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
         }
@@ -43,31 +43,30 @@ class Item {
     }
 
     public function countAll($search = null) {
-        $sql = "SELECT COUNT(*) FROM items";
+        $sql = "SELECT COUNT(*) FROM items WHERE is_deleted = 0";
         $params = [];
         
         if ($search) {
-            $sql .= " WHERE name LIKE :s1 OR sku LIKE :s2 OR category LIKE :s3";
-            $params['search'] = "%$search%";
+            $sql .= " AND (name LIKE :s1 OR sku LIKE :s2 OR category LIKE :s3)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
         }
         
         $stmt = $this->pdo->prepare($sql);
-        if ($search) {
-            $stmt->bindValue(':s1', $params['search']);
-            $stmt->bindValue(':s2', $params['search']);
-            $stmt->bindValue(':s3', $params['search']);
-            $stmt->execute();
-        } else {
-            $stmt->execute();
-        }
-        
+        $stmt->execute($params);
         return $stmt->fetchColumn();
     }
 
     public function find($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM items WHERE id = :id");
+        $stmt = $this->pdo->prepare("SELECT * FROM items WHERE id = :id AND is_deleted = 0");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
+    }
+
+    public function delete($id) {
+        $stmt = $this->pdo->prepare("UPDATE items SET is_deleted = 1 WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
     }
 
     public function create($data) {
@@ -91,11 +90,6 @@ class Item {
         $data['id'] = $id;
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute($data);
-    }
-
-    public function delete($id) {
-        $stmt = $this->pdo->prepare("DELETE FROM items WHERE id = :id");
-        return $stmt->execute(['id' => $id]);
     }
     
     public function adjustStock($id, $quantityChange) {

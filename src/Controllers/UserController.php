@@ -76,4 +76,23 @@ class UserController {
             exit;
         }
     }
+    public function delete() {
+        AuthMiddleware::requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_POST['user_id'];
+            
+            // Prevent deleting oneself
+            if ($userId == $_SESSION['user_id']) {
+                 header('Location: ' . BASE_URL . '/users');
+                 exit;
+            }
+
+            $pdo = Database::getInstance();
+            $userModel = new \App\Models\User($pdo);
+            $userModel->delete($userId);
+            
+            header('Location: ' . BASE_URL . '/users');
+            exit;
+        }
+    }
 }

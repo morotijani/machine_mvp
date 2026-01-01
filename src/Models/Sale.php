@@ -205,9 +205,30 @@ class Sale {
     }
 
     public function approveDelete($id) {
-        // Approve means voiding the sale
-        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'approved', voided = 1 WHERE id = :id");
-        return $stmt->execute(['id' => $id]);
+        try {
+            $this->pdo->beginTransaction();
+
+            // 1. Get Sale Items
+            $stmt = $this->pdo->prepare("SELECT item_id, quantity FROM sale_items WHERE sale_id = :id");
+            $stmt->execute(['id' => $id]);
+            $items = $stmt->fetchAll();
+
+            // 2. Restore Stock
+            foreach ($items as $item) {
+                $stmtStock = $this->pdo->prepare("UPDATE items SET quantity = quantity + :qty WHERE id = :id");
+                $stmtStock->execute(['qty' => $item['quantity'], 'id' => $item['item_id']]);
+            }
+
+            // 3. Mark as Approved and Voided
+            $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'approved', voided = 1 WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     public function rejectDelete($id) {

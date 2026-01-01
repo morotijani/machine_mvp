@@ -65,6 +65,16 @@ class ReportController {
         $stmt->execute($paramsMonthly);
         $monthlyStats = $stmt->fetch();
 
+        // 5. Total Inventory Net Worth (Individual Non-Bundle Items)
+        // User asked for non-bundle (type IS NULL or type != 'bundle' if type exists)
+        // Our schema uses type = 'bundle' for bundles.
+        $stmt = $pdo->query("SELECT SUM(quantity * price) FROM items WHERE (type IS NULL OR type != 'bundle') AND is_deleted = 0");
+        $inventoryWorth = $stmt->fetchColumn() ?: 0;
+
+        // 6. Total Worth of Items Sold (Non-Voided)
+        $stmt = $pdo->query("SELECT SUM(total_amount) FROM sales WHERE voided = 0");
+        $totalSoldWorth = $stmt->fetchColumn() ?: 0;
+
         require __DIR__ . '/../../views/dashboard/index.php';
     }
     public function index() {

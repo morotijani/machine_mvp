@@ -12,7 +12,7 @@ class User {
 
     // Find user by username
     public function findByUsername($username) {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = :username LIMIT 1");
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = :username AND is_deleted = 0 LIMIT 1");
         $stmt->execute(['username' => $username]);
         return $stmt->fetch();
     }
@@ -32,14 +32,19 @@ class User {
 
     // List all users
     public function getAll() {
-        $stmt = $this->pdo->query("SELECT id, username, role, fullname, profile_image, created_at FROM users ORDER BY created_at DESC");
+        $stmt = $this->pdo->query("SELECT id, username, role, fullname, profile_image, created_at FROM users WHERE is_deleted = 0 ORDER BY created_at DESC");
         return $stmt->fetchAll();
     }
 
     public function find($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = :id AND is_deleted = 0");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
+    }
+
+    public function delete($id) {
+        $stmt = $this->pdo->prepare("UPDATE users SET is_deleted = 1 WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
     }
 
     public function updatePassword($id, $newPassword) {

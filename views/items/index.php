@@ -37,6 +37,7 @@ ob_start();
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
+                                <th style="width: 50px;">#</th>
                                 <th style="width: 60px;">Image</th>
                                 <th>Name</th>
                                 <th>Category</th>
@@ -50,8 +51,12 @@ ob_start();
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($items as $item): ?>
+                            <?php 
+                                $startNum = ($page - 1) * 10 + 1;
+                                foreach ($items as $index => $item): 
+                            ?>
                             <tr>
+                                <td class="text-muted small"><?= $startNum + $index ?></td>
                                 <td>
                                     <?php if (!empty($item['image_path'])): ?>
                                         <img src="<?= BASE_URL ?>/<?php echo $item['image_path']; ?>" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
@@ -74,8 +79,12 @@ ob_start();
                                     <?php endif; ?>
                                 </td>
                                 <?php if ($_SESSION['role'] === 'admin'): ?>
-                                <td class="text-end">
+                                <td class="text-end d-flex justify-content-end gap-2">
                                     <a href="<?= BASE_URL ?>/items/edit?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <form action="<?= BASE_URL ?>/items/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this item? This will hide it from the list but preserve sales history.')">
+                                        <input type="hidden" name="id" value="<?= $item['id'] ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
                                 </td>
                                 <?php endif; ?>
                             </tr>
@@ -94,18 +103,36 @@ ob_start();
                     <?php if ($totalPages > 1): ?>
                     <nav aria-label="Page navigation" class="mt-4">
                         <ul class="pagination justify-content-center">
-                            <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>">Previous</a>
-                            </li>
-                            
-                            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                            <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                                <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
-                            </li>
-                            <?php endfor; ?>
-                            
+                            <!-- Next/Previous labels swapped per user request "next ... previous" or just standard? 
+                                 Actually user said: "next, 1, 2, 3 .... 14, 15, 16, previous" 
+                                 This is a very specific order. Let's follow it. 
+                            -->
                             <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
                                 <a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>">Next</a>
+                            </li>
+                            
+                            <?php
+                            $range = 2; // Number of pages either side of current
+                            $initial_num = 1;
+                            $last_num = $totalPages;
+                            
+                            for ($i = 1; $i <= $totalPages; $i++):
+                                if ($i == 1 || $i == $totalPages || ($i >= $page - $range && $i <= $page + $range)):
+                            ?>
+                                    <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
+                                        <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
+                                    </li>
+                            <?php 
+                                elseif ($i == $page - $range - 1 || $i == $page + $range + 1):
+                            ?>
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                            <?php
+                                endif;
+                            endfor;
+                            ?>
+                            
+                            <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>">Previous</a>
                             </li>
                         </ul>
                     </nav>
