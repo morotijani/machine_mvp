@@ -35,7 +35,7 @@ class Debtor {
     }
 
     public function find($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM standalone_debtors WHERE id = :id");
+        $stmt = $this->pdo->prepare("SELECT * FROM standalone_debtors WHERE id = :id AND is_deleted = 0");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
     }
@@ -58,10 +58,14 @@ class Debtor {
 
             // 3. Update status
             $debtor = $this->find($debtorId);
-            $newStatus = 'partially_paid';
-            if ($debtor['paid_amount'] >= $debtor['total_amount']) {
+            $paid = $debtor['paid_amount'];
+            $total = $debtor['total_amount'];
+
+            if ($paid >= $total) {
                 $newStatus = 'cleared';
-            } elseif ($debtor['paid_amount'] <= 0) {
+            } elseif ($paid > 0) {
+                $newStatus = 'partially_paid';
+            } else {
                 $newStatus = 'unpaid';
             }
 

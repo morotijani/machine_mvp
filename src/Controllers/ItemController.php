@@ -276,9 +276,18 @@ class ItemController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'];
             $pdo = Database::getInstance();
+            
+            // Check if item is part of a bundle
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM item_bundles WHERE child_item_id = :id");
+            $stmt->execute(['id' => $id]);
+            if ($stmt->fetchColumn() > 0) {
+                header('Location: ' . BASE_URL . '/items?error=Cannot delete item. It is a component of one or more bundles.');
+                exit;
+            }
+
             $itemModel = new Item($pdo);
             $itemModel->delete($id);
-            header('Location: ' . BASE_URL . '/items');
+            header('Location: ' . BASE_URL . '/items?success=Item removed');
             exit;
         }
     }

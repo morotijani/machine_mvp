@@ -55,9 +55,21 @@ class DebtorController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $amount = $_POST['amount'];
+            $amount = (float)$_POST['amount'];
             $date = $_POST['payment_date'];
             $uid = $_SESSION['user_id'];
+
+            $balance = $debtor['total_amount'] - $debtor['paid_amount'];
+
+            if ($amount <= 0) {
+                header('Location: ' . BASE_URL . '/debtors/payment?id=' . $id . '&error=Amount must be greater than zero');
+                exit;
+            }
+
+            if ($amount > $balance) {
+                header('Location: ' . BASE_URL . '/debtors/payment?id=' . $id . '&error=Amount exceeds outstanding balance');
+                exit;
+            }
 
             $model->recordPayment($id, $amount, $date, $uid);
             header('Location: ' . BASE_URL . '/debtors/history?id=' . $id . '&success=Payment recorded successfully');

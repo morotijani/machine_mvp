@@ -16,7 +16,8 @@ class Setting {
         if (!$settings) {
             // Should exist due to migration, but fallback
             $this->pdo->exec("INSERT INTO settings (company_name) VALUES ('My Company')");
-            return $this->get();
+            $stmt = $this->pdo->query("SELECT * FROM settings LIMIT 1");
+            return $stmt->fetch();
         }
         return $settings;
     }

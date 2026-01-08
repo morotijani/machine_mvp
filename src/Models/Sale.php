@@ -226,6 +226,16 @@ class Sale {
         try {
             $this->pdo->beginTransaction();
 
+            // 0. Check if already approved to prevent double restoration
+            $stmt = $this->pdo->prepare("SELECT delete_request_status, voided FROM sales WHERE id = :id FOR UPDATE");
+            $stmt->execute(['id' => $id]);
+            $current = $stmt->fetch();
+
+            if ($current['delete_request_status'] === 'approved' || $current['voided'] == 1) {
+                $this->pdo->rollBack();
+                return true; // Already processed
+            }
+
             // 1. Get Sale Items
             $stmt = $this->pdo->prepare("SELECT item_id, quantity FROM sale_items WHERE sale_id = :id");
             $stmt->execute(['id' => $id]);
