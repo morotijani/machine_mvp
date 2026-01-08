@@ -68,10 +68,17 @@ $router->get('/items/create', [$itemController, 'create']);
 $router->post('/items/create', [$itemController, 'create']);
 $router->get('/items/edit', [$itemController, 'edit']);
 $router->post('/items/edit', [$itemController, 'edit']);
+$router->get('/items/preview', [$itemController, 'preview']);
 $router->get('/items/create-bundle', [$itemController, 'createBundle']);
 $router->post('/items/create-bundle', [$itemController, 'createBundle']);
 $router->post('/items/ungroup-bundle', [$itemController, 'ungroupBundle']);
 $router->post('/items/delete', [$itemController, 'delete']);
+
+// Admin Recycle Bin
+$adminController = new \App\Controllers\AdminController();
+$router->get('/admin/trash', [$adminController, 'trash']);
+$router->post('/admin/restore', [$adminController, 'restore']);
+$router->post('/admin/delete-forever', [$adminController, 'deleteForever']);
 
 // Customers
 $customerController = new CustomerController();
@@ -90,6 +97,25 @@ $router->post('/sales/request-delete', [$saleController, 'requestDelete']);
 $router->post('/sales/process-delete', [$saleController, 'processDeleteRequest']);
 $router->get('/sales/view', [$saleController, 'view']);
 $router->post('/sales/pay', [$saleController, 'pay']);
+
+// Expenditures
+$expenditureController = new \App\Controllers\ExpenditureController();
+$router->get('/expenditures', [$expenditureController, 'index']);
+$router->get('/expenditures/create', [$expenditureController, 'create']);
+$router->post('/expenditures/create', [$expenditureController, 'create']);
+$router->get('/expenditures/edit', [$expenditureController, 'edit']);
+$router->post('/expenditures/edit', [$expenditureController, 'edit']);
+$router->post('/expenditures/delete', [$expenditureController, 'delete']);
+
+// Debtors
+$debtorController = new \App\Controllers\DebtorController();
+$router->get('/debtors', [$debtorController, 'index']);
+$router->get('/debtors/create', [$debtorController, 'create']);
+$router->post('/debtors/create', [$debtorController, 'create']);
+$router->get('/debtors/payment', [$debtorController, 'recordPayment']);
+$router->post('/debtors/payment', [$debtorController, 'recordPayment']);
+$router->get('/debtors/history', [$debtorController, 'history']);
+$router->post('/debtors/delete', [$debtorController, 'delete']);
 
 // Dispatch
 $router->dispatch();

@@ -10,8 +10,11 @@ class Item {
         $this->pdo = $pdo;
     }
 
-    public function getAll($limit = null, $offset = 0, $search = null) {
+    public function getAll($limit = null, $offset = 0, $search = null, $lowStock = false) {
         $sql = "SELECT * FROM items WHERE is_deleted = 0";
+        if ($lowStock) {
+            $sql .= " AND quantity <= 5";
+        }
         $params = [];
         
         if ($search) {
@@ -42,8 +45,11 @@ class Item {
         return $stmt->fetchAll();
     }
 
-    public function countAll($search = null) {
+    public function countAll($search = null, $lowStock = false) {
         $sql = "SELECT COUNT(*) FROM items WHERE is_deleted = 0";
+        if ($lowStock) {
+            $sql .= " AND quantity <= 5";
+        }
         $params = [];
         
         if ($search) {
@@ -323,25 +329,16 @@ class Item {
         }
     }
     public function updateParentBundlePrices($childItemId) {
-        // 1. Find all bundles that contain this item
         $stmt = $this->pdo->prepare("SELECT DISTINCT parent_item_id FROM item_bundles WHERE child_item_id = :cid");
         $stmt->execute(['cid' => $childItemId]);
         $parentIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
         foreach ($parentIds as $parentId) {
-            // 2. For each parent, recalculate totals
             $components = $this->getBundleComponents($parentId);
-            
             $newPrice = 0;
             $newCost = 0;
             
             foreach ($components as $comp) {
-                // Ensure we use the *current* price from the items table, not cached/old values
-                // getBundleComponents already joins with items table to get current name/sku? 
-                // Let's check getBundleComponents implementation. 
-                // It selects i.name, i.sku. It does NOT select i.price or i.cost_price.
-                // We need to fetch current prices.
-                
                 $stmtPrice = $this->pdo->prepare("SELECT price, cost_price FROM items WHERE id = :id");
                 $stmtPrice->execute(['id' => $comp['child_item_id']]);
                 $priceData = $stmtPrice->fetch(PDO::FETCH_ASSOC);
@@ -352,13 +349,40 @@ class Item {
                 }
             }
             
-            // 3. Update Parent Bundle
             $stmtUpdate = $this->pdo->prepare("UPDATE items SET price = :price, cost_price = :cost WHERE id = :id");
             $stmtUpdate->execute([
                 'price' => $newPrice,
                 'cost' => $newCost,
                 'id' => $parentId
             ]);
+        }
+    }
+
+    public function getDeleted() {
+        $stmt = $this->pdo->query("SELECT * FROM items WHERE is_deleted = 1 ORDER BY updated_at DESC");
+        return $stmt->fetchAll();
+    }
+
+    public function restore($id) {
+        $stmt = $this->pdo->prepare("UPDATE items SET is_deleted = 0 WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
+    public function hardDelete($id) {
+        $this->pdo->beginTransaction();
+        try {
+            // Delete relations first
+            $stmt = $this->pdo->prepare("DELETE FROM item_bundles WHERE parent_item_id = :id OR child_item_id = :id");
+            $stmt->execute(['id' => $id]);
+            
+            $stmt = $this->pdo->prepare("DELETE FROM items WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+            
+            $this->pdo->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
         }
     }
 }

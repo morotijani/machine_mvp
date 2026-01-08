@@ -123,6 +123,15 @@ class Sale {
             $params['uid'] = $filters['user_id'];
         }
 
+        // Voided filtering
+        if (isset($filters['show_voided']) && $filters['show_voided'] !== 'all') {
+            $where[] = "s.voided = :voided";
+            $params['voided'] = ($filters['show_voided'] === 'yes') ? 1 : 0;
+        } elseif (!isset($filters['show_voided'])) {
+            // Default: hide voided
+            $where[] = "s.voided = 0";
+        }
+
         $whereSql = implode(" AND ", $where);
 
         $sql = "SELECT s.*, c.name as customer_name, u.username as seller_name 
@@ -168,6 +177,15 @@ class Sale {
         if (!empty($filters['status']) && $filters['status'] !== 'all') {
             $where[] = "s.payment_status = :status";
             $params['status'] = $filters['status'];
+        }
+
+        // Voided filtering
+        if (isset($filters['show_voided']) && $filters['show_voided'] !== 'all') {
+            $where[] = "s.voided = :voided";
+            $params['voided'] = ($filters['show_voided'] === 'yes') ? 1 : 0;
+        } elseif (!isset($filters['show_voided'])) {
+            // Default: hide voided
+            $where[] = "s.voided = 0";
         }
 
         $whereSql = implode(" AND ", $where);
@@ -234,5 +252,50 @@ class Sale {
     public function rejectDelete($id) {
         $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'rejected' WHERE id = :id");
         return $stmt->execute(['id' => $id]);
+    }
+
+    public function getDeleted() {
+        $stmt = $this->pdo->query("SELECT s.*, c.name as customer_name FROM sales s JOIN customers c ON s.customer_id = c.id WHERE s.voided = 1 ORDER BY s.created_at DESC");
+        return $stmt->fetchAll();
+    }
+
+    public function restore($id) {
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare("SELECT si.* FROM sale_items si WHERE si.sale_id = :id");
+            $stmt->execute(['id' => $id]);
+            $items = $stmt->fetchAll();
+
+            foreach ($items as $item) {
+                $stmtStock = $this->pdo->prepare("UPDATE items SET quantity = quantity - :qty WHERE id = :id");
+                $stmtStock->execute(['qty' => $item['quantity'], 'id' => $item['item_id']]);
+            }
+
+            $stmt = $this->pdo->prepare("UPDATE sales SET voided = 0, delete_request_status = 'none' WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+            
+            $this->pdo->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    public function hardDelete($id) {
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare("DELETE FROM payments WHERE sale_id = :id");
+            $stmt->execute(['id' => $id]);
+            $stmt = $this->pdo->prepare("DELETE FROM sale_items WHERE sale_id = :id");
+            $stmt->execute(['id' => $id]);
+            $stmt = $this->pdo->prepare("DELETE FROM sales WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+            $this->pdo->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 }

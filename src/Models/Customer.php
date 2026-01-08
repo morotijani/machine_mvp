@@ -15,7 +15,7 @@ class Customer {
                 (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
                 MAX(s.created_at) as last_purchase
                 FROM customers c
-                LEFT JOIN sales s ON c.id = s.customer_id";
+                LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0";
         
         $params = [];
         
@@ -72,7 +72,7 @@ class Customer {
                 (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
                 MAX(s.created_at) as last_purchase
                 FROM customers c
-                LEFT JOIN sales s ON c.id = s.customer_id
+                LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0
                 GROUP BY c.id
                 ORDER BY total_debt DESC";
         $stmt = $this->pdo->query($sql);

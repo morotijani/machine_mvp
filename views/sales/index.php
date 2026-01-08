@@ -15,7 +15,7 @@ ob_start();
 
         <!-- Search & Filter Form -->
         <div class="card shadow-sm mb-3" style="overflow-x: auto;">
-            <div class="card-body py-3" style="max-width: 1200px;">
+            <div class="card-body py-3">
                 <form action="<?= BASE_URL ?>/sales" method="GET" class="row g-2 align-items-center">
                     <div class="col-md-3">
                         <input type="text" name="search" class="form-control" placeholder="Search Invoice # or Customer" value="<?php echo htmlspecialchars($filters['search']); ?>">
@@ -34,6 +34,13 @@ ob_start();
                             <option value="unpaid" <?php echo $filters['status'] === 'unpaid' ? 'selected' : ''; ?>>Unpaid</option>
                         </select>
                     </div>
+                    <div class="col-md-2">
+                        <select name="show_voided" class="form-select">
+                            <option value="no" <?php echo $filters['show_voided'] === 'no' ? 'selected' : ''; ?>>Active Sales</option>
+                            <option value="yes" <?php echo $filters['show_voided'] === 'yes' ? 'selected' : ''; ?>>Voided Sales</option>
+                            <option value="all" <?php echo $filters['show_voided'] === 'all' ? 'selected' : ''; ?>>All Records</option>
+                        </select>
+                    </div>
                     <?php if ($_SESSION['role'] === 'admin'): ?>
                     <div class="col-md-2">
                          <select name="delete_request" class="form-select">
@@ -42,7 +49,7 @@ ob_start();
                         </select>
                     </div>
                     <?php endif; ?>
-                    <div class="col-md-<?php echo ($_SESSION['role'] === 'admin') ? '1' : '3'; ?> d-flex gap-2">
+                    <div class="col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
                             <span class="material-symbols-outlined" style="font-size: 18px;">filter_list</span> Filter
                         </button>
@@ -82,7 +89,7 @@ ob_start();
                                     default => 'bg-secondary'
                                 };
                             ?>
-                            <tr>
+                            <tr class="<?php echo $sale['voided'] ? 'table-light opacity-75' : ''; ?>">
                                 <td><?php echo date('M j, Y H:i', strtotime($sale['created_at'])); ?></td>
                                 <td><a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="fw-bold text-decoration-none">#<?php echo $sale['id']; ?></a></td>
                                 <td><?php echo htmlspecialchars($sale['customer_name'] ?? ''); ?></td>

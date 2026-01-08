@@ -65,4 +65,19 @@ class User {
         $stmt = $this->pdo->prepare("UPDATE users SET is_active = :status WHERE id = :id");
         return $stmt->execute(['status' => $status, 'id' => $id]);
     }
+
+    public function getDeleted() {
+        $stmt = $this->pdo->query("SELECT * FROM users WHERE is_deleted = 1 ORDER BY created_at DESC");
+        return $stmt->fetchAll();
+    }
+
+    public function restore($id) {
+        $stmt = $this->pdo->prepare("UPDATE users SET is_deleted = 0 WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
+    public function hardDelete($id) {
+        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
 }

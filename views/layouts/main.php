@@ -86,6 +86,16 @@
                                 <span class="material-symbols-outlined icon">group</span> Customers
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/debtors') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/debtors">
+                                <span class="material-symbols-outlined icon">person_search</span> Debt System
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/expenditures') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/expenditures">
+                                <span class="material-symbols-outlined icon">payments</span> Expenditures
+                            </a>
+                        </li>
                         
                         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                         <div class="my-2 border-top mx-3"></div>
@@ -97,6 +107,11 @@
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/reports') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/reports">
                                 <span class="material-symbols-outlined icon">bar_chart</span> Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/admin/trash') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/admin/trash">
+                                <span class="material-symbols-outlined icon">delete</span> Recycle Bin
                             </a>
                         </li>
                         <li class="nav-item">

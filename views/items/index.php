@@ -8,14 +8,25 @@ ob_start();
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                 <h1 class="h2">Items & Machines</h1>
                 <div class="d-flex gap-3 align-items-center">
-                    <form action="" method="GET" class="d-flex">
+                    <form action="" method="GET" class="d-flex gap-2">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 20px;">search</span>
                             </span>
                             <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search items..." value="<?= htmlspecialchars($search ?? '') ?>">
-                            <button type="submit" class="btn btn-primary">Search</button>
                         </div>
+                        
+                        <div class="btn-group">
+                            <input type="checkbox" name="low_stock" value="1" class="btn-check" id="lowStockCheck" <?= ($lowStock ?? false) ? 'checked' : '' ?> onchange="this.form.submit()">
+                            <label class="btn btn-outline-danger d-flex align-items-center gap-2" for="lowStockCheck">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">warning</span> Low Stock
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                        <?php if (!empty($search) || ($lowStock ?? false)): ?>
+                            <a href="<?= BASE_URL ?>/items" class="btn btn-outline-secondary">Clear</a>
+                        <?php endif; ?>
                     </form>
 
                     <?php if ($_SESSION['role'] === 'admin'): ?>
@@ -66,6 +77,9 @@ ob_start();
                                 </td>
                                 <td>
                                     <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
+                                    <?php if ($item['type'] === 'bundle'): ?>
+                                        <span class="badge bg-info bg-opacity-10 text-info smaller">Bundle</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><?php echo htmlspecialchars($item['category']); ?></span></td>
                                 <td><small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?></small></td>
@@ -73,26 +87,41 @@ ob_start();
                                 <td class="text-end fw-bold text-primary">₵<?php echo number_format($item['price'], 2); ?></td>
                                 <td class="text-center">
                                     <?php if ($item['quantity'] <= 5): ?>
-                                        <span class="badge bg-danger"><?php echo $item['quantity']; ?> <?php echo $item['unit']; ?></span>
+                                        <span class="badge bg-danger"><?php echo $item['quantity']; ?> <?php echo htmlspecialchars($item['unit']); ?></span>
                                     <?php else: ?>
-                                        <span class="badge bg-success"><?php echo $item['quantity']; ?> <?php echo $item['unit']; ?></span>
+                                        <span class="badge bg-success"><?php echo $item['quantity']; ?> <?php echo htmlspecialchars($item['unit']); ?></span>
                                     <?php endif; ?>
                                 </td>
-                                <?php if ($_SESSION['role'] === 'admin'): ?>
-                                <td class="text-end d-flex justify-content-end gap-2">
-                                    <a href="<?= BASE_URL ?>/items/edit?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-secondary">Edit</a>
-                                    <form action="<?= BASE_URL ?>/items/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this item? This will hide it from the list but preserve sales history.')">
-                                        <input type="hidden" name="id" value="<?= $item['id'] ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                    </form>
+                                
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <?php if ($item['type'] === 'bundle'): ?>
+                                            <a href="<?= BASE_URL ?>/items/preview?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-info" title="Print Preview">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">print</span>
+                                            </a>
+                                        <?php endif; ?>
+                                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                                        <a href="<?= BASE_URL ?>/items/edit?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                                        </a>
+                                        <form action="<?= BASE_URL ?>/items/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this item? This will hide it from the list but preserve sales history.')" style="display:inline;">
+                                            <input type="hidden" name="id" value="<?= $item['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                                            </button>
+                                        </form>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
-                                <?php endif; ?>
                             </tr>
                             <?php endforeach; ?>
                             
                             <?php if (empty($items)): ?>
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">No items found.</td>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <span class="material-symbols-outlined d-block mb-2" style="font-size: 48px;">inventory_2</span>
+                                    No items found <?= ($lowStock ?? false) ? 'with low stock' : '' ?> matching your criteria.
+                                </td>
                             </tr>
                             <?php endif; ?>
                         </tbody>
@@ -103,24 +132,20 @@ ob_start();
                     <?php if ($totalPages > 1): ?>
                     <nav aria-label="Page navigation" class="mt-4">
                         <ul class="pagination justify-content-center">
-                            <!-- Next/Previous labels swapped per user request "next ... previous" or just standard? 
-                                 Actually user said: "next, 1, 2, 3 .... 14, 15, 16, previous" 
-                                 This is a very specific order. Let's follow it. 
-                            -->
+                            <?php 
+                                $queryStr = "?search=" . urlencode($search ?? '') . "&low_stock=" . ($lowStock ? '1' : '0');
+                            ?>
                             <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>">Next</a>
+                                <a class="page-link" href="<?= $queryStr ?>&page=<?= $page + 1 ?>">Next</a>
                             </li>
                             
                             <?php
-                            $range = 2; // Number of pages either side of current
-                            $initial_num = 1;
-                            $last_num = $totalPages;
-                            
+                            $range = 2;
                             for ($i = 1; $i <= $totalPages; $i++):
                                 if ($i == 1 || $i == $totalPages || ($i >= $page - $range && $i <= $page + $range)):
                             ?>
                                     <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                                        <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
+                                        <a class="page-link" href="<?= $queryStr ?>&page=<?= $i ?>"><?= $i ?></a>
                                     </li>
                             <?php 
                                 elseif ($i == $page - $range - 1 || $i == $page + $range + 1):
@@ -132,7 +157,7 @@ ob_start();
                             ?>
                             
                             <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>">Previous</a>
+                                <a class="page-link" href="<?= $queryStr ?>&page=<?= $page - 1 ?>">Previous</a>
                             </li>
                         </ul>
                     </nav>

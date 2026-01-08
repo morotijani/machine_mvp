@@ -21,7 +21,8 @@ class SaleController {
             'start_date' => $_GET['start_date'] ?? '',
             'end_date' => $_GET['end_date'] ?? '',
             'status' => $_GET['status'] ?? 'all',
-            'delete_request' => $_GET['delete_request'] ?? ''
+            'delete_request' => $_GET['delete_request'] ?? '',
+            'show_voided' => $_GET['show_voided'] ?? 'no'
         ];
 
         // Restrict non-admins to their own sales

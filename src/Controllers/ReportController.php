@@ -25,6 +25,21 @@ class ReportController {
         $stmt->execute($params);
         $dailySales = $stmt->fetchColumn() ?: 0;
 
+        // 1b. Daily Profit (Today)
+        $sqlProfit = "SELECT SUM(si.subtotal - (si.quantity * i.cost_price)) 
+                      FROM sale_items si 
+                      JOIN items i ON si.item_id = i.id 
+                      JOIN sales s ON si.sale_id = s.id 
+                      WHERE DATE(s.created_at) = :today AND s.voided = 0";
+        $paramsProfit = ['today' => $today];
+        if ($_SESSION['role'] === 'sales') {
+            $sqlProfit .= " AND s.user_id = :uid";
+            $paramsProfit['uid'] = $_SESSION['user_id'];
+        }
+        $stmtProfit = $pdo->prepare($sqlProfit);
+        $stmtProfit->execute($paramsProfit);
+        $dailyProfit = $stmtProfit->fetchColumn() ?: 0;
+
         // 2. Outstanding Debt (Total) - Keep global or customer based? 
         // Usually global debt tracking is fine, or arguably sales person specific. 
         // Requirement: "what he/she has done so far". Debt is tied to customer, which is shared.
@@ -74,6 +89,16 @@ class ReportController {
         // 6. Total Worth of Items Sold (Non-Voided)
         $stmt = $pdo->query("SELECT SUM(total_amount) FROM sales WHERE voided = 0");
         $totalSoldWorth = $stmt->fetchColumn() ?: 0;
+
+        // 7. Expenditures (Daily & Monthly)
+        $expModel = new \App\Models\Expenditure($pdo);
+        $userIdExp = ($_SESSION['role'] === 'admin') ? null : $_SESSION['user_id'];
+        $dailyExpenditures = $expModel->getDailyTotal($today, $userIdExp);
+        $monthlyExpenditures = $expModel->getMonthlyTotal(date('m'), date('Y'), $userIdExp);
+
+        // 8. Standalone Debt
+        $debtorModel = new \App\Models\Debtor($pdo);
+        $totalStandaloneDebt = $debtorModel->getTotalOutstanding();
 
         require __DIR__ . '/../../views/dashboard/index.php';
     }
