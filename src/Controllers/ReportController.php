@@ -10,95 +10,96 @@ class ReportController {
     public function dashboard() {
         AuthMiddleware::requireLogin();
         $pdo = Database::getInstance();
+        $isAdmin = ($_SESSION['role'] === 'admin');
 
-        // 1. Total Daily Sales (Today)
         $today = date('Y-m-d');
-        $sql = "SELECT SUM(total_amount) FROM sales WHERE DATE(created_at) = :today";
-        $params = ['today' => $today];
+        $month = date('m');
+        $year = date('Y');
+        $uid = $_SESSION['user_id'];
+        $isSales = ($_SESSION['role'] === 'sales');
 
-        if ($_SESSION['role'] === 'sales') {
-            $sql .= " AND user_id = :uid";
-            $params['uid'] = $_SESSION['user_id'];
-        }
+        // Helper for common filters
+        $userFilter = $isSales ? " AND user_id = :uid" : "";
+        $userFilterS = $isSales ? " AND s.user_id = :uid" : "";
+        $params = $isSales ? ['uid' => $uid] : [];
 
+        // 1. Daily Sales (Today)
+        $sql = "SELECT SUM(total_amount) FROM sales WHERE DATE(created_at) = :today AND voided = 0" . $userFilter;
         $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
+        $stmt->execute(array_merge(['today' => $today], $params));
         $dailySales = $stmt->fetchColumn() ?: 0;
 
-        // 1b. Daily Profit (Today)
+        // 2. Daily Gross Profit (Today)
         $sqlProfit = "SELECT SUM(si.subtotal - (si.quantity * i.cost_price)) 
                       FROM sale_items si 
                       JOIN items i ON si.item_id = i.id 
                       JOIN sales s ON si.sale_id = s.id 
-                      WHERE DATE(s.created_at) = :today AND s.voided = 0";
-        $paramsProfit = ['today' => $today];
-        if ($_SESSION['role'] === 'sales') {
-            $sqlProfit .= " AND s.user_id = :uid";
-            $paramsProfit['uid'] = $_SESSION['user_id'];
-        }
+                      WHERE DATE(s.created_at) = :today AND s.voided = 0" . $userFilterS;
         $stmtProfit = $pdo->prepare($sqlProfit);
-        $stmtProfit->execute($paramsProfit);
+        $stmtProfit->execute(array_merge(['today' => $today], $params));
         $dailyProfit = $stmtProfit->fetchColumn() ?: 0;
 
-        // 2. Outstanding Debt (Total) - Keep global or customer based? 
-        // Usually global debt tracking is fine, or arguably sales person specific. 
-        // Requirement: "what he/she has done so far". Debt is tied to customer, which is shared.
-        // Salesperson mostly cares about their sales. Let's keep Debt and Low Stock global for now as they are system/inventory status.
-        // User asked: "only see update of dashboard upon what he/she has done so far". 
-        // This strongly implies SALES stats. Debt/Stock are arguably store-wide properties.
-        // Let's filter debt by sales they made? "Money owed on sales I made".
-        
-        $sqlDebt = "SELECT SUM(total_amount - paid_amount) FROM sales WHERE payment_status != 'paid'";
-        $paramsDebt = [];
-        if ($_SESSION['role'] === 'sales') {
-            $sqlDebt .= " AND user_id = :uid";
-            $paramsDebt['uid'] = $_SESSION['user_id'];
-        }
+        // 3. Outstanding Debt (Sales-based)
+        $sqlDebt = "SELECT SUM(total_amount - paid_amount) FROM sales WHERE payment_status != 'paid' AND voided = 0" . $userFilter;
         $stmt = $pdo->prepare($sqlDebt);
-        $stmt->execute($paramsDebt);
-        $totalDebt = $stmt->fetchColumn() ?: 0;
+        $stmt->execute($params);
+        $salesDebt = $stmt->fetchColumn() ?: 0;
 
-        // 3. Low Stock Items (Count) - Global
-        $stmt = $pdo->query("SELECT COUNT(*) FROM items WHERE quantity <= 5");
-        $lowStockCount = $stmt->fetchColumn() ?: 0;
+        // 4. Standalone Debt (Global or Filtered?)
+        // Debtors are usually global, but if we want "what he/she has done so far", 
+        // we might filter by who recorded it. However, Debtor model doesn't have recorded_by for the debtor itself, only repayments.
+        // Let's keep it global for now as per previous logic, but sum it with sales debt if needed.
+        $debtorModel = new \App\Models\Debtor($pdo);
+        $totalStandaloneDebt = $debtorModel->getTotalOutstanding();
         
-        // 4. Monthly Stats (for Chart/Table)
-        $monthStart = date('Y-m-01');
+        $totalDebt = $salesDebt + $totalStandaloneDebt;
+
+        // 5. Low Stock Items (Count) - Global
+        $stmt = $pdo->query("SELECT COUNT(*) FROM items WHERE quantity <= 5 AND is_deleted = 0");
+        $lowStockCount = $stmt->fetchColumn() ?: 0;
+
+        // 6. Expenditures (Daily & Monthly)
+        $expModel = new \App\Models\Expenditure($pdo);
+        $userIdExp = $isAdmin ? null : $uid;
+        $dailyExpenditures = $expModel->getDailyTotal($today, $userIdExp);
+        $monthlyExpenditures = $expModel->getMonthlyTotal($month, $year, $userIdExp);
+        $dailyNetProfit = $dailyProfit - $dailyExpenditures;
+
+        // 7. Inventory Net Worth (Admin Only)
+        $inventoryWorth = 0;
+        $inventoryCost = 0;
+        if ($isAdmin) {
+            // Retail Value
+            $stmt = $pdo->query("SELECT SUM(quantity * price) FROM items WHERE is_deleted = 0");
+            $inventoryWorth = $stmt->fetchColumn() ?: 0;
+            // Cost Value
+            $stmt = $pdo->query("SELECT SUM(quantity * cost_price) FROM items WHERE is_deleted = 0");
+            $inventoryCost = $stmt->fetchColumn() ?: 0;
+        }
+
+        // 8. Cumulative Lifetime Stats
+        $sqlLife = "SELECT 
+            COUNT(id) as count, 
+            SUM(total_amount) as total, 
+            SUM(paid_amount) as collected 
+            FROM sales WHERE voided = 0" . $userFilter;
+        $stmt = $pdo->prepare($sqlLife);
+        $stmt->execute($params);
+        $lifetimeStats = $stmt->fetch();
+
+        // 9. Monthly Stats (Current Month)
+        $monthStart = date('Y-m-01 00:00:00');
         $sqlMonthly = "SELECT 
             COUNT(id) as count, 
             SUM(total_amount) as total, 
             SUM(paid_amount) as collected 
-            FROM sales WHERE created_at >= :start";
-        $paramsMonthly = ['start' => $monthStart];
-        
-        if ($_SESSION['role'] === 'sales') {
-            $sqlMonthly .= " AND user_id = :uid";
-            $paramsMonthly['uid'] = $_SESSION['user_id'];
-        }
-
+            FROM sales WHERE created_at >= :start AND voided = 0" . $userFilter;
         $stmt = $pdo->prepare($sqlMonthly);
-        $stmt->execute($paramsMonthly);
+        $stmt->execute(array_merge(['start' => $monthStart], $params));
         $monthlyStats = $stmt->fetch();
 
-        // 5. Total Inventory Net Worth (Individual Non-Bundle Items)
-        // User asked for non-bundle (type IS NULL or type != 'bundle' if type exists)
-        // Our schema uses type = 'bundle' for bundles.
-        $stmt = $pdo->query("SELECT SUM(quantity * price) FROM items WHERE (type IS NULL OR type != 'bundle') AND is_deleted = 0");
-        $inventoryWorth = $stmt->fetchColumn() ?: 0;
-
-        // 6. Total Worth of Items Sold (Non-Voided)
-        $stmt = $pdo->query("SELECT SUM(total_amount) FROM sales WHERE voided = 0");
-        $totalSoldWorth = $stmt->fetchColumn() ?: 0;
-
-        // 7. Expenditures (Daily & Monthly)
-        $expModel = new \App\Models\Expenditure($pdo);
-        $userIdExp = ($_SESSION['role'] === 'admin') ? null : $_SESSION['user_id'];
-        $dailyExpenditures = $expModel->getDailyTotal($today, $userIdExp);
-        $monthlyExpenditures = $expModel->getMonthlyTotal(date('m'), date('Y'), $userIdExp);
-
-        // 8. Standalone Debt
-        $debtorModel = new \App\Models\Debtor($pdo);
-        $totalStandaloneDebt = $debtorModel->getTotalOutstanding();
+    //     require __DIR__ . '/../../views/dashboard/index.php';
+    // }
 
         require __DIR__ . '/../../views/dashboard/index.php';
     }
@@ -123,7 +124,7 @@ class ReportController {
         $stmt = $pdo->prepare("
             SELECT MONTH(created_at) as month, SUM(total_amount) as total 
             FROM sales 
-            WHERE YEAR(created_at) = :year 
+            WHERE YEAR(created_at) = :year AND voided = 0
             GROUP BY MONTH(created_at)
         ");
         $stmt->execute(['year' => $selectedYear]);
@@ -142,7 +143,7 @@ class ReportController {
         $stmt = $pdo->prepare("
             SELECT MONTH(created_at) as month, SUM(total_amount) as total 
             FROM sales 
-            WHERE YEAR(created_at) = :lastYear 
+            WHERE YEAR(created_at) = :lastYear AND voided = 0
             GROUP BY MONTH(created_at)
         ");
         $stmt->execute(['lastYear' => $lastYear]);
@@ -161,10 +162,8 @@ class ReportController {
             ];
         }
         
-        // Keep the old daily reports for legacy/reference if needed, or remove. 
-        // User asked for "monthly sales... table view of last year and current year", 
-        // so maybe replace the daily one or keep it at bottom. Let's keep it but maybe minimize it.
-        $stmt = $pdo->query("SELECT DATE(created_at) as sale_date, COUNT(*) as count, SUM(total_amount) as total FROM sales GROUP BY DATE(created_at) ORDER BY sale_date DESC LIMIT 30");
+        // 4. Daily Reports (Table)
+        $stmt = $pdo->query("SELECT DATE(created_at) as sale_date, COUNT(*) as count, SUM(total_amount) as total FROM sales WHERE voided = 0 GROUP BY DATE(created_at) ORDER BY sale_date DESC LIMIT 30");
         $dailyReports = $stmt->fetchAll();
         
         require __DIR__ . '/../../views/reports/index.php';

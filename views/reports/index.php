@@ -22,8 +22,9 @@ ob_start();
 
         <!-- Chart Section -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Monthly Sales Overview (<?php echo $selectedYear; ?>)</h5>
+                <span class="badge bg-info bg-opacity-10 text-info">Excludes Voided Sales</span>
             </div>
             <div class="card-body">
                 <canvas id="salesChart" width="400" height="150"></canvas>
@@ -32,8 +33,9 @@ ob_start();
 
         <!-- Comparison Table -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Yearly Comparison (<?php echo $selectedYear; ?> vs <?php echo $lastYear; ?>)</h5>
+                <span class="badge bg-info bg-opacity-10 text-info">Excludes Voided Sales</span>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
