@@ -40,7 +40,7 @@
         </a>
         
         <!-- Search Bar -->
-        <div class="search-bar-container d-none d-md-block mx-auto">
+        <div class="search-bar-container mx-2 flex-grow-1">
             <input class="form-control form-control-search w-100" type="text" placeholder="Search items in POS..." aria-label="Search" id="globalSearch">
         </div>
 

@@ -98,9 +98,6 @@ class ReportController {
         $stmt->execute(array_merge(['start' => $monthStart], $params));
         $monthlyStats = $stmt->fetch();
 
-    //     require __DIR__ . '/../../views/dashboard/index.php';
-    // }
-
         require __DIR__ . '/../../views/dashboard/index.php';
     }
     public function index() {
