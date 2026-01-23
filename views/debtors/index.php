@@ -84,7 +84,6 @@ ob_start();
                                         <form action="<?= BASE_URL ?>/debtors/delete" method="POST" onsubmit="return confirm('Remove this debtor?')" class="d-inline">
                                             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="id" value="<?= $d['id'] ?>">
- <!-- spot -->
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                                             </button>

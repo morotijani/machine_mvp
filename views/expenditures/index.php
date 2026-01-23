@@ -54,7 +54,6 @@ ob_start();
                                 <?php if ($_SESSION['role'] === 'admin'): ?>
                                     <td><small class="text-muted"><?= e($exp['recorder_name'] ?? 'N/A') ?></small></td>
                                 <?php endif; ?>
- <!-- spot -->
                                 <td class="text-end fw-bold text-danger">- ₵<?= number_format($exp['amount'], 2) ?></td>
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end gap-2">
@@ -64,7 +63,6 @@ ob_start();
                                         <form action="<?= BASE_URL ?>/expenditures/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this expenditure?')">
                                             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="id" value="<?= $exp['id'] ?>">
- <!-- spot -->
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                                             </button>

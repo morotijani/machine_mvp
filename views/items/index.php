@@ -92,7 +92,6 @@ ob_start();
                                         <span class="badge bg-success"><?= $item['quantity'] ?> <?= e($item['unit']) ?></span>
                                     <?php endif; ?>
                                 </td>
- <!-- spot -->
                                 
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end gap-2">
@@ -112,7 +111,6 @@ ob_start();
                                                 <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
                                             </button>
                                         </form>
- <!-- spot -->
                                         <?php endif; ?>
                                     </div>
                                 </td>
@@ -162,7 +160,6 @@ ob_start();
                             <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
                                 <a class="page-link" href="<?= $queryStr ?>&page=<?= $page + 1 ?>">Next</a>
                             </li>
- <!-- spot -->
                         </ul>
                     </nav>
                     <?php endif; ?>

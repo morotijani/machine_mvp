@@ -62,6 +62,16 @@ class SaleController {
 
             if ($input) {
                 try {
+                    // Idempotency check: prevent duplicate submissions within 5 seconds
+                    $requestHash = md5(json_encode($input));
+                    $lastSubmission = $_SESSION['last_sale_submission'] ?? null;
+                    
+                    if ($lastSubmission && $lastSubmission['hash'] === $requestHash && (time() - $lastSubmission['time'] < 5)) {
+                        // Return the previous sale ID
+                        echo json_encode(['success' => true, 'sale_id' => $lastSubmission['sale_id'], 'is_duplicate' => true]);
+                        exit;
+                    }
+
                     $saleModel = new Sale($pdo);
                     $saleId = $saleModel->createSale(
                         $input['customer_id'], 
@@ -69,6 +79,14 @@ class SaleController {
                         $input['items'], 
                         $input['payment_amount']
                     );
+
+                    // Store submission record
+                    $_SESSION['last_sale_submission'] = [
+                        'hash' => $requestHash,
+                        'time' => time(),
+                        'sale_id' => $saleId
+                    ];
+
                     echo json_encode(['success' => true, 'sale_id' => $saleId]);
                 } catch (Exception $e) {
                     http_response_code(400);

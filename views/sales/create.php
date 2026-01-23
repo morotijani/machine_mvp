@@ -252,7 +252,8 @@ document.getElementById('btnPayLater').addEventListener('click', () => {
     document.getElementById('payAmount').value = 0;
 });
 
-document.getElementById('btnCompleteSale').addEventListener('click', () => {
+document.getElementById('btnCompleteSale').addEventListener('click', function() {
+    const btn = this;
     const customerId = document.getElementById('customerSelect').value;
     const payAmount = parseFloat(document.getElementById('payAmount').value);
 
@@ -281,6 +282,11 @@ document.getElementById('btnCompleteSale').addEventListener('click', () => {
         items: cart.map(i => ({ id: i.id, quantity: i.quantity }))
     };
 
+    // Disable button to prevent duplicate clicks
+    btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
     fetch('<?= BASE_URL ?>/sales/create', {
         method: 'POST',
         headers: { 
@@ -295,11 +301,17 @@ document.getElementById('btnCompleteSale').addEventListener('click', () => {
             window.location.href = '<?= BASE_URL ?>/sales/view?id=' + data.sale_id;
         } else {
             alert('Error: ' + data.message);
+            // Re-enable button on error
+            btn.disabled = false;
+            btn.innerHTML = originalText;
         }
     })
     .catch(err => {
         console.error(err);
         alert('Communication error');
+        // Re-enable button on error
+        btn.disabled = false;
+        btn.innerHTML = originalText;
     });
 });
 

@@ -17,7 +17,6 @@ ob_start();
                     <div class="card-body">
                         <form action="<?= BASE_URL ?>/items/edit?id=<?= $item['id'] ?>" method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
- <!-- spot -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Item Name</label>
                                 <input type="text" name="name" class="form-control" value="<?= e($item['name']) ?>" required>

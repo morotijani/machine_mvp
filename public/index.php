@@ -123,5 +123,8 @@ $router->get('/debtors/increase', [$debtorController, 'increaseDebt']);
 $router->post('/debtors/increase', [$debtorController, 'increaseDebt']);
 $router->post('/debtors/delete', [$debtorController, 'delete']);
 
+// API Status
+$router->get('/api/status', [new \App\Controllers\StatusController(), 'check']);
+
 // Dispatch
 $router->dispatch();

@@ -13,7 +13,6 @@ ob_start();
             <div class="card-body">
                 <form action="<?= BASE_URL ?>/expenditures/edit?id=<?= $expenditure['id'] ?>" method="POST">
                     <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
- <!-- spot -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Date</label>
                         <input type="date" name="date" class="form-control" value="<?= e($expenditure['date']) ?>" required>

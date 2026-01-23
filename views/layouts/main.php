@@ -40,8 +40,18 @@
         </a>
         
         <!-- Search Bar -->
-        <div class="search-bar-container mx-2 flex-grow-1">
-            <input class="form-control form-control-search w-100" type="text" placeholder="Search items in POS..." aria-label="Search" id="globalSearch">
+        <div class="search-bar-container mx-2 flex-grow-1 d-flex align-items-center">
+            <input class="form-control form-control-search w-100 me-2" type="text" placeholder="Search items in POS..." aria-label="Search" id="globalSearch">
+            <div id="statusIndicators" class="d-flex gap-2">
+                <span id="internetStatus" class="badge rounded-pill bg-success d-flex align-items-center" title="Internet Status">
+                    <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">wifi</span>
+                    <span class="status-text d-none d-lg-inline">Online</span>
+                </span>
+                <span id="dbStatus" class="badge rounded-pill bg-success d-flex align-items-center" title="Database Status">
+                    <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">database</span>
+                    <span class="status-text d-none d-lg-inline">DB Connected</span>
+                </span>
+            </div>
         </div>
 
         <!-- Right Side: User Profile -->
@@ -149,5 +159,45 @@
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // System Status Polling
+        function updateStatus() {
+            // Internet Status
+            const internetStatus = document.getElementById('internetStatus');
+            if (navigator.onLine) {
+                internetStatus.classList.replace('bg-danger', 'bg-success');
+                internetStatus.querySelector('.status-text').innerText = 'Online';
+                internetStatus.querySelector('.material-symbols-outlined').innerText = 'wifi';
+            } else {
+                internetStatus.classList.replace('bg-success', 'bg-danger');
+                internetStatus.querySelector('.status-text').innerText = 'Offline';
+                internetStatus.querySelector('.material-symbols-outlined').innerText = 'wifi_off';
+            }
+
+            // Database Status
+            fetch('<?= BASE_URL ?>/api/status')
+                .then(res => res.json())
+                .then(data => {
+                    const dbStatus = document.getElementById('dbStatus');
+                    if (data.database) {
+                        dbStatus.classList.replace('bg-danger', 'bg-success');
+                        dbStatus.querySelector('.status-text').innerText = 'DB Connected';
+                    } else {
+                        dbStatus.classList.replace('bg-success', 'bg-danger');
+                        dbStatus.querySelector('.status-text').innerText = 'DB Disconnected';
+                    }
+                })
+                .catch(err => {
+                    const dbStatus = document.getElementById('dbStatus');
+                    dbStatus.classList.replace('bg-success', 'bg-danger');
+                    dbStatus.querySelector('.status-text').innerText = 'Server Error';
+                });
+        }
+
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        setInterval(updateStatus, 30000); // Check every 30 seconds
+        updateStatus(); // Initial check
+    </script>
 </body>
 </html>
