@@ -21,10 +21,10 @@ ob_start();
                         <div class="list-group list-group-flush" id="itemList">
                             <?php foreach ($items as $item): ?>
                             <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center item-row" 
-                                data-id="<?php echo $item['id']; ?>" 
-                                data-name="<?php echo htmlspecialchars($item['name']); ?>" 
-                                data-price="<?php echo $item['price']; ?>"
-                                data-stock="<?php echo $item['quantity']; ?>">
+                                data-id="<?= $item['id'] ?>" 
+                                data-name="<?= e($item['name']) ?>" 
+                                data-price="<?= $item['price'] ?>"
+                                data-stock="<?= $item['quantity'] ?>">
                                 <div class="d-flex align-items-center">
                                     <?php if (!empty($item['image_path'])): ?>
                                         <img src="<?= BASE_URL ?>/<?php echo $item['image_path']; ?>" alt="Item" class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
@@ -32,8 +32,8 @@ ob_start();
                                         <div class="rounded me-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary small" style="width: 40px; height: 40px;">Img</div>
                                     <?php endif; ?>
                                     <div>
-                                        <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
-                                        <small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?> | Stock: <?php echo $item['quantity']; ?></small>
+                                        <div class="fw-bold"><?= e($item['name']) ?></div>
+                                        <small class="text-muted"><?= e($item['sku']) ?> | Stock: <?= $item['quantity'] ?></small>
                                     </div>
                                 </div>
                                 <span class="badge bg-primary rounded-pill">₵<?php echo number_format($item['price'], 2); ?></span>
@@ -57,10 +57,10 @@ ob_start();
                                 <select id="customerSelect" class="form-select">
                                     <option value="">-- Select Customer --</option>
                                     <?php foreach ($customers as $cx): ?>
-                                    <option value="<?php echo $cx['id']; ?>"><?php echo htmlspecialchars($cx['name']); ?></option>
+                                    <option value="<?= $cx['id'] ?>"><?= e($cx['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <button class="btn btn-outline-primary" type="button" onclick="location.href='<?= BASE_URL ?>/customers'">+</button>
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#quickAddCustomerModal" title="Quick Add Customer">+</button>
                             </div>
                         </div>
 
@@ -104,7 +104,40 @@ ob_start();
 </div>
 
 
+<!-- Quick Add Customer Modal -->
+<div class="modal fade" id="quickAddCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Add Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickAddCustomerForm">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" id="new_cx_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="text" id="new_cx_phone" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea id="new_cx_address" class="form-control" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveNewCustomerBtn" class="btn btn-primary">Add & Select</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+const CSRF_TOKEN = '<?= csrf_token() ?>';
 const items = <?php echo json_encode($items); ?>;
 const cart = [];
 
@@ -250,7 +283,10 @@ document.getElementById('btnCompleteSale').addEventListener('click', () => {
 
     fetch('<?= BASE_URL ?>/sales/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': CSRF_TOKEN
+        },
         body: JSON.stringify(payload)
     })
     .then(res => res.json())
@@ -264,6 +300,56 @@ document.getElementById('btnCompleteSale').addEventListener('click', () => {
     .catch(err => {
         console.error(err);
         alert('Communication error');
+    });
+});
+
+// Quick Add Customer Logic
+document.getElementById('saveNewCustomerBtn').addEventListener('click', function() {
+    const name = document.getElementById('new_cx_name').value;
+    const phone = document.getElementById('new_cx_phone').value;
+    const address = document.getElementById('new_cx_address').value;
+
+    if (!name.trim()) {
+        alert('Customer Name is required');
+        return;
+    }
+
+    fetch('<?= BASE_URL ?>/customers/create', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': CSRF_TOKEN
+        },
+        body: JSON.stringify({ name, phone, address })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Add to dropdown
+            const select = document.getElementById('customerSelect');
+            const option = document.createElement('option');
+            option.value = data.customer.id;
+            option.text = data.customer.name;
+            select.add(option);
+            
+            // Select it
+            select.value = data.customer.id;
+
+            // Close modal & Reset form
+            document.getElementById('quickAddCustomerForm').reset();
+            const modalEl = document.getElementById('quickAddCustomerModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            // Notify
+            // alert('Customer added and selected!');
+        } else {
+            alert('Error adding customer');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Error communicating with server');
     });
 });
 </script>

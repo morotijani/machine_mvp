@@ -80,9 +80,35 @@ class Customer {
     }
     
     public function find($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM customers WHERE id = :id");
+        $sql = "SELECT c.*, 
+                (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
+                IFNULL(SUM(s.paid_amount), 0) as total_paid,
+                IFNULL(SUM(s.total_amount), 0) as total_sales_amount
+                FROM customers c
+                LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0
+                WHERE c.id = :id
+                GROUP BY c.id";
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
+    }
+
+    public function getHistory($customerId) {
+        // Fetch all sales for this customer with payment status and item summary
+        $sql = "SELECT s.*, 
+                (s.total_amount - s.paid_amount) as balance,
+                u.username as seller_name,
+                GROUP_CONCAT(CONCAT(i.name, ' (', si.quantity, ')') SEPARATOR ', ') as items_summary
+                FROM sales s
+                LEFT JOIN users u ON s.user_id = u.id
+                LEFT JOIN sale_items si ON s.id = si.sale_id
+                LEFT JOIN items i ON si.item_id = i.id
+                WHERE s.customer_id = :cid
+                GROUP BY s.id
+                ORDER BY s.created_at DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['cid' => $customerId]);
+        return $stmt->fetchAll();
     }
 
     public function create($name, $phone, $address) {

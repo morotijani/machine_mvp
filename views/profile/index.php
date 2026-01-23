@@ -16,26 +16,27 @@ ob_start();
                     </div>
                     <div class="card-body">
                         <?php if (isset($error)): ?>
-                            <div class="alert alert-danger"><?php echo $error; ?></div>
+                            <div class="alert alert-danger"><?= e($error) ?></div>
                         <?php endif; ?>
                         <?php if (isset($success)): ?>
-                            <div class="alert alert-success"><?php echo $success; ?></div>
+                            <div class="alert alert-success"><?= e($success) ?></div>
                         <?php endif; ?>
 
                         <form action="<?= BASE_URL ?>/profile/update" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                             <div class="text-center mb-4">
                                 <?php if (!empty($user['profile_image'])): ?>
                                     <img src="<?= BASE_URL ?>/<?php echo $user['profile_image']; ?>" class="rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
                                 <?php else: ?>
                                     <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center fw-bold text-secondary mx-auto mb-2" style="width: 100px; height: 100px; font-size: 2rem;">
-                                        <?php echo strtoupper(substr($user['username'], 0, 1)); ?>
+                                        <?= e(strtoupper(substr($user['username'], 0, 1))) ?>
                                     </div>
                                 <?php endif; ?>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label">Full Name</label>
-                                <input type="text" name="fullname" class="form-control" value="<?php echo htmlspecialchars($user['fullname'] ?? ''); ?>" placeholder="Enter full name">
+                                <input type="text" name="fullname" class="form-control" value="<?= e($user['fullname'] ?? '') ?>" placeholder="Enter full name">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Profile Picture</label>
@@ -43,7 +44,7 @@ ob_start();
                             </div>
                             <div class="mb-3">
                                 <label class="form-label text-muted">Username</label>
-                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['username']); ?>" readonly disabled>
+                                <input type="text" class="form-control" value="<?= e($user['username']) ?>" readonly disabled>
                             </div>
                             
                             <hr class="my-4">

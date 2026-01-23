@@ -13,8 +13,8 @@ ob_start();
                             <span class="input-group-text bg-white border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 20px;">search</span>
                             </span>
-                            <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search items..." value="<?= htmlspecialchars($search ?? '') ?>">
-                        </div>
+                            <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search items..." value="<?= e($search ?? '') ?>">
+</div>
                         
                         <div class="btn-group">
                             <input type="checkbox" name="low_stock" value="1" class="btn-check" id="lowStockCheck" <?= ($lowStock ?? false) ? 'checked' : '' ?> onchange="this.form.submit()">
@@ -76,22 +76,23 @@ ob_start();
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
+                                    <div class="fw-bold"><?= e($item['name']) ?></div>
                                     <?php if ($item['type'] === 'bundle'): ?>
                                         <span class="badge bg-info bg-opacity-10 text-info smaller">Bundle</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><?php echo htmlspecialchars($item['category']); ?></span></td>
-                                <td><small class="text-muted"><?php echo htmlspecialchars($item['sku']); ?></small></td>
-                                <td><?php echo htmlspecialchars($item['location']); ?></td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><?= e($item['category']) ?></span></td>
+                                <td><small class="text-muted"><?= e($item['sku']) ?></small></td>
+                                <td><?= e($item['location']) ?></td>
                                 <td class="text-end fw-bold text-primary">₵<?php echo number_format($item['price'], 2); ?></td>
-                                <td class="text-center">
+                                <td>
                                     <?php if ($item['quantity'] <= 5): ?>
-                                        <span class="badge bg-danger"><?php echo $item['quantity']; ?> <?php echo htmlspecialchars($item['unit']); ?></span>
+                                        <span class="badge bg-danger"><?= $item['quantity'] ?> <?= e($item['unit']) ?></span>
                                     <?php else: ?>
-                                        <span class="badge bg-success"><?php echo $item['quantity']; ?> <?php echo htmlspecialchars($item['unit']); ?></span>
+                                        <span class="badge bg-success"><?= $item['quantity'] ?> <?= e($item['unit']) ?></span>
                                     <?php endif; ?>
                                 </td>
+ <!-- spot -->
                                 
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end gap-2">
@@ -105,11 +106,13 @@ ob_start();
                                             <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
                                         </a>
                                         <form action="<?= BASE_URL ?>/items/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this item? This will hide it from the list but preserve sales history.')" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="id" value="<?= $item['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                                 <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
                                             </button>
                                         </form>
+ <!-- spot -->
                                         <?php endif; ?>
                                     </div>
                                 </td>
@@ -135,10 +138,10 @@ ob_start();
                             <?php 
                                 $queryStr = "?search=" . urlencode($search ?? '') . "&low_stock=" . ($lowStock ? '1' : '0');
                             ?>
-                            <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= $queryStr ?>&page=<?= $page + 1 ?>">Next</a>
+                            <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="<?= $queryStr ?>&page=<?= $page - 1 ?>">Previous</a>
                             </li>
-                            
+
                             <?php
                             $range = 2;
                             for ($i = 1; $i <= $totalPages; $i++):
@@ -155,10 +158,11 @@ ob_start();
                                 endif;
                             endfor;
                             ?>
-                            
-                            <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= $queryStr ?>&page=<?= $page - 1 ?>">Previous</a>
+
+                            <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="<?= $queryStr ?>&page=<?= $page + 1 ?>">Next</a>
                             </li>
+ <!-- spot -->
                         </ul>
                     </nav>
                     <?php endif; ?>

@@ -12,6 +12,7 @@ ob_start();
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <form action="<?= BASE_URL ?>/expenditures/create" method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Date</label>
                         <input type="date" name="date" class="form-control" value="<?= date('Y-m-d') ?>" required>

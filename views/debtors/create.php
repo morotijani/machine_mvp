@@ -12,6 +12,7 @@ ob_start();
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <form action="<?= BASE_URL ?>/debtors/create" method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Full Name</label>
                         <input type="text" name="name" class="form-control" placeholder="Enter full name of debtor" required>

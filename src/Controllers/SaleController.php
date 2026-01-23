@@ -12,6 +12,10 @@ class SaleController {
     
     public function index() {
         AuthMiddleware::requireLogin();
+        
+        // Store current URL with filters for "Back" button persistence
+        $_SESSION['last_sales_url'] = $_SERVER['REQUEST_URI'];
+
         $pdo = Database::getInstance();
         $saleModel = new Sale($pdo);
         
@@ -105,9 +109,22 @@ class SaleController {
         $stmt->execute(['sid' => $id]);
         $payments = $stmt->fetchAll();
 
+        // Fetch Return history
+        $stmtRet = $pdo->prepare("SELECT sr.*, u.username as returner_name FROM sale_returns sr JOIN users u ON sr.recorded_by = u.id WHERE sr.sale_id = :sid ORDER BY sr.created_at DESC");
+        $stmtRet->execute(['sid' => $id]);
+        $returns = $stmtRet->fetchAll();
+
+        foreach ($returns as &$row) {
+            $stmtRI = $pdo->prepare("SELECT sri.*, i.name as item_name FROM sale_return_items sri JOIN items i ON sri.item_id = i.id WHERE sri.return_id = :rid");
+            $stmtRI->execute(['rid' => $row['id']]);
+            $row['details'] = $stmtRI->fetchAll();
+        }
+
         // Fetch Settings
         $settingModel = new \App\Models\Setting($pdo);
         $settings = $settingModel->get();
+
+        $returnUrl = $_SESSION['last_sales_url'] ?? (BASE_URL . '/sales');
 
         require __DIR__ . '/../../views/sales/view.php';
     }
@@ -161,6 +178,27 @@ class SaleController {
             }
             
             header('Location: ' . BASE_URL . '/sales');
+            exit;
+        }
+    }
+
+    public function returns() {
+        AuthMiddleware::requireLogin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $saleId = $_POST['sale_id'];
+            $returnedItems = $_POST['returns']; // Array of item_id => quantity
+            
+            $pdo = Database::getInstance();
+            $saleModel = new Sale($pdo);
+            
+            try {
+                $saleModel->processReturn($saleId, $returnedItems, $_SESSION['user_id']);
+                header('Location: ' . BASE_URL . '/sales/view?id=' . $saleId);
+            } catch (Exception $e) {
+                // For now, redirect back with error in session if we had a flash message system.
+                // Since we don't, we'll just redirect back.
+                header('Location: ' . BASE_URL . '/sales/view?id=' . $saleId);
+            }
             exit;
         }
     }

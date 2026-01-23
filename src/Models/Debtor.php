@@ -80,6 +80,46 @@ class Debtor {
         }
     }
 
+    public function increaseDebt($debtorId, $amount, $description, $recordedBy) {
+        $this->pdo->beginTransaction();
+        try {
+            // 1. Update total_amount
+            $stmt = $this->pdo->prepare("UPDATE standalone_debtors SET total_amount = total_amount + :amt WHERE id = :did");
+            $stmt->execute(['amt' => $amount, 'did' => $debtorId]);
+
+            // 2. Insert a record in debt_repayments with negative amount to track the increase
+            $stmt = $this->pdo->prepare("INSERT INTO debt_repayments (debtor_id, amount, payment_date, recorded_by, notes) VALUES (:did, :amt, NOW(), :uid, :notes)");
+            $stmt->execute([
+                'did' => $debtorId,
+                'amt' => -$amount, // Negative to indicate debt increase
+                'uid' => $recordedBy,
+                'notes' => $description
+            ]);
+
+            // 3. Update status
+            $debtor = $this->find($debtorId);
+            $paid = $debtor['paid_amount'];
+            $total = $debtor['total_amount'];
+
+            if ($paid >= $total) {
+                $newStatus = 'cleared';
+            } elseif ($paid > 0) {
+                $newStatus = 'partially_paid';
+            } else {
+                $newStatus = 'unpaid';
+            }
+
+            $stmt = $this->pdo->prepare("UPDATE standalone_debtors SET status = :status WHERE id = :did");
+            $stmt->execute(['status' => $newStatus, 'did' => $debtorId]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
     public function getHistory($debtorId) {
         $stmt = $this->pdo->prepare("SELECT r.*, u.username FROM debt_repayments r JOIN users u ON r.recorded_by = u.id WHERE r.debtor_id = :did ORDER BY r.payment_date DESC, r.created_at DESC");
         $stmt->execute(['did' => $debtorId]);

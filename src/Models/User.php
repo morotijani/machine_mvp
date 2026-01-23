@@ -66,6 +66,11 @@ class User {
         return $stmt->execute(['status' => $status, 'id' => $id]);
     }
 
+    public function updateRole($id, $role) {
+        $stmt = $this->pdo->prepare("UPDATE users SET role = :role WHERE id = :id");
+        return $stmt->execute(['role' => $role, 'id' => $id]);
+    }
+
     public function getDeleted() {
         $stmt = $this->pdo->query("SELECT * FROM users WHERE is_deleted = 1 ORDER BY created_at DESC");
         return $stmt->fetchAll();

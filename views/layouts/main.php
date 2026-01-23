@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $settings['company_name'] ?? ($title ?? 'Machine MVP'); ?></title>
+    <title><?= e($settings['company_name'] ?? ($title ?? 'Machine MVP')) ?></title>
     <?php if (!empty($settings['company_logo'])): ?>
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>">
     <?php endif; ?>
@@ -34,7 +34,7 @@
                     <img src="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>" alt="Company Logo" class="img-fluid" style="max-height: 32px;">
                 <?php else: ?>
                     <span class="material-symbols-outlined icon">dashboard</span>
-                    <?= htmlspecialchars($settings['company_name'] ?? 'POS') ?>
+                    <?= e($settings['company_name'] ?? 'POS') ?>
                 <?php endif; ?>
             </span>
         </a>
@@ -47,7 +47,7 @@
         <!-- Right Side: User Profile -->
         <div class="navbar-nav flex-row align-items-center pe-3">
              <div class="nav-item text-nowrap d-flex align-items-center">
-                 <span class="d-none d-md-inline-block me-3 text-secondary"><?= htmlspecialchars($_SESSION['username'] ?? 'User') ?></span>
+                 <span class="d-none d-md-inline-block me-3 text-secondary"><?= e($_SESSION['username'] ?? 'User') ?></span>
                  <a href="<?= BASE_URL ?>/profile" class="d-block link-dark text-decoration-none" title="My Profile">
                      <?php if (!empty($_SESSION['profile_image'])): ?>
                          <img src="<?= BASE_URL ?>/<?= htmlspecialchars($_SESSION['profile_image']) ?>" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">

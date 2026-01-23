@@ -35,12 +35,17 @@ ob_start();
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 no-print">
             <h1 class="h2">Invoice #<?= $sale['id'] ?></h1>
             <div class="btn-toolbar mb-2 mb-md-0">
-                <a href="<?= BASE_URL ?>/sales" class="btn btn-sm btn-outline-secondary me-2">
+                <a href="<?= $returnUrl ?>" class="btn btn-sm btn-outline-secondary me-2">
                     <span class="material-symbols-outlined align-text-bottom" style="font-size: 18px;">arrow_back</span> Back to History
                 </a>
-                <button onclick="window.print()" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+                <button onclick="window.print()" class="btn btn-sm btn-primary d-flex align-items-center gap-2 me-2">
                     <span class="material-symbols-outlined" style="font-size: 18px;">print</span> Print Invoice
                 </button>
+                <?php if (!$sale['voided']): ?>
+                <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#returnModal">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">keyboard_return</span> Return Items
+                </button>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -59,20 +64,20 @@ ob_start();
             <div class="row mb-4 border-bottom pb-4 align-items-center">
                 <div class="col-8">
                      <div class="d-flex align-items-center mb-2">
-                        <?php if (!empty($settings['company_logo'])): ?>
-                            <img src="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>" alt="Logo" style="height: 50px; margin-right: 15px;">
+                         <?php if (!empty($settings['company_logo'])): ?>
+                            <img src="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>" alt="Logo" style="height: 50px; margin-right: 15px;">
                         <?php endif; ?>
-                        <h1 class="header-title m-0"><?= htmlspecialchars($settings['company_name']) ?></h1>
+                        <h1 class="header-title m-0"><?= e($settings['company_name']) ?></h1>
                      </div>
                      <div class="text-muted">
                         <?php if(!empty($settings['company_address'])): ?>
-                            <?= nl2br(htmlspecialchars($settings['company_address'])) ?><br>
+                            <?= nl2br(e($settings['company_address'])) ?><br>
                         <?php endif; ?>
                         <?php if(!empty($settings['company_phone'])): ?>
-                            PH: <?= htmlspecialchars($settings['company_phone']) ?><br>
+                            PH: <?= e($settings['company_phone']) ?><br>
                         <?php endif; ?>
                         <?php if(!empty($settings['company_email'])): ?>
-                            Email: <?= htmlspecialchars($settings['company_email']) ?>
+                            Email: <?= e($settings['company_email']) ?>
                         <?php endif; ?>
                      </div>
                 </div>
@@ -88,10 +93,10 @@ ob_start();
                 <div class="col-6">
                     <p class="mb-1 text-uppercase text-muted small fw-bold">Bill To</p>
                     <?php if ($sale['customer_name']): ?>
-                        <h5 class="fw-bold"><?php echo htmlspecialchars($sale['customer_name']); ?></h5>
+                        <h5 class="fw-bold"><?= e($sale['customer_name']) ?></h5>
                         <p>
-                            <?php echo htmlspecialchars($sale['customer_address'] ?? ''); ?><br>
-                            <?php echo htmlspecialchars($sale['customer_phone'] ?? ''); ?>
+                            <?= e($sale['customer_address'] ?? '') ?><br>
+                            <?= e($sale['customer_phone'] ?? '') ?>
                         </p>
                     <?php else: ?>
                         <h5 class="fw-bold text-muted">Walk-in Customer</h5>
@@ -125,7 +130,7 @@ ob_start();
                         <?php foreach ($sale['items'] as $item): ?>
                         <tr>
                             <td class="fw-bold">
-                                <?php echo htmlspecialchars($item['item_name']); ?>
+                                <?= e($item['item_name']) ?>
                                 <?php 
                                     // Hacky check: In a real app we'd join 'type' from items table. 
                                     // For now, let's assume if it has sub-components we fetch them. 
@@ -149,12 +154,12 @@ ob_start();
                                 <?php if (!empty($components)): ?>
                                     <div class="small text-muted fw-normal mt-1 ps-3 border-start border-3">
                                         <?php foreach ($components as $comp): ?>
-                                            <div><?= $comp['quantity'] ?>x <?= htmlspecialchars($comp['name']) ?></div>
+                                            <div><?= $comp['quantity'] ?>x <?= e($comp['name']) ?></div>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>
                             </td>
-                            <td class="text-center small text-muted"><?php echo htmlspecialchars($item['sku']); ?></td>
+                            <td class="text-center small text-muted"><?= e($item['sku']) ?></td>
                             <td class="text-center"><?php echo $item['quantity']; ?></td>
                             <td class="text-end">₵<?php echo number_format($item['price_at_sale'], 2); ?></td>
                             <td class="text-end">₵<?php echo number_format($item['subtotal'], 2); ?></td>
@@ -197,7 +202,40 @@ ob_start();
                             <tr>
                                 <td><?php echo date('M j, Y H:i', strtotime($payment['payment_date'])); ?></td>
                                 <td class="text-success fw-bold">₵<?php echo number_format($payment['amount'], 2); ?></td>
-                                <td><?php echo htmlspecialchars($payment['username']); ?></td>
+                                <td><?= e($payment['username']) ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (!empty($returns)): ?>
+            <div class="mb-4">
+                <hr>
+                <h6 class="text-danger text-uppercase small fw-bold">Return History</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered border-danger-subtle">
+                        <thead class="table-danger">
+                            <tr>
+                                <th>Date</th>
+                                <th>Items Returned</th>
+                                <th class="text-end">Deduction</th>
+                                <th>Processed By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($returns as $ret): ?>
+                            <tr>
+                                <td><?php echo date('M j, Y H:i', strtotime($ret['created_at'])); ?></td>
+                                <td>
+                                    <?php foreach ($ret['details'] as $det): ?>
+                                        <div class="small">- <?= e($det['item_name']) ?> (qty: <?php echo $det['quantity']; ?>)</div>
+                                    <?php endforeach; ?>
+                                </td>
+                                <td class="text-end text-danger fw-bold">₵<?php echo number_format($ret['total_deduction'], 2); ?></td>
+                                <td><?= e($ret['returner_name']) ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -234,6 +272,7 @@ ob_start();
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="<?= BASE_URL ?>/sales/pay" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="sale_id" value="<?php echo $sale['id']; ?>">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -249,6 +288,57 @@ ob_start();
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-success">Save Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Return Items from Invoice #<?= $sale['id'] ?></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="<?= BASE_URL ?>/sales/return" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                <input type="hidden" name="sale_id" value="<?php echo $sale['id']; ?>">
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">Note: Returning items will reduce the invoice total and balance due. Inventory quantities will be restored.</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Purchased</th>
+                                    <th class="text-center" style="width: 100px;">Return Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($sale['items'] as $item): ?>
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold"><?= e($item['item_name']) ?></div>
+                                        <small class="text-muted">₵<?php echo number_format($item['price_at_sale'], 2); ?> each</small>
+                                    </td>
+                                    <td class="text-center"><?php echo $item['quantity']; ?></td>
+                                    <td>
+                                        <input type="number" name="returns[<?php echo $item['item_id']; ?>]" 
+                                               class="form-control form-control-sm text-center" 
+                                               min="0" max="<?php echo $item['quantity']; ?>" value="0">
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Process Return</button>
                 </div>
             </form>
         </div>

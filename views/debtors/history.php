@@ -5,13 +5,13 @@ ob_start();
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">Payment History: <?= htmlspecialchars($debtor['name']) ?></h1>
+            <h1 class="h2">Payment History: <?= e($debtor['name']) ?></h1>
             <a href="<?= BASE_URL ?>/debtors" class="btn btn-outline-secondary">Back to List</a>
         </div>
 
         <?php if (isset($_GET['success'])): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($_GET['success']) ?>
+                <?= e($_GET['success']) ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>

@@ -60,21 +60,46 @@ class CustomerController {
 
     public function create() {
         AuthMiddleware::requireLogin();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        
+        $isJson = false;
+        if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
+            $isJson = true;
+            $input = json_decode(file_get_contents('php://input'), true);
+            $name = $input['name'] ?? '';
+            $phone = $input['phone'] ?? '';
+            $address = $input['address'] ?? '';
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = $_POST['name'];
             $phone = $_POST['phone'] ?? '';
             $address = $_POST['address'] ?? '';
+        } else {
+             // If GET, it's usually via a modal or inline form, but let's support a standalone page if needed
+            // For now, redirect to index
+            header('Location: ' . BASE_URL . '/customers'); 
+            exit;
+        }
 
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo = Database::getInstance();
             $customerModel = new Customer($pdo);
-            $customerModel->create($name, $phone, $address);
+            $newId = $customerModel->create($name, $phone, $address);
             
+            if ($isJson) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true, 
+                    'customer' => [
+                        'id' => $newId, 
+                        'name' => $name,
+                        'phone' => $phone
+                    ]
+                ]);
+                exit;
+            }
+
             header('Location: ' . BASE_URL . '/customers');
             exit;
         }
-        // If GET, it's usually via a modal or inline form, but let's support a standalone page if needed
-        // For now, redirect to index
-        header('Location: ' . BASE_URL . '/customers'); 
     }
     
     // API endpoint for searching customers in sales view
@@ -103,5 +128,26 @@ class CustomerController {
             exit;
         }
         header('Location: ' . BASE_URL . '/customers');
+    }
+    public function view() {
+        AuthMiddleware::requireLogin();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . BASE_URL . '/customers');
+            exit;
+        }
+
+        $pdo = Database::getInstance();
+        $customerModel = new Customer($pdo);
+        
+        $customer = $customerModel->find($id);
+        if (!$customer) {
+            header('Location: ' . BASE_URL . '/customers');
+            exit;
+        }
+
+        $history = $customerModel->getHistory($id);
+
+        require __DIR__ . '/../../views/customers/view.php';
     }
 }

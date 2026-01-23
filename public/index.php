@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/Config/Router.php';
+require_once __DIR__ . '/../src/Config/Security.php';
 
 use App\Controllers\AuthController;
 use App\Controllers\ItemController;
@@ -49,6 +50,7 @@ $router->get('/users', [$userController, 'index']);
 $router->get('/users/create', [$userController, 'create']);
 $router->post('/users/create', [$userController, 'create']);
 $router->post('/users/toggle-status', [$userController, 'toggleStatus']);
+$router->post('/users/update-role', [$userController, 'updateRole']);
 $router->post('/users/delete', [$userController, 'delete']);
 
 // Profile
@@ -87,6 +89,7 @@ $router->post('/customers/create', [$customerController, 'create']);
 $router->get('/customers/edit', [$customerController, 'edit']);
 $router->post('/customers/edit', [$customerController, 'edit']);
 $router->get('/api/customers/search', [$customerController, 'apiSearch']);
+$router->get('/customers/view', [$customerController, 'view']);
 
 // Sales
 $saleController = new SaleController();
@@ -97,6 +100,7 @@ $router->post('/sales/request-delete', [$saleController, 'requestDelete']);
 $router->post('/sales/process-delete', [$saleController, 'processDeleteRequest']);
 $router->get('/sales/view', [$saleController, 'view']);
 $router->post('/sales/pay', [$saleController, 'pay']);
+$router->post('/sales/return', [$saleController, 'returns']);
 
 // Expenditures
 $expenditureController = new \App\Controllers\ExpenditureController();
@@ -115,6 +119,8 @@ $router->post('/debtors/create', [$debtorController, 'create']);
 $router->get('/debtors/payment', [$debtorController, 'recordPayment']);
 $router->post('/debtors/payment', [$debtorController, 'recordPayment']);
 $router->get('/debtors/history', [$debtorController, 'history']);
+$router->get('/debtors/increase', [$debtorController, 'increaseDebt']);
+$router->post('/debtors/increase', [$debtorController, 'increaseDebt']);
 $router->post('/debtors/delete', [$debtorController, 'delete']);
 
 // Dispatch

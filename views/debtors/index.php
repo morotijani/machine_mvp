@@ -15,7 +15,7 @@ ob_start();
 
         <?php if (isset($_GET['success'])): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($_GET['success']) ?>
+                <?= e($_GET['success']) ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
@@ -24,7 +24,7 @@ ob_start();
             <div class="card-body">
                 <form action="<?= BASE_URL ?>/debtors" method="GET" class="row g-2 mb-4">
                     <div class="col-md-8">
-                        <input type="text" name="search" class="form-control" placeholder="Search debtor name or phone..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                        <input type="text" name="search" class="form-control" placeholder="Search debtor name or phone..." value="<?= e($_GET['search'] ?? '') ?>">
                     </div>
                     <div class="col-md-4">
                         <button type="submit" class="btn btn-outline-primary w-100">Search</button>
@@ -49,10 +49,10 @@ ob_start();
                             <?php $balance = $d['total_amount'] - $d['paid_amount']; ?>
                             <tr>
                                 <td>
-                                    <strong><?= htmlspecialchars($d['name']) ?></strong>
-                                    <br><small class="text-muted"><?= htmlspecialchars($d['description']) ?></small>
+                                    <strong><?= e($d['name']) ?></strong>
+                                    <br><small class="text-muted"><?= e($d['description']) ?></small>
                                 </td>
-                                <td><?= htmlspecialchars($d['phone'] ?: 'N/A') ?></td>
+                                <td><?= e($d['phone'] ?: 'N/A') ?></td>
                                 <td class="text-end">₵<?= number_format($d['total_amount'], 2) ?></td>
                                 <td class="text-end text-success">₵<?= number_format($d['paid_amount'], 2) ?></td>
                                 <td class="text-end fw-bold text-danger">₵<?= number_format($balance, 2) ?></td>
@@ -72,12 +72,19 @@ ob_start();
                                                 <span class="material-symbols-outlined" style="font-size: 18px;">payments</span>
                                             </a>
                                         <?php endif; ?>
+                                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                                            <a href="<?= BASE_URL ?>/debtors/increase?id=<?= $d['id'] ?>" class="btn btn-sm btn-outline-warning" title="Increase Debt">
+                                                <span class="material-symbols-outlined" style="font-size: 18px;">add_circle</span>
+                                            </a>
+                                        <?php endif; ?>
                                         <a href="<?= BASE_URL ?>/debtors/history?id=<?= $d['id'] ?>" class="btn btn-sm btn-outline-info" title="Payment History">
                                             <span class="material-symbols-outlined" style="font-size: 18px;">history</span>
                                         </a>
                                         <?php if ($_SESSION['role'] === 'admin'): ?>
                                         <form action="<?= BASE_URL ?>/debtors/delete" method="POST" onsubmit="return confirm('Remove this debtor?')" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="id" value="<?= $d['id'] ?>">
+ <!-- spot -->
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                                             </button>

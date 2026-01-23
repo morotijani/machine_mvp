@@ -18,13 +18,13 @@ ob_start();
             <div class="card-body py-3">
                 <form action="<?= BASE_URL ?>/sales" method="GET" class="row g-2 align-items-center">
                     <div class="col-md-3">
-                        <input type="text" name="search" class="form-control" placeholder="Search Invoice # or Customer" value="<?php echo htmlspecialchars($filters['search']); ?>">
+                        <input type="text" name="search" class="form-control" placeholder="Search Invoice # or Customer" value="<?= e($filters['search']) ?>">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" name="start_date" class="form-control" placeholder="Start Date" value="<?php echo htmlspecialchars($filters['start_date']); ?>">
+                        <input type="date" name="start_date" class="form-control" placeholder="Start Date" value="<?= e($filters['start_date']) ?>">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" name="end_date" class="form-control" placeholder="End Date" value="<?php echo htmlspecialchars($filters['end_date']); ?>">
+                        <input type="date" name="end_date" class="form-control" placeholder="End Date" value="<?= e($filters['end_date']) ?>">
                     </div>
                     <div class="col-md-2">
                         <select name="status" class="form-select">
@@ -91,13 +91,13 @@ ob_start();
                             ?>
                             <tr class="<?php echo $sale['voided'] ? 'table-light opacity-75' : ''; ?>">
                                 <td><?php echo date('M j, Y H:i', strtotime($sale['created_at'])); ?></td>
-                                <td><a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="fw-bold text-decoration-none">#<?php echo $sale['id']; ?></a></td>
-                                <td><?php echo htmlspecialchars($sale['customer_name'] ?? ''); ?></td>
+                                <td><a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" class="fw-bold text-decoration-none">#<?= $sale['id'] ?></a></td>
+                                <td><?= e($sale['customer_name'] ?? '') ?></td>
                                 <td><span class="badge <?php echo $statusClass; ?> rounded-pill"><?php echo ucfirst($sale['payment_status']); ?></span></td>
                                 <td class="text-end fw-bold">₵<?php echo number_format($sale['total_amount'], 2); ?></td>
                                 <td class="text-end text-success">₵<?php echo number_format($sale['paid_amount'], 2); ?></td>
                                 <td class="text-end text-danger"><?php echo ($balance > 0) ? '₵'.number_format($balance, 2) : '-'; ?></td>
-                                <td><small><?php echo htmlspecialchars($sale['seller_name']); ?></small></td>
+                                <td><small><?= e($sale['seller_name']) ?></small></td>
                                 <td class="text-end">
                                     <a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="btn btn-sm btn-outline-secondary">
                                         <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span> View
@@ -108,6 +108,7 @@ ob_start();
                                     <?php elseif ($sale['delete_request_status'] === 'pending'): ?>
                                         <?php if ($_SESSION['role'] === 'admin'): ?>
                                             <form action="<?= BASE_URL ?>/sales/process-delete" method="POST" style="display:inline;">
+                                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                 <input type="hidden" name="sale_id" value="<?= $sale['id'] ?>">
                                                 <button type="submit" name="action" value="approve" class="btn btn-sm btn-outline-danger" title="Approve Delete">
                                                     <span class="material-symbols-outlined" style="font-size: 16px;">check</span>
@@ -121,6 +122,7 @@ ob_start();
                                         <?php endif; ?>
                                     <?php elseif ($sale['user_id'] == $_SESSION['user_id'] && $sale['delete_request_status'] == 'none'): ?>
                                         <form action="<?= BASE_URL ?>/sales/request-delete" method="POST" style="display:inline;" onsubmit="return confirm('Request to delete this sale?');">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="sale_id" value="<?= $sale['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="Request Delete">
                                                 <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
@@ -155,13 +157,34 @@ ob_start();
                             <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($queryParams); ?>">Previous</a>
                         </li>
 
-                        <!-- Page Numbers -->
-                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                            <li class="page-item <?php echo ($page == $i) ? 'active' : ''; ?>">
-                                <?php $queryParams['page'] = $i; ?>
-                                <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($queryParams); ?>"><?php echo $i; ?></a>
-                            </li>
-                        <?php endfor; ?>
+                        <!-- Page Numbers (Smart) -->
+                        <?php 
+                        $range = 2; // Number of pages around current page
+                        // Always show first page
+                        if ($page > 1 + $range) {
+                            $queryParams['page'] = 1;
+                            echo '<li class="page-item"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($queryParams) . '">1</a></li>';
+                            if ($page > 2 + $range) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
+                        }
+
+                        // Range around current
+                        for ($i = max(1, $page - $range); $i <= min($totalPages, $page + $range); $i++) {
+                            $queryParams['page'] = $i;
+                            $active = ($page == $i) ? 'active' : '';
+                            echo '<li class="page-item ' . $active . '"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($queryParams) . '">' . $i . '</a></li>';
+                        }
+
+                        // Always show last page
+                        if ($page < $totalPages - $range) {
+                            if ($page < $totalPages - $range - 1) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
+                            $queryParams['page'] = $totalPages;
+                            echo '<li class="page-item"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($queryParams) . '">' . $totalPages . '</a></li>';
+                        }
+                        ?>
 
                         <!-- Next -->
                         <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">

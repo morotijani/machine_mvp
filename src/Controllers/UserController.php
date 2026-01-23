@@ -76,6 +76,34 @@ class UserController {
             exit;
         }
     }
+    
+    public function updateRole() {
+        AuthMiddleware::requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_POST['user_id'];
+            $role = $_POST['role'];
+            
+            // Prevent changing own role
+            if ($userId == $_SESSION['user_id']) {
+                header('Location: ' . BASE_URL . '/users');
+                exit;
+            }
+
+            // Validate role
+            if (!in_array($role, ['admin', 'sales'])) {
+                header('Location: ' . BASE_URL . '/users');
+                exit;
+            }
+
+            $pdo = Database::getInstance();
+            $userModel = new \App\Models\User($pdo);
+            $userModel->updateRole($userId, $role);
+            
+            header('Location: ' . BASE_URL . '/users');
+            exit;
+        }
+    }
+
     public function delete() {
         AuthMiddleware::requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

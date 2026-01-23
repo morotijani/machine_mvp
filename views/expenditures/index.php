@@ -15,7 +15,7 @@ ob_start();
 
         <?php if (isset($_GET['success'])): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($_GET['success']) ?>
+                <?= e($_GET['success']) ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
@@ -24,7 +24,7 @@ ob_start();
             <div class="card-body">
                 <form action="<?= BASE_URL ?>/expenditures" method="GET" class="row g-2 mb-4">
                     <div class="col-md-8">
-                        <input type="text" name="search" class="form-control" placeholder="Search category or description..." value="<?= htmlspecialchars($search ?? '') ?>">
+                        <input type="text" name="search" class="form-control" placeholder="Search category or description..." value="<?= e($search ?? '') ?>">
                     </div>
                     <div class="col-md-4">
                         <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
@@ -49,11 +49,12 @@ ob_start();
                             <?php foreach ($expenditures as $exp): ?>
                             <tr>
                                 <td><?= date('M d, Y', strtotime($exp['date'])) ?></td>
-                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><?= htmlspecialchars($exp['category']) ?></span></td>
-                                <td><small class="text-muted"><?= htmlspecialchars($exp['description']) ?></small></td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><?= e($exp['category']) ?></span></td>
+                                <td><small class="text-muted"><?= e($exp['description']) ?></small></td>
                                 <?php if ($_SESSION['role'] === 'admin'): ?>
-                                    <td><small class="text-muted"><?= htmlspecialchars($exp['recorder_name'] ?? 'N/A') ?></small></td>
+                                    <td><small class="text-muted"><?= e($exp['recorder_name'] ?? 'N/A') ?></small></td>
                                 <?php endif; ?>
+ <!-- spot -->
                                 <td class="text-end fw-bold text-danger">- ₵<?= number_format($exp['amount'], 2) ?></td>
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end gap-2">
@@ -61,7 +62,9 @@ ob_start();
                                             <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
                                         </a>
                                         <form action="<?= BASE_URL ?>/expenditures/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this expenditure?')">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="id" value="<?= $exp['id'] ?>">
+ <!-- spot -->
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                                             </button>

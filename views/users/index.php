@@ -35,20 +35,20 @@ ob_start();
                                             <img src="<?= BASE_URL ?>/<?php echo $user['profile_image']; ?>" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
                                         <?php else: ?>
                                             <div class="rounded-circle me-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center fw-bold text-secondary" style="width: 40px; height: 40px;">
-                                                <?php echo strtoupper(substr($user['username'], 0, 1)); ?>
+                                                <?= e(strtoupper(substr($user['username'], 0, 1))) ?>
                                             </div>
                                         <?php endif; ?>
                                         <div>
-                                            <div class="fw-bold"><?php echo htmlspecialchars($user['fullname'] ?? $user['username']); ?></div>
+                                            <div class="fw-bold"><?= e($user['fullname'] ?? $user['username']) ?></div>
                                             <?php if (!empty($user['fullname'])): ?>
-                                                <small class="text-muted">@<?php echo htmlspecialchars($user['username']); ?></small>
+                                                <small class="text-muted">@<?= e($user['username']) ?></small>
                                             <?php endif; ?>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge <?php echo $user['role'] === 'admin' ? 'bg-danger' : 'bg-primary'; ?>">
-                                        <?php echo ucfirst($user['role']); ?>
+                                        <?= e(ucfirst($user['role'])) ?>
                                     </span>
                                 </td>
                                 <td>
@@ -63,6 +63,7 @@ ob_start();
                                     <?php if ($user['id'] != $_SESSION['user_id']): ?>
                                     <div class="d-flex gap-2 justify-content-start">
                                         <form action="<?= BASE_URL ?>/users/toggle-status" method="POST" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
                                             <input type="hidden" name="status" value="<?= $user['is_active'] ? 0 : 1 ?>">
                                             <button type="submit" class="btn btn-sm <?= $user['is_active'] ? 'btn-outline-warning' : 'btn-outline-success' ?>" title="<?= $user['is_active'] ? 'Disable User' : 'Enable User' ?>">
@@ -70,7 +71,17 @@ ob_start();
                                             </button>
                                         </form>
                                         
+                                        <form action="<?= BASE_URL ?>/users/update-role" method="POST" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                            <input type="hidden" name="role" value="<?= $user['role'] === 'admin' ? 'sales' : 'admin' ?>">
+                                            <button type="submit" class="btn btn-sm <?= $user['role'] === 'admin' ? 'btn-outline-secondary' : 'btn-outline-primary' ?>" title="<?= $user['role'] === 'admin' ? 'Demote to Sales' : 'Promote to Admin' ?>" onclick="return confirm('Are you sure you want to change this user\'s role to <?= $user['role'] === 'admin' ? 'Sales' : 'Admin' ?>?')">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;"><?= $user['role'] === 'admin' ? 'person_remove' : 'admin_panel_settings' ?></span>
+                                            </button>
+                                        </form>
+                                        
                                         <form action="<?= BASE_URL ?>/users/delete" method="POST" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete User" onclick="return confirm('WARNING: Are you sure you want to delete this user? This will remove them from the active list but keep their sales history.')">
                                                 <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>

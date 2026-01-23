@@ -100,6 +100,41 @@ class DebtorController {
         require __DIR__ . '/../../views/debtors/history.php';
     }
 
+    public function increaseDebt() {
+        AuthMiddleware::requireAdmin();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . BASE_URL . '/debtors');
+            exit;
+        }
+
+        $pdo = Database::getInstance();
+        $model = new Debtor($pdo);
+        $debtor = $model->find($id);
+
+        if (!$debtor) {
+            header('Location: ' . BASE_URL . '/debtors');
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $amount = (float)$_POST['amount'];
+            $description = $_POST['description'] ?? 'Debt increase';
+            $uid = $_SESSION['user_id'];
+
+            if ($amount <= 0) {
+                header('Location: ' . BASE_URL . '/debtors?error=Amount must be greater than zero');
+                exit;
+            }
+
+            $model->increaseDebt($id, $amount, $description, $uid);
+            header('Location: ' . BASE_URL . '/debtors?success=Debt increased successfully');
+            exit;
+        }
+
+        require __DIR__ . '/../../views/debtors/increase.php';
+    }
+
     public function delete() {
         AuthMiddleware::requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

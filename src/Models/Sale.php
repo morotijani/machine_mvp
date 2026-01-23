@@ -211,7 +211,7 @@ class Sale {
         $sale = $stmt->fetch();
         
         if ($sale) {
-            $stmtItems = $this->pdo->prepare("SELECT si.*, i.name as item_name, i.sku FROM sale_items si JOIN items i ON si.item_id = i.id WHERE si.sale_id = :id");
+            $stmtItems = $this->pdo->prepare("SELECT si.*, COALESCE(i.name, '[Deleted Item]') as item_name, i.sku FROM sale_items si LEFT JOIN items i ON si.item_id = i.id WHERE si.sale_id = :id");
             $stmtItems->execute(['id' => $id]);
             $sale['items'] = $stmtItems->fetchAll();
         }
@@ -304,6 +304,94 @@ class Sale {
             $this->pdo->commit();
             return true;
         } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    public function processReturn($saleId, $returnedItems, $userId) {
+        try {
+            $this->pdo->beginTransaction();
+
+            $sale = $this->getById($saleId);
+            if (!$sale || $sale['voided']) {
+                throw new Exception("Sale not found or voided.");
+            }
+
+            $totalDeduction = 0;
+            foreach ($returnedItems as $itemId => $qty) {
+                if ($qty <= 0) continue;
+
+                // 1. Find the original sale item
+                $stmt = $this->pdo->prepare("SELECT * FROM sale_items WHERE sale_id = :sid AND item_id = :iid");
+                $stmt->execute(['sid' => $saleId, 'iid' => $itemId]);
+                $originalItem = $stmt->fetch();
+
+                if (!$originalItem) {
+                    throw new Exception("Item ID $itemId not found in this sale.");
+                }
+
+                if ($qty > $originalItem['quantity']) {
+                    throw new Exception("Cannot return more than purchased for item ID $itemId.");
+                }
+
+                $itemDeduction = $qty * $originalItem['price_at_sale'];
+                $totalDeduction += $itemDeduction;
+
+                // 2. Update sale_items record
+                $stmt = $this->pdo->prepare("UPDATE sale_items SET quantity = quantity - :qty, subtotal = subtotal - :deduction WHERE id = :id");
+                $stmt->execute(['qty' => $qty, 'deduction' => $itemDeduction, 'id' => $originalItem['id']]);
+
+                // 3. Restore stock in items table
+                $stmt = $this->pdo->prepare("UPDATE items SET quantity = quantity + :qty WHERE id = :id");
+                $stmt->execute(['qty' => $qty, 'id' => $itemId]);
+            }
+
+            if ($totalDeduction <= 0) {
+                $this->pdo->rollBack();
+                return true;
+            }
+
+            // 4. Create sale_returns record
+            $stmt = $this->pdo->prepare("INSERT INTO sale_returns (sale_id, total_deduction, recorded_by) VALUES (:sid, :deduction, :uid)");
+            $stmt->execute(['sid' => $saleId, 'deduction' => $totalDeduction, 'uid' => $userId]);
+            $returnId = $this->pdo->lastInsertId();
+
+            // 5. Create sale_return_items records
+            foreach ($returnedItems as $itemId => $qty) {
+                if ($qty <= 0) continue;
+                
+                $stmt = $this->pdo->prepare("SELECT price_at_sale FROM sale_items WHERE sale_id = :sid AND item_id = :iid");
+                $stmt->execute(['sid' => $saleId, 'iid' => $itemId]);
+                $priceAtSale = $stmt->fetchColumn();
+
+                $stmt = $this->pdo->prepare("INSERT INTO sale_return_items (return_id, item_id, quantity, price_at_sale) VALUES (:rid, :iid, :qty, :price)");
+                $stmt->execute(['rid' => $returnId, 'iid' => $itemId, 'qty' => $qty, 'price' => $priceAtSale]);
+            }
+
+            // 6. Update main sales record (total_amount)
+            $newTotal = $sale['total_amount'] - $totalDeduction;
+            $paidAmount = $sale['paid_amount'];
+
+            // If customer has already paid more than the new total, we cap paid_amount (effectively record a refund)
+            if ($paidAmount > $newTotal) {
+                $paidAmount = $newTotal;
+            }
+
+            // Determine new status
+            $status = 'unpaid';
+            if ($paidAmount >= $newTotal) {
+                $status = 'paid';
+            } elseif ($paidAmount > 0) {
+                $status = 'partial';
+            }
+
+            $stmt = $this->pdo->prepare("UPDATE sales SET total_amount = :total, paid_amount = :paid, payment_status = :status WHERE id = :id");
+            $stmt->execute(['total' => $newTotal, 'paid' => $paidAmount, 'status' => $status, 'id' => $saleId]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
             $this->pdo->rollBack();
             throw $e;
         }

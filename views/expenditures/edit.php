@@ -12,9 +12,11 @@ ob_start();
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <form action="<?= BASE_URL ?>/expenditures/edit?id=<?= $expenditure['id'] ?>" method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+ <!-- spot -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Date</label>
-                        <input type="date" name="date" class="form-control" value="<?= htmlspecialchars($expenditure['date']) ?>" required>
+                        <input type="date" name="date" class="form-control" value="<?= e($expenditure['date']) ?>" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Category</label>
@@ -29,11 +31,11 @@ ob_start();
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Amount (₵)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" value="<?= htmlspecialchars($expenditure['amount']) ?>" required>
+                        <input type="number" step="0.01" name="amount" class="form-control" value="<?= e($expenditure['amount']) ?>" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Description / Purpose</label>
-                        <textarea name="description" class="form-control" rows="3"><?= htmlspecialchars($expenditure['description']) ?></textarea>
+                        <textarea name="description" class="form-control" rows="3"><?= e($expenditure['description']) ?></textarea>
                     </div>
                     <div class="d-grid pt-3">
                         <button type="submit" class="btn btn-primary py-2 fw-bold">Update Expenditure</button>

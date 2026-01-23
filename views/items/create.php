@@ -16,6 +16,7 @@ ob_start();
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <form action="<?= BASE_URL ?>/items/create" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Item Name</label>
                                 <input type="text" name="name" class="form-control" required>

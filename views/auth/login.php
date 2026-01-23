@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in - <?= htmlspecialchars($settings['company_name'] ?? 'Machine MVP') ?></title>
+    <title>Sign in - <?= e($settings['company_name'] ?? 'Machine MVP') ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
     <?php if (!empty($settings['company_logo'])): ?>
-    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>">
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>">
     <?php endif; ?>
 </head>
 <body class="bg-light" style="padding-top: 0px;">
@@ -16,7 +16,7 @@
         <div class="auth-card">
             <div class="text-center mb-4">
                 <?php if (!empty($settings['company_logo'])): ?>
-                    <img src="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>" alt="Logo" style="max-height: 80px; margin-bottom: 15px;">
+                    <img src="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>" alt="Logo" style="max-height: 80px; margin-bottom: 15px;">
                 <?php else: ?>
                     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 48 48" class="mb-2">
                         <g>
@@ -36,13 +36,14 @@
                 <div class="alert alert-danger py-2 mb-3" style="font-size: 14px; border-radius: 4px;"><?php echo $error; ?></div>
             <?php endif; ?>
 
-            <form action="<?= BASE_URL ?>/login" method="POST">
+            <form action="<?= BASE_URL ?>/login" method="POST" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="usernameInput" name="username" placeholder="Username" required autofocus>
+                    <input type="text" class="form-control" id="usernameInput" name="username" placeholder="Username" required autofocus autocomplete="off">
                     <label for="usernameInput">Username</label>
                 </div>
                 <div class="form-floating mb-4">
-                    <input type="password" class="form-control" id="passwordInput" name="password" placeholder="Password" required>
+                    <input type="password" class="form-control" id="passwordInput" name="password" placeholder="Password" required autocomplete="new-password">
                     <label for="passwordInput">Password</label>
                 </div>
                 

@@ -12,7 +12,7 @@ ob_start();
                         <span class="input-group-text bg-white border-end-0">
                             <span class="material-symbols-outlined text-muted" style="font-size: 20px;">search</span>
                         </span>
-                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search customers..." value="<?= htmlspecialchars($search ?? '') ?>">
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search customers..." value="<?= e($search ?? '') ?>">
                         <button type="submit" class="btn btn-primary">Search</button>
                     </div>
                 </form>
@@ -40,9 +40,13 @@ ob_start();
                         <tbody>
                             <?php foreach ($customers as $customer): ?>
                             <tr>
-                                <td class="fw-bold"><?php echo htmlspecialchars($customer['name']); ?></td>
-                                <td><?php echo htmlspecialchars($customer['phone']); ?></td>
-                                <td><?php echo htmlspecialchars($customer['address']); ?></td>
+                                <td class="fw-bold">
+                                    <a href="<?= BASE_URL ?>/customers/view?id=<?= $customer['id'] ?>" class="text-decoration-none text-dark">
+                                        <?= e($customer['name']) ?>
+                                    </a>
+                                </td>
+                                <td><?= e($customer['phone']) ?></td>
+                                <td><?= e($customer['address']) ?></td>
                                 <td class="text-end">
                                     <?php if ($customer['total_debt'] > 0): ?>
                                         <span class="text-danger fw-bold">₵<?php echo number_format($customer['total_debt'], 2); ?></span>
@@ -55,10 +59,10 @@ ob_start();
                                     <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#editCustomerModal"
-                                            data-id="<?php echo $customer['id']; ?>"
-                                            data-name="<?php echo htmlspecialchars($customer['name']); ?>"
-                                            data-phone="<?php echo htmlspecialchars($customer['phone']); ?>"
-                                            data-address="<?php echo htmlspecialchars($customer['address']); ?>">
+                                            data-id="<?= $customer['id'] ?>"
+                                            data-name="<?= e($customer['name']) ?>"
+                                            data-phone="<?= e($customer['phone'] ?? '') ?>"
+                                            data-address="<?= e($customer['address'] ?? '') ?>">
                                         <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
                                     </button>
                                 </td>
@@ -79,17 +83,17 @@ ob_start();
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
                         <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                            <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>">Previous</a>
+                            <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search ?? '') ?>">Previous</a>
                         </li>
                         
                         <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                         <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                            <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
+                            <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search ?? '') ?>"><?= $i ?></a>
                         </li>
                         <?php endfor; ?>
                         
                         <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                            <a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>">Next</a>
+                            <a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search ?? '') ?>">Next</a>
                         </li>
                     </ul>
                 </nav>
@@ -106,6 +110,7 @@ ob_start();
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="<?= BASE_URL ?>/customers/create" method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Name</label>
@@ -138,6 +143,7 @@ ob_start();
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="<?= BASE_URL ?>/customers/edit" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="id" id="edit_id">
                 <div class="modal-body">
                         <div class="mb-3">
