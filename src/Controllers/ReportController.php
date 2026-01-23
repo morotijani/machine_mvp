@@ -183,7 +183,22 @@ class ReportController {
             LIMIT 30
         ";
         $stmt = $pdo->query($sqlDaily);
-        $dailyReports = $stmt->fetchAll();
+        $dailyReports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 5. Calculate Remaining Inventory Value (Backwards)
+        // Current Retail Value of all items
+        $stmtWorth = $pdo->query("SELECT SUM(quantity * price) FROM items WHERE is_deleted = 0");
+        $currentValue = $stmtWorth->fetchColumn() ?: 0;
+        
+        $runningValue = $currentValue;
+        // Since dailyReports is ordered by sale_date DESC (newest first), 
+        // the FIRST entry is "end of today" (which is currentValue).
+        // Each PREVIOUS entry should be the following day's value PLUS that day's sales.
+        foreach ($dailyReports as &$report) {
+            $report['remaining_inventory_value'] = $runningValue;
+            $runningValue += ($report['total'] ?? 0);
+        }
+        unset($report); // break reference
         
         require __DIR__ . '/../../views/reports/index.php';
     }

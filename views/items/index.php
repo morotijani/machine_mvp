@@ -153,10 +153,10 @@ ob_start();
                     <nav aria-label="Page navigation" class="mt-4">
                         <ul class="pagination justify-content-center">
                             <?php 
-                                $queryStr = "?search=" . urlencode($search ?? '') . "&low_stock=" . ($lowStock ? '1' : '0') . "&sort=" . urlencode($sort) . "&order=" . urlencode($order);
+                                $baseQuery = "?search=" . urlencode($search ?? '') . "&low_stock=" . ($lowStock ? '1' : '0') . "&sort=" . urlencode($sort) . "&order=" . urlencode($order);
                             ?>
                             <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= $queryStr ?>&page=<?= $page - 1 ?>">Previous</a>
+                                <a class="page-link" href="<?= $baseQuery ?>&page=<?= $page - 1 ?>">Previous</a>
                             </li>
 
                             <?php
@@ -165,7 +165,7 @@ ob_start();
                                 if ($i == 1 || $i == $totalPages || ($i >= $page - $range && $i <= $page + $range)):
                             ?>
                                     <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                                        <a class="page-link" href="<?= $queryStr ?>&page=<?= $i ?>"><?= $i ?></a>
+                                        <a class="page-link" href="<?= $baseQuery ?>&page=<?= $i ?>"><?= $i ?></a>
                                     </li>
                             <?php 
                                 elseif ($i == $page - $range - 1 || $i == $page + $range + 1):
@@ -177,7 +177,7 @@ ob_start();
                             ?>
 
                             <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= $queryStr ?>&page=<?= $page + 1 ?>">Next</a>
+                                <a class="page-link" href="<?= $baseQuery ?>&page=<?= $page + 1 ?>">Next</a>
                             </li>
                         </ul>
                     </nav>

@@ -100,7 +100,7 @@ class SaleController {
         $itemModel = new Item($pdo);
         $customerModel = new Customer($pdo);
         $items = $itemModel->getAll();
-        $customers = $customerModel->getAll();
+        $customers = $customerModel->getAll(null, 0, null, 'name', 'ASC');
         
         require __DIR__ . '/../../views/sales/create.php';
     }

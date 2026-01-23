@@ -110,6 +110,7 @@ ob_start();
                                 <th>Date</th>
                                 <th class="text-center">Sales</th>
                                 <th class="text-end">Total Amount</th>
+                                <th class="text-end text-primary">Remaining Items Value</th>
                                 <th class="text-end">Profit</th>
                                 <th class="text-end">Expenditure</th>
                                 <th class="text-end">Margin %</th>
@@ -124,6 +125,7 @@ ob_start();
                                 <td><?php echo date('M j, Y', strtotime($report['sale_date'])); ?></td>
                                 <td class="text-center"><?php echo $report['count']; ?></td>
                                 <td class="text-end fw-bold">₵<?php echo number_format($report['total'], 2); ?></td>
+                                <td class="text-end fw-bold text-primary">₵<?php echo number_format($report['remaining_inventory_value'] ?? 0, 2); ?></td>
                                 <td class="text-end text-success <?php echo $netDaily < 0 ? 'text-danger' : ''; ?>">
                                     ₵<?php echo number_format($report['profit'], 2); ?>
                                     <?php if ($report['total_expenditure'] > 0): ?>
