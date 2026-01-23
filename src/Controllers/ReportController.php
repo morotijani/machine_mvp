@@ -114,29 +114,33 @@ class ReportController {
         $availableYears = $stmt->fetchAll(PDO::FETCH_COLUMN);
         if (empty($availableYears)) $availableYears = [date('Y')];
 
-        // 2. Monthly Stats for Selected Year (Graph Data)
-        // Initialize all 12 months with 0
+        // 2. Monthly Stats for Selected Year (Graph Data & Profit)
         $monthlySales = array_fill(1, 12, 0);
+        $monthlyProfits = array_fill(1, 12, 0);
         
         $stmt = $pdo->prepare("
-            SELECT MONTH(created_at) as month, SUM(total_amount) as total 
-            FROM sales 
-            WHERE YEAR(created_at) = :year AND voided = 0
-            GROUP BY MONTH(created_at)
+            SELECT 
+                MONTH(s.created_at) as month, 
+                SUM(s.total_amount) as total,
+                SUM(si.subtotal - (si.quantity * i.cost_price)) as profit
+            FROM sales s
+            JOIN sale_items si ON s.id = si.sale_id
+            JOIN items i ON si.item_id = i.id
+            WHERE YEAR(s.created_at) = :year AND s.voided = 0
+            GROUP BY MONTH(s.created_at)
         ");
         $stmt->execute(['year' => $selectedYear]);
-        $results = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Merge results into empty months array
-        foreach ($results as $month => $total) {
-            $monthlySales[$month] = $total;
+        foreach ($results as $row) {
+            $monthlySales[$row['month']] = $row['total'];
+            $monthlyProfits[$row['month']] = $row['profit'];
         }
 
         // 3. Comparison Data (Last Year vs Selected Year)
         $lastYear = $selectedYear - 1;
         $comparisonData = [];
         
-        // Fetch Last Year Data
         $stmt = $pdo->prepare("
             SELECT MONTH(created_at) as month, SUM(total_amount) as total 
             FROM sales 
@@ -148,19 +152,37 @@ class ReportController {
 
         for ($m = 1; $m <= 12; $m++) {
             $currentVal = $monthlySales[$m] ?? 0;
+            $currentProfit = $monthlyProfits[$m] ?? 0;
             $lastVal = $lastYearResults[$m] ?? 0;
             
             $comparisonData[$m] = [
                 'month_name' => date('F', mktime(0, 0, 0, $m, 1)),
                 'current_year' => $currentVal,
+                'current_profit' => $currentProfit,
                 'last_year' => $lastVal,
                 'difference' => $currentVal - $lastVal,
-                'growth' => ($lastVal > 0) ? (($currentVal - $lastVal) / $lastVal) * 100 : 0
+                'growth' => ($lastVal > 0) ? (($currentVal - $lastVal) / $lastVal) * 100 : 0,
+                'profit_margin' => ($currentVal > 0) ? ($currentProfit / $currentVal) * 100 : 0
             ];
         }
         
         // 4. Daily Reports (Table)
-        $stmt = $pdo->query("SELECT DATE(created_at) as sale_date, COUNT(*) as count, SUM(total_amount) as total FROM sales WHERE voided = 0 GROUP BY DATE(created_at) ORDER BY sale_date DESC LIMIT 30");
+        $sqlDaily = "
+            SELECT 
+                DATE(s.created_at) as sale_date, 
+                COUNT(DISTINCT s.id) as count, 
+                SUM(si.subtotal) as total,
+                SUM(si.subtotal - (si.quantity * i.cost_price)) as profit,
+                (SELECT SUM(amount) FROM expenditures WHERE DATE(date) = DATE(s.created_at)) as total_expenditure
+            FROM sales s
+            JOIN sale_items si ON s.id = si.sale_id
+            JOIN items i ON si.item_id = i.id
+            WHERE s.voided = 0 
+            GROUP BY DATE(s.created_at) 
+            ORDER BY sale_date DESC 
+            LIMIT 30
+        ";
+        $stmt = $pdo->query($sqlDaily);
         $dailyReports = $stmt->fetchAll();
         
         require __DIR__ . '/../../views/reports/index.php';

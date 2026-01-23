@@ -45,8 +45,9 @@ ob_start();
                                 <th>Month</th>
                                 <th class="text-end text-muted"><?php echo $lastYear; ?> Sales</th>
                                 <th class="text-end"><?php echo $selectedYear; ?> Sales</th>
+                                <th class="text-end">Profit (<?php echo $selectedYear; ?>)</th>
                                 <th class="text-end">Difference</th>
-                                <th class="text-end">Growth</th>
+                                <th class="text-end">Growth / Margin</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,16 +58,25 @@ ob_start();
                                 <td><?= $data['month_name'] ?></td>
                                 <td class="text-end text-muted">₵<?= number_format($data['last_year'], 2) ?></td>
                                 <td class="text-end fw-bold">₵<?= number_format($data['current_year'], 2) ?></td>
+                                <td class="text-end text-success">₵<?= number_format($data['current_profit'], 2) ?></td>
                                 
                                 <?php if ($data['difference'] > 0): ?>
                                     <td class="text-end text-success">+₵<?= number_format($data['difference'], 2) ?></td>
-                                    <td class="text-end text-success"><span class="material-symbols-outlined align-middle fs-6">trending_up</span> <?= number_format($data['growth'], 1) ?>%</td>
+                                    <td class="text-end text-success">
+                                        <div class="small"><span class="material-symbols-outlined align-middle fs-6">trending_up</span> <?= number_format($data['growth'], 1) ?>% Growth</div>
+                                        <div class="small text-muted"><?= number_format($data['profit_margin'], 1) ?>% Margin</div>
+                                    </td>
                                 <?php elseif ($data['difference'] < 0): ?>
                                     <td class="text-end text-danger">-₵<?= number_format(abs($data['difference']), 2) ?></td>
-                                    <td class="text-end text-danger"><span class="material-symbols-outlined align-middle fs-6">trending_down</span> <?= number_format($data['growth'], 1) ?>%</td>
+                                    <td class="text-end text-danger">
+                                        <div class="small"><span class="material-symbols-outlined align-middle fs-6">trending_down</span> <?= number_format($data['growth'], 1) ?>% Growth</div>
+                                        <div class="small text-muted"><?= number_format($data['profit_margin'], 1) ?>% Margin</div>
+                                    </td>
                                 <?php else: ?>
                                     <td class="text-end text-muted">-</td>
-                                    <td class="text-end text-muted">-</td>
+                                    <td class="text-end text-muted">
+                                        <div class="small text-muted"><?= number_format($data['profit_margin'], 1) ?>% Margin</div>
+                                    </td>
                                 <?php endif; ?>
                             </tr>
                             <?php endforeach; ?>
@@ -76,6 +86,7 @@ ob_start();
                                 <td>Total</td>
                                 <td class="text-end text-muted">₵<?php echo number_format(array_sum(array_column($comparisonData, 'last_year')), 2); ?></td>
                                 <td class="text-end">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_year')), 2); ?></td>
+                                <td class="text-end text-success">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_profit')), 2); ?></td>
                                 <td></td>
                                 <td></td>
                             </tr>
@@ -97,16 +108,40 @@ ob_start();
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Number of Sales</th>
-                                <th>Total Amount</th>
+                                <th class="text-center">Sales</th>
+                                <th class="text-end">Total Amount</th>
+                                <th class="text-end">Profit</th>
+                                <th class="text-end">Expenditure</th>
+                                <th class="text-end">Margin %</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($dailyReports as $report): ?>
+                            <?php foreach ($dailyReports as $report): 
+                                $margin = ($report['total'] > 0) ? ($report['profit'] / $report['total']) * 100 : 0;
+                                $netDaily = $report['profit'] - ($report['total_expenditure'] ?? 0);
+                            ?>
                             <tr>
                                 <td><?php echo date('M j, Y', strtotime($report['sale_date'])); ?></td>
-                                <td><?php echo $report['count']; ?></td>
-                                <td>₵<?php echo number_format($report['total'], 2); ?></td>
+                                <td class="text-center"><?php echo $report['count']; ?></td>
+                                <td class="text-end fw-bold">₵<?php echo number_format($report['total'], 2); ?></td>
+                                <td class="text-end text-success <?php echo $netDaily < 0 ? 'text-danger' : ''; ?>">
+                                    ₵<?php echo number_format($report['profit'], 2); ?>
+                                    <?php if ($report['total_expenditure'] > 0): ?>
+                                        <div class="small text-muted" style="font-size: 0.7rem;">Net: ₵<?= number_format($netDaily, 2) ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-end text-danger">
+                                    <?php if ($report['total_expenditure'] > 0): ?>
+                                        -₵<?php echo number_format($report['total_expenditure'], 2); ?>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge <?php echo $margin > 20 ? 'bg-success' : ($margin > 10 ? 'bg-warning' : 'bg-danger'); ?> bg-opacity-10 <?php echo $margin > 20 ? 'text-success' : ($margin > 10 ? 'text-warning' : 'text-danger'); ?>">
+                                        <?php echo number_format($margin, 1); ?>%
+                                    </span>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
