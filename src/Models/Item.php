@@ -10,7 +10,7 @@ class Item {
         $this->pdo = $pdo;
     }
 
-    public function getAll($limit = null, $offset = 0, $search = null, $lowStock = false) {
+    public function getAll($limit = null, $offset = 0, $search = null, $lowStock = false, $sort = 'created_at', $order = 'DESC') {
         $sql = "SELECT * FROM items WHERE is_deleted = 0";
         if ($lowStock) {
             $sql .= " AND quantity <= 5";
@@ -24,7 +24,14 @@ class Item {
             $params['s3'] = "%$search%";
         }
         
-        $sql .= " ORDER BY created_at DESC";
+        // Whitelist for sorting
+        $allowedSort = ['name', 'price', 'quantity', 'created_at'];
+        $allowedOrder = ['ASC', 'DESC'];
+        
+        if (!in_array($sort, $allowedSort)) $sort = 'created_at';
+        if (!in_array(strtoupper($order), $allowedOrder)) $order = 'DESC';
+        
+        $sql .= " ORDER BY $sort $order";
         
         if ($limit !== null) {
             $sql .= " LIMIT :limit OFFSET :offset";

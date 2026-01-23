@@ -16,6 +16,25 @@ ob_start();
                             <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search items..." value="<?= e($search ?? '') ?>">
 </div>
                         
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <span class="material-symbols-outlined text-muted" style="font-size: 20px;">sort</span>
+                            </span>
+                            <select name="sort" class="form-select border-start-0 ps-0" onchange="this.form.submit()">
+                                <option value="name" <?= ($sort == 'name') ? 'selected' : '' ?>>Name</option>
+                                <option value="price" <?= ($sort == 'price') ? 'selected' : '' ?>>Price</option>
+                                <option value="quantity" <?= ($sort == 'quantity') ? 'selected' : '' ?>>Stock Level</option>
+                                <option value="created_at" <?= ($sort == 'created_at') ? 'selected' : '' ?>>Date Added</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <select name="order" class="form-select" onchange="this.form.submit()">
+                                <option value="ASC" <?= ($order == 'ASC') ? 'selected' : '' ?>>Ascending</option>
+                                <option value="DESC" <?= ($order == 'DESC') ? 'selected' : '' ?>>Descending</option>
+                            </select>
+                        </div>
+                        
                         <div class="btn-group">
                             <input type="checkbox" name="low_stock" value="1" class="btn-check" id="lowStockCheck" <?= ($lowStock ?? false) ? 'checked' : '' ?> onchange="this.form.submit()">
                             <label class="btn btn-outline-danger d-flex align-items-center gap-2" for="lowStockCheck">
@@ -23,8 +42,8 @@ ob_start();
                             </label>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                        <?php if (!empty($search) || ($lowStock ?? false)): ?>
+                        <button type="submit" class="btn btn-primary d-none">Filter</button>
+                        <?php if (!empty($search) || ($lowStock ?? false) || $sort !== 'created_at' || $order !== 'DESC'): ?>
                             <a href="<?= BASE_URL ?>/items" class="btn btn-outline-secondary">Clear</a>
                         <?php endif; ?>
                     </form>
@@ -134,7 +153,7 @@ ob_start();
                     <nav aria-label="Page navigation" class="mt-4">
                         <ul class="pagination justify-content-center">
                             <?php 
-                                $queryStr = "?search=" . urlencode($search ?? '') . "&low_stock=" . ($lowStock ? '1' : '0');
+                                $queryStr = "?search=" . urlencode($search ?? '') . "&low_stock=" . ($lowStock ? '1' : '0') . "&sort=" . urlencode($sort) . "&order=" . urlencode($order);
                             ?>
                             <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
                                 <a class="page-link" href="<?= $queryStr ?>&page=<?= $page - 1 ?>">Previous</a>

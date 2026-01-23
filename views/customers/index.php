@@ -13,7 +13,22 @@ ob_start();
                             <span class="material-symbols-outlined text-muted" style="font-size: 20px;">search</span>
                         </span>
                         <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search customers..." value="<?= e($search ?? '') ?>">
+                        
+                        <select name="sort" class="form-select border-start-0" onchange="this.form.submit()" style="max-width: 150px;">
+                            <option value="name" <?= ($sort == 'name') ? 'selected' : '' ?>>Name</option>
+                            <option value="total_debt" <?= ($sort == 'total_debt') ? 'selected' : '' ?>>Debt Amount</option>
+                            <option value="last_purchase" <?= ($sort == 'last_purchase') ? 'selected' : '' ?>>Last Purchase</option>
+                        </select>
+
+                        <select name="order" class="form-select border-start-0" onchange="this.form.submit()" style="max-width: 120px;">
+                            <option value="ASC" <?= ($order == 'ASC') ? 'selected' : '' ?>>Ascending</option>
+                            <option value="DESC" <?= ($order == 'DESC') ? 'selected' : '' ?>>Descending</option>
+                        </select>
+
                         <button type="submit" class="btn btn-primary">Search</button>
+                        <?php if (!empty($search) || $sort !== 'total_debt' || $order !== 'DESC'): ?>
+                            <a href="<?= BASE_URL ?>/customers" class="btn btn-outline-secondary ms-2">Clear</a>
+                        <?php endif; ?>
                     </div>
                 </form>
 
@@ -71,7 +86,7 @@ ob_start();
                             
                             <?php if (empty($customers)): ?>
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No customers found.</td>
+                                <td colspan="6" class="text-center py-4 text-muted">No customers found.</td>
                             </tr>
                             <?php endif; ?>
                         </tbody>
@@ -82,18 +97,32 @@ ob_start();
                 <?php if ($totalPages > 1): ?>
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
+                        <?php 
+                            $queryStr = "?search=" . urlencode($search ?? '') . "&sort=" . urlencode($sort) . "&order=" . urlencode($order);
+                        ?>
                         <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                            <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search ?? '') ?>">Previous</a>
+                            <a class="page-link" href="<?= $queryStr ?>&page=<?= $page - 1 ?>">Previous</a>
                         </li>
-                        
-                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                        <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                            <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search ?? '') ?>"><?= $i ?></a>
-                        </li>
-                        <?php endfor; ?>
-                        
+
+                        <?php
+                        $range = 2;
+                        for ($i = 1; $i <= $totalPages; $i++):
+                            if ($i == 1 || $i == $totalPages || ($i >= $page - $range && $i <= $page + $range)):
+                        ?>
+                                <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
+                                    <a class="page-link" href="<?= $queryStr ?>&page=<?= $i ?>"><?= $i ?></a>
+                                </li>
+                        <?php 
+                            elseif ($i == $page - $range - 1 || $i == $page + $range + 1):
+                        ?>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <?php
+                            endif;
+                        endfor;
+                        ?>
+
                         <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                            <a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search ?? '') ?>">Next</a>
+                            <a class="page-link" href="<?= $queryStr ?>&page=<?= $page + 1 ?>">Next</a>
                         </li>
                     </ul>
                 </nav>

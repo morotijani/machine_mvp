@@ -14,6 +14,8 @@ class CustomerController {
         
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $search = isset($_GET['search']) ? trim($_GET['search']) : null;
+        $sort = $_GET['sort'] ?? 'total_debt';
+        $order = $_GET['order'] ?? 'DESC';
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
@@ -45,7 +47,7 @@ class CustomerController {
         // Realization: `getAll` in my update was `SELECT * FROM customers`. It misses debt.
         // I should have updated `getWithDebt`. 
         
-        $customers = $customerModel->getAll($limit, $offset, $search);
+        $customers = $customerModel->getAll($limit, $offset, $search, $sort, $order);
         
         // To fix the missing Debt info without rewriting the complex query right now:
         // We can fetch debt for these 10 customers in a loop or separate query.

@@ -15,11 +15,13 @@ class ItemController {
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $search = isset($_GET['search']) ? trim($_GET['search']) : null;
         $lowStock = isset($_GET['low_stock']) && $_GET['low_stock'] == 1;
+        $sort = $_GET['sort'] ?? 'created_at';
+        $order = $_GET['order'] ?? 'DESC';
         
         $limit = 10;
         $offset = ($page - 1) * $limit;
         
-        $items = $itemModel->getAll($limit, $offset, $search, $lowStock);
+        $items = $itemModel->getAll($limit, $offset, $search, $lowStock, $sort, $order);
         $totalItems = $itemModel->countAll($search, $lowStock);
         $totalPages = ceil($totalItems / $limit);
         

@@ -10,7 +10,7 @@ class Customer {
         $this->pdo = $pdo;
     }
 
-    public function getAll($limit = null, $offset = 0, $search = null) {
+    public function getAll($limit = null, $offset = 0, $search = null, $sort = 'total_debt', $order = 'DESC') {
         $sql = "SELECT c.*, 
                 (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
                 MAX(s.created_at) as last_purchase
@@ -24,7 +24,14 @@ class Customer {
             $params['search'] = "%$search%";
         }
         
-        $sql .= " GROUP BY c.id ORDER BY total_debt DESC, c.name ASC";
+        // Whitelist for sorting
+        $allowedSort = ['name', 'total_debt', 'last_purchase'];
+        $allowedOrder = ['ASC', 'DESC'];
+        
+        if (!in_array($sort, $allowedSort)) $sort = 'total_debt';
+        if (!in_array(strtoupper($order), $allowedOrder)) $order = 'DESC';
+        
+        $sql .= " GROUP BY c.id ORDER BY $sort $order";
         
         if ($limit) {
             $sql .= " LIMIT :limit OFFSET :offset";
