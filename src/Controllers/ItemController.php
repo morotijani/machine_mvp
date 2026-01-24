@@ -223,6 +223,16 @@ class ItemController {
             }
         }
 
+        $duplicateItem = null;
+        $duplicateComponents = [];
+        if (isset($_GET['duplicate_from'])) {
+            $duplicateId = (int)$_GET['duplicate_from'];
+            $duplicateItem = $itemModel->find($duplicateId);
+            if ($duplicateItem && $duplicateItem['type'] === 'bundle') {
+                $duplicateComponents = $itemModel->getBundleComponents($duplicateId);
+            }
+        }
+
         $items = $itemModel->getAll();
         require __DIR__ . '/../../views/items/create_bundle.php';
     }

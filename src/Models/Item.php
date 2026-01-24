@@ -118,13 +118,13 @@ class Item {
             // 1. Verify Stock for all components
             $totalCost = 0;
             foreach ($components as $comp) {
-                $stmt = $this->pdo->prepare("SELECT quantity, cost_price FROM items WHERE id = :id FOR UPDATE");
+                $stmt = $this->pdo->prepare("SELECT name, sku, quantity, cost_price FROM items WHERE id = :id FOR UPDATE");
                 $stmt->execute(['id' => $comp['id']]);
                 $item = $stmt->fetch();
 
                 $needed = $comp['quantity'] * $data['quantity']; // quantity here is Bundle Quantity
                 if ($item['quantity'] < $needed) {
-                    throw new \Exception("Insufficient stock for item ID: " . $comp['id']);
+                    throw new \Exception("Insufficient stock for item: " . $item['name'] . " (" . $item['sku'] . "). Available: " . $item['quantity'] . ", Needed: " . $needed);
                 }
                 $totalCost += $item['cost_price'] * $comp['quantity'];
                 

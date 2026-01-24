@@ -118,6 +118,9 @@ ob_start();
                                             <a href="<?= BASE_URL ?>/items/preview?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-info" title="Print Preview">
                                                 <span class="material-symbols-outlined" style="font-size: 16px;">print</span>
                                             </a>
+                                            <a href="<?= BASE_URL ?>/items/create-bundle?duplicate_from=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-primary" title="Duplicate Bundle">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
+                                            </a>
                                         <?php endif; ?>
                                         <?php if ($_SESSION['role'] === 'admin'): ?>
                                         <a href="<?= BASE_URL ?>/items/edit?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
