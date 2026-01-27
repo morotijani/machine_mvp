@@ -25,6 +25,7 @@
                     <small class="text-muted">From today's sales only</small>
                 </div>
             </div>
+            <?php if ($isAdmin): ?>
             <div class="col-md-4 mb-4">
                 <div class="card p-3 h-100 bg-success-subtle border-0 shadow-sm">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Realized Gross Profit</h6>
@@ -37,9 +38,10 @@
                 <div class="card p-3 h-100 bg-dark border-0 shadow-sm text-white">
                     <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Realized Net Profit</h6>
                     <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedNetProfit, 2); ?></h2>
-                    <small class="text-white-50">Collected Profit - Expenses</small>
+                    <small class="text-white-50" style="font-size: 10px;">Formula: Realized Gross Profit - Today's Expenditures</small>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- INVOICED STATS (FOR REFERENCE) -->
             <div class="col-12 mb-2">
@@ -56,6 +58,7 @@
                     </div>
                 </div>
             </div>
+            <?php if ($isAdmin): ?>
             <div class="col-md-3 mb-3">
                 <div class="card p-2 border shadow-sm bg-white">
                     <div class="d-flex justify-content-between align-items-center">
@@ -64,6 +67,7 @@
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
             <div class="col-md-3 mb-3">
                 <div class="card p-2 border shadow-sm bg-white">
                     <div class="d-flex justify-content-between align-items-center">
@@ -72,6 +76,7 @@
                     </div>
                 </div>
             </div>
+            <?php if ($isAdmin): ?>
             <div class="col-md-3 mb-3">
                 <div class="card p-2 border shadow-sm bg-white">
                     <div class="d-flex justify-content-between align-items-center">
@@ -80,7 +85,9 @@
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
             <!-- Expanded Invoiced Section -->
+            <?php if ($isAdmin): ?>
             <!-- <div class="col-md-6 mb-4">
                 <div class="card p-2 border-start border-4 border-info shadow-sm bg-light">
                     <div class="d-flex justify-content-between align-items-center">
@@ -103,6 +110,7 @@
                     </div>
                 </div>
             </div> -->
+            <?php endif; ?>
 
             <!-- LIFETIME & FINANCIAL SECTION -->
             <div class="col-12 mt-2 mb-3">

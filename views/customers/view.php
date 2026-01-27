@@ -20,7 +20,7 @@ ob_start();
         <!-- Back and Title -->
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 no-print">
             <div class="d-flex align-items-center gap-2">
-                <a href="<?= BASE_URL ?>/customers" class="btn btn-outline-secondary btn-sm">
+                <a href="<?= $_SESSION['last_customers_url'] ?? BASE_URL . '/customers' ?>" class="btn btn-outline-secondary btn-sm">
                     <span class="material-symbols-outlined align-middle" style="font-size: 18px;">arrow_back</span>
                 </a>
                 <h1 class="h2 mb-0">Customer Profile</h1>

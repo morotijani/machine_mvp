@@ -44,11 +44,18 @@ $router->get('/dashboard', [new ReportController(), 'dashboard']);
 // Reports
 $router->get('/reports', [new ReportController(), 'index']);
 
+// Staff Performance
+$staffController = new \App\Controllers\StaffController();
+$router->get('/admin/staff', [$staffController, 'index']);
+$router->get('/admin/staff/detail', [$staffController, 'detail']);
+
 // Users
 $userController = new \App\Controllers\UserController();
 $router->get('/users', [$userController, 'index']);
 $router->get('/users/create', [$userController, 'create']);
 $router->post('/users/create', [$userController, 'create']);
+$router->get('/users/edit', [$userController, 'edit']);
+$router->post('/users/update', [$userController, 'update']);
 $router->post('/users/toggle-status', [$userController, 'toggleStatus']);
 $router->post('/users/update-role', [$userController, 'updateRole']);
 $router->post('/users/delete', [$userController, 'delete']);

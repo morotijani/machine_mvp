@@ -120,6 +120,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/admin/staff') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/admin/staff">
+                                <span class="material-symbols-outlined icon">monitoring</span> Staff Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/admin/trash') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/admin/trash">
                                 <span class="material-symbols-outlined icon">delete</span> Recycle Bin
                             </a>

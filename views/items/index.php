@@ -1,7 +1,26 @@
 <?php
 $title = "Items & Machines";
 ob_start();
+
+// If this is a print view, cleaner layout is handled by CSS, but we can also auto-trigger print
+if (isset($isPrint) && $isPrint) {
+    echo '<script>window.onload = function() { window.print(); }</script>';
+}
 ?>
+<style>
+    @media print {
+        .no-print, .btn, .navbar, .sidebar, form.d-flex, .pagination, .page-header-actions { display: none !important; }
+        .card { border: none !important; shadow: none !important; }
+        .table-responsive { overflow: visible !important; }
+        body { background-color: #fff !important; }
+        main { margin: 0 !important; padding: 0 !important; }
+        /* Hide actions column in print */
+        th:last-child, td:last-child { display: none !important; }
+        .badge { border: 1px solid #000; color: #000 !important; background: #fff !important; }
+        /* Ensure all rows show */
+        tr { page-break-inside: avoid; }
+    }
+</style>
 
     <div class="row justify-content-center">
         <div class="col-md-10">
@@ -48,16 +67,35 @@ ob_start();
                         <?php endif; ?>
                     </form>
 
-                    <?php if ($_SESSION['role'] === 'admin'): ?>
-                    <div class="btn-toolbar mb-2 mb-md-0 gap-2">
-                        <a href="<?= BASE_URL ?>/items/create-bundle" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span> New Bundle
-                        </a>
-                        <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                            <span class="fs-5">+</span> New Item
-                        </a>
+                    <div class="btn-toolbar mb-2 mb-md-0 gap-2 page-header-actions">
+                        <?php 
+                            // Preserve current search/sort params for print link
+                            $printParams = $_GET;
+                            $printParams['print'] = 1;
+                            // Reset page to 1 to get all from start
+                            $printParams['page'] = 1;
+                        ?>
+                        <div class="d-flex gap-2">
+                             <?php if (isset($isPrint) && $isPrint): ?>
+                                <a href="<?= BASE_URL ?>/items" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span> Back
+                                </a>
+                            <?php else: ?>
+                                <a href="?<?= http_build_query($printParams) ?>" class="btn btn-sm btn-outline-dark d-flex align-items-center gap-2" target="_blank">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">print</span> Print List
+                                </a>
+                            <?php endif; ?>
+                            
+                            <?php if ($_SESSION['role'] === 'admin' && (!isset($isPrint) || !$isPrint)): ?>
+                                <a href="<?= BASE_URL ?>/items/create-bundle" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span> New Bundle
+                                </a>
+                                <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+                                    <span class="fs-5">+</span> New Item
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                <?php endif; ?>
                 </div>
             </div>
 
@@ -118,9 +156,11 @@ ob_start();
                                             <a href="<?= BASE_URL ?>/items/preview?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-info" title="Print Preview">
                                                 <span class="material-symbols-outlined" style="font-size: 16px;">print</span>
                                             </a>
+                                            <?php if ($_SESSION['role'] === 'admin'): ?>
                                             <a href="<?= BASE_URL ?>/items/create-bundle?duplicate_from=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-primary" title="Duplicate Bundle">
                                                 <span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
                                             </a>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                         <?php if ($_SESSION['role'] === 'admin'): ?>
                                         <a href="<?= BASE_URL ?>/items/edit?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-secondary" title="Edit">

@@ -19,6 +19,9 @@ class CustomerController {
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
+        // Store current URL with pagination/filters for "Back" button persistence
+        $_SESSION['last_customers_url'] = $_SERVER['REQUEST_URI'];
+
         // NOTE: getWithDebt is more complex to paginate because it uses GROUP BY and aggregation.
         // For simplicity AND requirement "search bar and pagination", we might switch to `getAll` 
         // to show basic list OR update `getWithDebt` to support it. 
@@ -138,6 +141,9 @@ class CustomerController {
             header('Location: ' . BASE_URL . '/customers');
             exit;
         }
+
+        // Store current URL for "Back" button persistence on invoices
+        $_SESSION['last_sales_url'] = $_SERVER['REQUEST_URI'];
 
         $pdo = Database::getInstance();
         $customerModel = new Customer($pdo);

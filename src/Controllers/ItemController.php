@@ -19,6 +19,13 @@ class ItemController {
         $order = $_GET['order'] ?? 'DESC';
         
         $limit = 10;
+        
+        // If print mode is requested, fetch all items matching criteria
+        $isPrint = isset($_GET['print']);
+        if ($isPrint) {
+            $limit = 999999; // Effectively "all"
+        }
+        
         $offset = ($page - 1) * $limit;
         
         $items = $itemModel->getAll($limit, $offset, $search, $lowStock, $sort, $order);
@@ -218,7 +225,7 @@ class ItemController {
     }
 
     public function createBundle() {
-        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
         $pdo = Database::getInstance();
         $itemModel = new Item($pdo);
 

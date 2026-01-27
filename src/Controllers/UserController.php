@@ -99,7 +99,88 @@ class UserController {
             $userModel = new \App\Models\User($pdo);
             $userModel->updateRole($userId, $role);
             
+            header('Location: ' . BASE_URL . '/admin/staff/detail?id=' . $userId);
+            exit;
+        }
+    }
+
+    public function edit() {
+        AuthMiddleware::requireAdmin();
+        $userId = $_GET['id'] ?? null;
+        if (!$userId) {
             header('Location: ' . BASE_URL . '/users');
+            exit;
+        }
+
+        $pdo = Database::getInstance();
+        $userModel = new \App\Models\User($pdo);
+        $user = $userModel->find($userId);
+
+        if (!$user) {
+            header('Location: ' . BASE_URL . '/users');
+            exit;
+        }
+
+        require __DIR__ . '/../../views/users/edit.php';
+    }
+
+    public function update() {
+        AuthMiddleware::requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_POST['user_id'];
+            $username = $_POST['username'];
+            $fullname = $_POST['fullname'] ?? null;
+            $role = $_POST['role'];
+            $password = $_POST['password'] ?? null;
+            
+            $pdo = Database::getInstance();
+            $userModel = new \App\Models\User($pdo);
+            $user = $userModel->find($userId);
+
+            if (!$user) {
+                header('Location: ' . BASE_URL . '/users');
+                exit;
+            }
+
+            // Handle Profile Image Upload
+            $profileImage = $user['profile_image'];
+            if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = __DIR__ . '/../../public/uploads/profiles/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                
+                $fileTmpPath = $_FILES['profile_image']['tmp_name'];
+                $fileName = $_FILES['profile_image']['name'];
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                
+                if (in_array($fileExtension, $allowedExtensions)) {
+                    $newFileName = uniqid('user_') . '.' . $fileExtension;
+                    $destPath = $uploadDir . $newFileName;
+                    
+                    if (move_uploaded_file($fileTmpPath, $destPath)) {
+                        // Delete old profile image if it exists
+                        if ($user['profile_image'] && file_exists(__DIR__ . '/../../public/' . $user['profile_image'])) {
+                            unlink(__DIR__ . '/../../public/' . $user['profile_image']);
+                        }
+                        $profileImage = 'uploads/profiles/' . $newFileName;
+                    }
+                }
+            }
+
+            // Update basic info
+            $stmt = $pdo->prepare("UPDATE users SET username = ?, fullname = ?, role = ?, profile_image = ? WHERE id = ?");
+            $stmt->execute([$username, $fullname, $role, $profileImage, $userId]);
+
+            // Update password if provided
+            if (!empty($password)) {
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                $stmt->execute([$hashedPassword, $userId]);
+            }
+
+            header('Location: ' . BASE_URL . '/admin/staff/detail?id=' . $userId);
             exit;
         }
     }

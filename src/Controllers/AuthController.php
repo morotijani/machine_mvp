@@ -33,6 +33,14 @@ class AuthController {
                 $_SESSION['profile_image'] = $user['profile_image'];
                 $_SESSION['role'] = $user['role'];
                 
+                // Record Login Activity
+                $stmtLog = $pdo->prepare("INSERT INTO user_logins (user_id, ip_address, user_agent) VALUES (?, ?, ?)");
+                $stmtLog->execute([
+                    $user['id'],
+                    $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                    $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+                ]);
+                
                 header('Location: ' . BASE_URL . '/sales/create');
                 exit;
             } else {
