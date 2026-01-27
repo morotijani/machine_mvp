@@ -13,6 +13,14 @@ ob_start();
 
         <div class="row">
             <div class="col">
+                <?php if (isset($error)): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <span class="material-symbols-outlined align-middle me-2">error</span>
+                        <?= htmlspecialchars($error) ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <form action="<?= BASE_URL ?>/items/create" method="POST" enctype="multipart/form-data">

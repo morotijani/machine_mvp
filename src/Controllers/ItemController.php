@@ -30,42 +30,61 @@ class ItemController {
 
     public function create() {
         AuthMiddleware::requireAdmin();
+        $pdo = Database::getInstance();
+        $itemModel = new Item($pdo);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = [
-                'name' => $_POST['name'],
-                'category' => $_POST['category'],
-                'sku' => !empty($_POST['sku']) ? $_POST['sku'] : strtoupper(substr(uniqid('SKU'), 0, 10)),
-                'unit' => $_POST['unit'] ?: 'pcs',
-                'price' => $_POST['price'],
-                'cost_price' => $_POST['cost_price'],
-                'quantity' => $_POST['quantity'],
-                'location' => $_POST['location'],
-                'image_path' => null,
-            ];
+            try {
+                $sku = trim($_POST['sku'] ?? '');
+                
+                if (!empty($sku)) {
+                    // Validate manually entered SKU
+                    if ($itemModel->isSkuExists($sku)) {
+                        throw new \Exception("The SKU '$sku' is already in use by another item.");
+                    }
+                } else {
+                    // Generate unique SKU automatically
+                    $sku = $itemModel->generateUniqueSKU('SKU');
+                }
 
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = __DIR__ . '/../../public/uploads/items/';
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-                
-                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                $finfo = new \finfo(FILEINFO_MIME_TYPE);
-                $mimeType = $finfo->file($_FILES['image']['tmp_name']);
-                
-                if (in_array($mimeType, $allowedMimeTypes)) {
-                    $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                    $filename = uniqid('item_') . '.' . $extension;
-                    if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename)) {
-                        $data['image_path'] = 'uploads/items/' . $filename;
+                $data = [
+                    'name' => $_POST['name'],
+                    'category' => $_POST['category'],
+                    'sku' => $sku,
+                    'unit' => $_POST['unit'] ?: 'pcs',
+                    'price' => $_POST['price'],
+                    'cost_price' => $_POST['cost_price'],
+                    'quantity' => $_POST['quantity'],
+                    'location' => $_POST['location'],
+                    'image_path' => null,
+                ];
+
+                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                    $uploadDir = __DIR__ . '/../../public/uploads/items/';
+                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+                    
+                    $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $mimeType = $finfo->file($_FILES['image']['tmp_name']);
+                    
+                    if (in_array($mimeType, $allowedMimeTypes)) {
+                        $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                        $filename = uniqid('item_') . '.' . $extension;
+                        if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename)) {
+                            $data['image_path'] = 'uploads/items/' . $filename;
+                        }
                     }
                 }
-            }
 
-            $pdo = Database::getInstance();
-            $itemModel = new Item($pdo);
-            $itemModel->create($data);
-            header('Location: ' . BASE_URL . '/items');
-            exit;
+                $itemModel->create($data);
+                header('Location: ' . BASE_URL . '/items');
+                exit;
+
+            } catch (\Exception $e) {
+                $error = $e->getMessage();
+                require __DIR__ . '/../../views/items/create.php';
+                return;
+            }
         }
 
         require __DIR__ . '/../../views/items/create.php';
@@ -91,10 +110,19 @@ class ItemController {
         if ($item['type'] === 'bundle') {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
+                    $sku = trim($_POST['sku'] ?? '');
+                    if (empty($sku)) {
+                        $sku = $item['sku'];
+                    }
+                    
+                    if ($sku !== $item['sku'] && $itemModel->isSkuExists($sku, $id)) {
+                        throw new \Exception("The SKU '$sku' is already in use by another item.");
+                    }
+
                     $data = [
                         'name' => $_POST['name'],
                         'category' => $_POST['category'],
-                        'sku' => !empty($_POST['sku']) ? $_POST['sku'] : $item['sku'],
+                        'sku' => $sku,
                         'price' => $_POST['price'],
                         'location' => $_POST['location'],
                         'quantity' => $_POST['quantity'],
@@ -141,35 +169,49 @@ class ItemController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = [
-                'name' => $_POST['name'],
-                'category' => $_POST['category'],
-                'sku' => $_POST['sku'] ?: null,
-                'unit' => $_POST['unit'] ?: 'pcs',
-                'price' => $_POST['price'],
-                'cost_price' => $_POST['cost_price'],
-                'quantity' => $_POST['quantity'],
-                'location' => $_POST['location'],
-            ];
+            try {
+                $sku = trim($_POST['sku'] ?? '');
+                if (empty($sku)) {
+                    $sku = $item['sku'];
+                }
 
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                if (!empty($item['image_path'])) {
-                    $old = __DIR__ . '/../../public/' . $item['image_path'];
-                    if (file_exists($old)) unlink($old);
+                if ($sku !== $item['sku'] && $itemModel->isSkuExists($sku, $id)) {
+                    throw new \Exception("The SKU '$sku' is already in use by another item.");
                 }
-                $uploadDir = __DIR__ . '/../../public/uploads/items/';
-                $filename = uniqid('item_') . '.' . pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename)) {
-                    $data['image_path'] = 'uploads/items/' . $filename;
+
+                $data = [
+                    'name' => $_POST['name'],
+                    'category' => $_POST['category'],
+                    'sku' => $sku,
+                    'unit' => $_POST['unit'] ?: 'pcs',
+                    'price' => $_POST['price'],
+                    'cost_price' => $_POST['cost_price'],
+                    'quantity' => $_POST['quantity'],
+                    'location' => $_POST['location'],
+                ];
+
+                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                    if (!empty($item['image_path'])) {
+                        $old = __DIR__ . '/../../public/' . $item['image_path'];
+                        if (file_exists($old)) unlink($old);
+                    }
+                    $uploadDir = __DIR__ . '/../../public/uploads/items/';
+                    $filename = uniqid('item_') . '.' . pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                    if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename)) {
+                        $data['image_path'] = 'uploads/items/' . $filename;
+                    }
+                } else {
+                    $data['image_path'] = $item['image_path'];
                 }
-            } else {
-                $data['image_path'] = $item['image_path'];
+
+                $itemModel->update($id, $data);
+                $itemModel->updateParentBundlePrices($id);
+                header('Location: ' . BASE_URL . '/items');
+                exit;
+
+            } catch (\Exception $e) {
+                $error = $e->getMessage();
             }
-
-            $itemModel->update($id, $data);
-            $itemModel->updateParentBundlePrices($id);
-            header('Location: ' . BASE_URL . '/items');
-            exit;
         }
 
         require __DIR__ . '/../../views/items/edit.php';
@@ -182,10 +224,22 @@ class ItemController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
+                $sku = trim($_POST['sku'] ?? '');
+                
+                if (!empty($sku)) {
+                    // Validate manually entered SKU
+                    if ($itemModel->isSkuExists($sku)) {
+                        throw new \Exception("The SKU '$sku' is already in use by another item.");
+                    }
+                } else {
+                    // Generate unique SKU automatically
+                    $sku = $itemModel->generateUniqueSKU('BND');
+                }
+
                 $data = [
                     'name' => $_POST['name'],
                     'category' => $_POST['category'],
-                    'sku' => !empty($_POST['sku']) ? $_POST['sku'] : strtoupper(substr(uniqid('BND'), 0, 10)),
+                    'sku' => $sku,
                     'price' => $_POST['price'],
                     'quantity' => $_POST['quantity'],
                     'location' => $_POST['location'],

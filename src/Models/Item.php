@@ -111,6 +111,43 @@ class Item {
         return $stmt->execute(['change' => $quantityChange, 'id' => $id]);
     }
 
+    /**
+     * Check if an SKU already exists in the database
+     */
+    public function isSkuExists($sku, $excludeId = null) {
+        $sql = "SELECT COUNT(*) FROM items WHERE sku = :sku AND is_deleted = 0";
+        $params = ['sku' => $sku];
+        
+        if ($excludeId) {
+            $sql .= " AND id != :id";
+            $params['id'] = $excludeId;
+        }
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Generate a guaranteed unique SKU
+     */
+    public function generateUniqueSKU($prefix = 'SKU') {
+        $unique = false;
+        $sku = '';
+        
+        while (!$unique) {
+            // Generate a random 8-character string after the prefix
+            $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
+            $sku = $prefix . "-" . $random;
+            
+            if (!$this->isSkuExists($sku)) {
+                $unique = true;
+            }
+        }
+        
+        return $sku;
+    }
+
     public function createBundle($data, $components) {
         try {
             $this->pdo->beginTransaction();
