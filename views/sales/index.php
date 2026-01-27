@@ -13,6 +13,24 @@ ob_start();
             </div>
         </div>
 
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <span class="material-symbols-outlined align-middle me-2">check_circle</span>
+                <?= $_SESSION['success'] ?>
+                <?php unset($_SESSION['success']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span class="material-symbols-outlined align-middle me-2">error</span>
+                <?= $_SESSION['error'] ?>
+                <?php unset($_SESSION['error']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <!-- Search & Filter Form -->
         <div class="card shadow-sm mb-3" style="overflow-x: auto;">
             <div class="card-body py-3">
@@ -27,7 +45,7 @@ ob_start();
                         <input type="date" name="end_date" class="form-control" placeholder="End Date" value="<?= e($filters['end_date']) ?>">
                     </div>
                     <div class="col-md-2">
-                        <select name="status" class="form-select">
+                        <select name="status" class="form-select" onchange="this.form.submit()">
                             <option value="all" <?php echo $filters['status'] === 'all' ? 'selected' : ''; ?>>All Status</option>
                             <option value="paid" <?php echo $filters['status'] === 'paid' ? 'selected' : ''; ?>>Paid</option>
                             <option value="partial" <?php echo $filters['status'] === 'partial' ? 'selected' : ''; ?>>Partial</option>
@@ -35,7 +53,7 @@ ob_start();
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select name="show_voided" class="form-select">
+                        <select name="show_voided" class="form-select" onchange="this.form.submit()">
                             <option value="no" <?php echo $filters['show_voided'] === 'no' ? 'selected' : ''; ?>>Active Sales</option>
                             <option value="yes" <?php echo $filters['show_voided'] === 'yes' ? 'selected' : ''; ?>>Voided Sales</option>
                             <option value="all" <?php echo $filters['show_voided'] === 'all' ? 'selected' : ''; ?>>All Records</option>
@@ -43,7 +61,7 @@ ob_start();
                     </div>
                     <?php if ($_SESSION['role'] === 'admin'): ?>
                     <div class="col-md-2">
-                         <select name="delete_request" class="form-select">
+                         <select name="delete_request" class="form-select" onchange="this.form.submit()">
                             <option value="" <?php echo $filters['delete_request'] === '' ? 'selected' : ''; ?>>All Requests</option>
                             <option value="pending" <?php echo $filters['delete_request'] === 'pending' ? 'selected' : ''; ?>>Pending Deletes</option>
                         </select>
@@ -153,8 +171,11 @@ ob_start();
                         
                         <!-- Previous -->
                         <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
-                            <?php $queryParams['page'] = $page - 1; ?>
-                            <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($queryParams); ?>">Previous</a>
+                            <?php 
+                                $prevParams = $queryParams;
+                                $prevParams['page'] = $page - 1; 
+                            ?>
+                            <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($prevParams); ?>">Previous</a>
                         </li>
 
                         <!-- Page Numbers (Smart) -->
@@ -162,8 +183,9 @@ ob_start();
                         $range = 2; // Number of pages around current page
                         // Always show first page
                         if ($page > 1 + $range) {
-                            $queryParams['page'] = 1;
-                            echo '<li class="page-item"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($queryParams) . '">1</a></li>';
+                            $firstParams = $queryParams;
+                            $firstParams['page'] = 1;
+                            echo '<li class="page-item"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($firstParams) . '">1</a></li>';
                             if ($page > 2 + $range) {
                                 echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
                             }
@@ -171,9 +193,10 @@ ob_start();
 
                         // Range around current
                         for ($i = max(1, $page - $range); $i <= min($totalPages, $page + $range); $i++) {
-                            $queryParams['page'] = $i;
+                            $pageParams = $queryParams;
+                            $pageParams['page'] = $i;
                             $active = ($page == $i) ? 'active' : '';
-                            echo '<li class="page-item ' . $active . '"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($queryParams) . '">' . $i . '</a></li>';
+                            echo '<li class="page-item ' . $active . '"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($pageParams) . '">' . $i . '</a></li>';
                         }
 
                         // Always show last page
@@ -181,15 +204,19 @@ ob_start();
                             if ($page < $totalPages - $range - 1) {
                                 echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
                             }
-                            $queryParams['page'] = $totalPages;
-                            echo '<li class="page-item"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($queryParams) . '">' . $totalPages . '</a></li>';
+                            $lastParams = $queryParams;
+                            $lastParams['page'] = $totalPages;
+                            echo '<li class="page-item"><a class="page-link" href="' . BASE_URL . '/sales?' . http_build_query($lastParams) . '">' . $totalPages . '</a></li>';
                         }
                         ?>
 
                         <!-- Next -->
                         <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
-                            <?php $queryParams['page'] = $page + 1; ?>
-                            <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($queryParams); ?>">Next</a>
+                            <?php 
+                                $nextParams = $queryParams;
+                                $nextParams['page'] = $page + 1; 
+                            ?>
+                            <a class="page-link" href="<?= BASE_URL ?>/sales?<?php echo http_build_query($nextParams); ?>">Next</a>
                         </li>
                     </ul>
                 </nav>

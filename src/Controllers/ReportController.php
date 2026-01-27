@@ -39,6 +39,25 @@ class ReportController {
         $stmtProfit->execute(array_merge(['today' => $today], $params));
         $dailyProfit = $stmtProfit->fetchColumn() ?: 0;
 
+    // 2.a Realized Today (Collections from Today's Sales)
+    // Actual Cash Collected Today for sales created today
+    $sqlCol = "SELECT SUM(p.amount) 
+               FROM payments p 
+               JOIN sales s ON p.sale_id = s.id 
+               WHERE DATE(s.created_at) = :today_sale 
+               AND DATE(p.payment_date) = :today_pay 
+               AND s.voided = 0" . $userFilterS;
+    $stmtCol = $pdo->prepare($sqlCol);
+    $stmtCol->execute(array_merge(['today_sale' => $today, 'today_pay' => $today], $params));
+    $todayCollected = $stmtCol->fetchColumn() ?: 0;
+
+    // Realized Profit: (CollectToday / TotalToday) * TotalProfitToday
+    // This is an approximation. For exact precision, we'd need to calculate profit-per-cent collected.
+    $todayRealizedProfit = 0;
+    if ($dailySales > 0) {
+        $todayRealizedProfit = ($todayCollected / $dailySales) * $dailyProfit;
+    }
+
         // 3. Outstanding Debt (Sales-based)
         $sqlDebt = "SELECT SUM(total_amount - paid_amount) FROM sales WHERE payment_status != 'paid' AND voided = 0" . $userFilter;
         $stmt = $pdo->prepare($sqlDebt);
@@ -64,6 +83,9 @@ class ReportController {
         $dailyExpenditures = $expModel->getDailyTotal($today, $userIdExp);
         $monthlyExpenditures = $expModel->getMonthlyTotal($month, $year, $userIdExp);
         $dailyNetProfit = $dailyProfit - $dailyExpenditures;
+    
+    // Realized Net Profit (Actual Cash Profit minus Expenses)
+    $todayRealizedNetProfit = $todayRealizedProfit - $dailyExpenditures;
 
         // 7. Inventory Net Worth (Admin Only)
         $inventoryWorth = 0;

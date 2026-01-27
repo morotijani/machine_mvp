@@ -157,7 +157,9 @@ class SaleController {
             $paymentModel = new \App\Models\Payment($pdo);
             $paymentModel->recordPayment($saleId, $amount, $_SESSION['user_id']);
             
-            header('Location: ' . BASE_URL . '/sales/view?id=' . $saleId);
+            $_SESSION['success'] = "Payment of ₵" . number_format($amount, 2) . " recorded for Invoice #$saleId.";
+            $returnUrl = $_SESSION['last_sales_url'] ?? (BASE_URL . '/sales');
+            header('Location: ' . $returnUrl);
             exit;
         }
     }
@@ -191,11 +193,14 @@ class SaleController {
             
             if ($action === 'approve') {
                 $saleModel->approveDelete($saleId);
+                $_SESSION['success'] = "Sale #$saleId has been voided and stock restored.";
             } elseif ($action === 'reject') {
                 $saleModel->rejectDelete($saleId);
+                $_SESSION['success'] = "Deletion request for Sale #$saleId was rejected.";
             }
             
-            header('Location: ' . BASE_URL . '/sales');
+            $returnUrl = $_SESSION['last_sales_url'] ?? (BASE_URL . '/sales');
+            header('Location: ' . $returnUrl);
             exit;
         }
     }
@@ -211,12 +216,13 @@ class SaleController {
             
             try {
                 $saleModel->processReturn($saleId, $returnedItems, $_SESSION['user_id']);
-                header('Location: ' . BASE_URL . '/sales/view?id=' . $saleId);
+                $_SESSION['success'] = "Return processed successfully for Invoice #$saleId.";
             } catch (Exception $e) {
-                // For now, redirect back with error in session if we had a flash message system.
-                // Since we don't, we'll just redirect back.
-                header('Location: ' . BASE_URL . '/sales/view?id=' . $saleId);
+                $_SESSION['error'] = "Return failed: " . $e->getMessage();
             }
+            
+            $returnUrl = $_SESSION['last_sales_url'] ?? (BASE_URL . '/sales');
+            header('Location: ' . $returnUrl);
             exit;
         }
     }

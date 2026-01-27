@@ -179,6 +179,16 @@ class Sale {
             $params['status'] = $filters['status'];
         }
 
+        if (!empty($filters['delete_request'])) {
+            $where[] = "s.delete_request_status = :del_status";
+            $params['del_status'] = $filters['delete_request'];
+        }
+
+        if (!empty($filters['user_id'])) {
+            $where[] = "s.user_id = :uid";
+            $params['uid'] = $filters['user_id'];
+        }
+
         // Voided filtering
         if (isset($filters['show_voided']) && $filters['show_voided'] !== 'all') {
             $where[] = "s.voided = :voided";

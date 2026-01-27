@@ -12,35 +12,97 @@
 
         <div class="row mt-4">
             <!-- DAILY STATS SECTION -->
-            <div class="col-12 mb-3">
+            <div class="col-12 mb-2">
                 <h5 class="fw-bold text-muted d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined">today</span> Today's Performance
+                    <span class="material-symbols-outlined">today</span> Today's Performance (Actual Collections)
                 </h5>
             </div>
-            <div class="col-md-3 mb-4">
+            
+            <div class="col-md-4 mb-4">
                 <div class="card p-3 h-100 bg-primary-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Daily Sales</h6>
-                    <h2 class="text-primary mb-0">₵<?php echo number_format($dailySales, 2); ?></h2>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Cash Collected Today</h6>
+                    <h2 class="text-primary mb-0">₵<?php echo number_format($todayCollected, 2); ?></h2>
+                    <small class="text-muted">From today's sales only</small>
                 </div>
             </div>
-            <div class="col-md-3 mb-4">
+            <div class="col-md-4 mb-4">
                 <div class="card p-3 h-100 bg-success-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Daily Gross Profit</h6>
-                    <h2 class="text-success mb-0">₵<?php echo number_format($dailyProfit, 2); ?></h2>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Realized Gross Profit</h6>
+                    <h2 class="text-success mb-0">₵<?php echo number_format($todayRealizedProfit, 2); ?></h2>
+                    <small class="text-muted">Proportional to collection</small>
+                    <small class="text-muted" style="font-size: 10px;">Formula: (Collected / Total Sales) * Potential Profit</small>
                 </div>
             </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 bg-danger-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Daily Expenditure</h6>
-                    <h2 class="text-danger mb-0">₵<?php echo number_format($dailyExpenditures, 2); ?></h2>
+            <div class="col-md-4 mb-4">
+                <div class="card p-3 h-100 bg-dark border-0 shadow-sm text-white">
+                    <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Realized Net Profit</h6>
+                    <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedNetProfit, 2); ?></h2>
+                    <small class="text-white-50">Collected Profit - Expenses</small>
                 </div>
             </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 bg-dark-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Daily Net Profit</h6>
-                    <h2 class="text-dark mb-0">₵<?php echo number_format($dailyNetProfit, 2); ?></h2>
+
+            <!-- INVOICED STATS (FOR REFERENCE) -->
+            <div class="col-12 mb-2">
+                 <p class="text-muted small mb-1">
+                     <span class="material-symbols-outlined align-middle fs-6">info</span> 
+                     <strong>Invoiced Statistics:</strong> Totals based on today's invoices (Invoiced vs Expenses).
+                 </p>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card p-2 border shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-bold">Daily Sales (Invoiced)</span>
+                        <span class="fw-bold">₵<?php echo number_format($dailySales, 2); ?></span>
+                    </div>
                 </div>
             </div>
+            <div class="col-md-3 mb-3">
+                <div class="card p-2 border shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-bold">Potential Profit</span>
+                        <span class="fw-bold text-success">₵<?php echo number_format($dailyProfit, 2); ?></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card p-2 border shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-bold">Expenditure</span>
+                        <span class="fw-bold text-danger">₵<?php echo number_format($dailyExpenditures, 2); ?></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card p-2 border shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-bold">Daily Net Profit</span>
+                        <span class="fw-bold text-danger">₵<?php echo number_format($dailyNetProfit, 2); ?></span>
+                    </div>
+                </div>
+            </div>
+            <!-- Expanded Invoiced Section -->
+            <!-- <div class="col-md-6 mb-4">
+                <div class="card p-2 border-start border-4 border-info shadow-sm bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small fw-bold d-block">Daily Net Profit (Invoiced)</span>
+                            <small class="text-muted" style="font-size: 10px;">Formula: Potential Profit - Expenditure</small>
+                        </div>
+                        <h4 class="mb-0 text-info">₵<?php echo number_format($dailyNetProfit, 2); ?></h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card p-2 border-start border-4 border-success shadow-sm bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small fw-bold d-block">Realized Gross Profit (Collected)</span>
+                            <small class="text-muted" style="font-size: 10px;">Formula: (Collected / Total Sales) * Potential Profit</small>
+                        </div>
+                        <h4 class="mb-0 text-success">₵<?php echo number_format($todayRealizedProfit, 2); ?></h4>
+                    </div>
+                </div>
+            </div> -->
 
             <!-- LIFETIME & FINANCIAL SECTION -->
             <div class="col-12 mt-2 mb-3">

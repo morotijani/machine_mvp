@@ -25,13 +25,15 @@ class Item {
         }
         
         // Whitelist for sorting
-        $allowedSort = ['name', 'price', 'quantity', 'created_at'];
+        $allowedSort = ['name', 'price', 'quantity', 'created_at', 'category', 'sku', 'location'];
         $allowedOrder = ['ASC', 'DESC'];
         
+        $sort = strtolower($sort);
         if (!in_array($sort, $allowedSort)) $sort = 'created_at';
         if (!in_array(strtoupper($order), $allowedOrder)) $order = 'DESC';
         
-        $sql .= " ORDER BY $sort $order";
+        $orderField = ($sort === 'name') ? "TRIM(name)" : $sort;
+        $sql .= " ORDER BY $orderField $order";
         
         if ($limit !== null) {
             $sql .= " LIMIT :limit OFFSET :offset";

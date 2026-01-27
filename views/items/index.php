@@ -156,19 +156,25 @@ ob_start();
                     <nav aria-label="Page navigation" class="mt-4">
                         <ul class="pagination justify-content-center">
                             <?php 
-                                $baseQuery = "?search=" . urlencode($search ?? '') . "&low_stock=" . ($lowStock ? '1' : '0') . "&sort=" . urlencode($sort) . "&order=" . urlencode($order);
+                                $queryParams = $_GET; 
                             ?>
                             <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= $baseQuery ?>&page=<?= $page - 1 ?>">Previous</a>
+                                <?php 
+                                    $prevParams = $queryParams;
+                                    $prevParams['page'] = $page - 1;
+                                ?>
+                                <a class="page-link" href="?<?= http_build_query($prevParams) ?>">Previous</a>
                             </li>
 
                             <?php
                             $range = 2;
                             for ($i = 1; $i <= $totalPages; $i++):
                                 if ($i == 1 || $i == $totalPages || ($i >= $page - $range && $i <= $page + $range)):
+                                    $pageParams = $queryParams;
+                                    $pageParams['page'] = $i;
                             ?>
                                     <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                                        <a class="page-link" href="<?= $baseQuery ?>&page=<?= $i ?>"><?= $i ?></a>
+                                        <a class="page-link" href="?<?= http_build_query($pageParams) ?>"><?= $i ?></a>
                                     </li>
                             <?php 
                                 elseif ($i == $page - $range - 1 || $i == $page + $range + 1):
@@ -180,7 +186,11 @@ ob_start();
                             ?>
 
                             <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= $baseQuery ?>&page=<?= $page + 1 ?>">Next</a>
+                                <?php 
+                                    $nextParams = $queryParams;
+                                    $nextParams['page'] = $page + 1;
+                                ?>
+                                <a class="page-link" href="?<?= http_build_query($nextParams) ?>">Next</a>
                             </li>
                         </ul>
                     </nav>
