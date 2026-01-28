@@ -99,15 +99,31 @@ class StaffController {
         $stmt->execute([$uid, $today]);
         $todayProfit = $stmt->fetchColumn() ?: 0;
 
+        // Fetch today's expenses
         $sqlTodayExpenses = "SELECT SUM(amount) FROM expenditures WHERE recorded_by = ? AND is_deleted = 0 AND DATE(date) = ?";
         $stmt = $pdo->prepare($sqlTodayExpenses);
         $stmt->execute([$uid, $today]);
         $todayExpenses = $stmt->fetchColumn() ?: 0;
 
+        // Fetch today's debt collected (Payments made today for sales created BEFORE today)
+        // Note: We use payment_date from payments table.
+        // We assume 'payment_date' is the timestamp column in 'payments'. 
+        // If it's 'created_at', we adjust. Based on Payment model (getHistoryBySale), it uses 'payment_date'.
+        $sqlDebtCollected = "SELECT SUM(p.amount) 
+                             FROM payments p 
+                             JOIN sales s ON p.sale_id = s.id 
+                             WHERE p.recorded_by = ? 
+                             AND DATE(p.payment_date) = ? 
+                             AND DATE(s.created_at) < ?";
+        $stmt = $pdo->prepare($sqlDebtCollected);
+        $stmt->execute([$uid, $today, $today]);
+        $debtCollected = $stmt->fetchColumn() ?: 0;
+
         $todayStats = [
             'count' => $todayBasic['count'] ?: 0,
             'revenue' => $todayBasic['revenue'] ?: 0,
-            'collected' => $todayBasic['collected'] ?: 0,
+            'collected' => $todayBasic['collected'] ?: 0, // This is explicitly from sales created TODAY
+            'debt_collected' => $debtCollected,
             'profit' => $todayProfit ?: 0,
             'expenses' => $todayExpenses ?: 0,
             'net' => ($todayProfit ?: 0) - ($todayExpenses ?: 0)

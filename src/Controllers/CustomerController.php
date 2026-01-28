@@ -87,6 +87,29 @@ class CustomerController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo = Database::getInstance();
             $customerModel = new Customer($pdo);
+            
+            // Validation: Check for unique phone number
+            if (!empty($phone)) {
+                $existing = $customerModel->findByPhone($phone);
+                if ($existing) {
+                    if ($isJson) {
+                        header('Content-Type: application/json');
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Phone number already exists for another customer.'
+                        ]);
+                        exit;
+                    } else {
+                        // For standard form, ideally flash an error. For now, redirect with error param.
+                        // Or better yet, we might not have a nice flash system yet, so maybe just back to index with error in URL?
+                        // Or just stop?
+                        // Given we are redirecting to index, we can append `?error=phone_exists`
+                        header('Location: ' . BASE_URL . '/customers?error=phone_exists');
+                        exit;
+                    }
+                }
+            }
+
             $newId = $customerModel->create($name, $phone, $address);
             
             if ($isJson) {
@@ -127,7 +150,38 @@ class CustomerController {
 
             $pdo = Database::getInstance();
             $customerModel = new Customer($pdo);
+            
+            // Validation: Check uniqueness excluding current ID
+            if (!empty($phone)) {
+                $existing = $customerModel->findByPhone($phone, $id);
+                if ($existing) {
+                     // Since update usually happens via modal in index or detail, we should probably redirect there with error
+                     // Check referer or just go to customers?
+                     // Currently it redirects to customers.
+                     // Simple error:
+                     header('Location: ' . BASE_URL . '/customers?error=phone_exists');
+                     exit;
+                }
+            }
+            
             $customerModel->update($id, $name, $phone, $address);
+            
+            // Check if we have a last_customers_url session (for index/list view update) OR last_view? 
+            // OR if we referred from detail view?
+            // The logic earlier was about detail view back button.
+            // If we are editing FROM the detail view, we might want to return there?
+            // But standard behavior so far is list. The user didn't explicitly ask to change return flow, just validation.
+            
+            // However, Step 2368 added `$_SESSION['last_customers_url']`. 
+            // If we came from there, should we return?
+            // Actually, usually edit is on index page modal. If on detail page, we also used a modal.
+            // If edit happens on detail page, we want to reload detail page?
+            // Let's rely on Referer if possible, or just default to customers list as per original code.
+            // But wait, the edit modal in Detail View (added in 2364) POSTs to `/customers/edit`.
+            // The original code redirected to `/customers`. That would break the user flow if they edited on Detail view.
+            // I should probably fix that too while I'm here or stay safe? 
+            // "on adding new customer make sure...". "and also when updating... make sure this validation also is applied".
+            // I will stick to validation only to avoid scope creep, but I will send back to customers list consistent with previous behavior.
             
             header('Location: ' . BASE_URL . '/customers');
             exit;

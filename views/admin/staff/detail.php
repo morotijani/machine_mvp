@@ -64,40 +64,52 @@ $netContribution = $totalProfit - $totalExpenses;
                 <span class="material-symbols-outlined fs-5">calendar_today</span> Today's Performance
                 <span class="badge bg-danger rounded-pill smaller px-2">LIVE</span>
             </h6>
-            <div class="row g-3">
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm p-3 bg-white">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Sales Today</small>
-                        <h4 class="mb-0 text-primary"><?= $todayStats['count'] ?></h4>
+            <!-- Row 1: Volume & Cash Flow -->
+            <div class="row g-2 mb-2">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Sales Count</small>
+                        <h4 class="mb-0 text-dark"><?= number_format($todayStats['count']) ?></h4>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm p-3 bg-white">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Revenue Today</small>
-                        <h4 class="mb-0 text-dark">₵<?= number_format($todayStats['revenue'], 2) ?></h4>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Revenue</small>
+                        <h4 class="mb-0 text-primary">₵<?= number_format($todayStats['revenue'], 2) ?></h4>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm p-3 bg-white">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">In Hand (Cash)</small>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">In Hand (New Sales)</small>
                         <h4 class="mb-0 text-success">₵<?= number_format($todayStats['collected'], 2) ?></h4>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm p-3 bg-white">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Debt Recovered</small>
+                        <h4 class="mb-0 text-success">₵<?= number_format($todayStats['debt_collected'], 2) ?></h4>
+                        <div class="mt-1" style="font-size: 0.6rem; color: #999;">From Past Invoices</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 2: Profitability -->
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
                         <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Gross Profit</small>
                         <h4 class="mb-0 text-info">₵<?= number_format($todayStats['profit'], 2) ?></h4>
                         <div class="mt-1" style="font-size: 0.6rem; color: #999;">Revenue - Cost Price</div>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm p-3 bg-white">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
                         <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Expenses</small>
                         <h4 class="mb-0 text-danger">₵<?= number_format($todayStats['expenses'], 2) ?></h4>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm p-3 bg-dark text-white">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-3 bg-dark text-white h-100">
                         <small class="text-white-50 text-uppercase fw-bold" style="font-size: 0.65rem;">Net Today</small>
                         <h4 class="mb-0 <?= $todayStats['net'] < 0 ? 'text-danger' : 'text-info' ?>">₵<?= number_format($todayStats['net'], 2) ?></h4>
                         <div class="mt-1" style="font-size: 0.6rem; color: #aaa;">Gross Profit - Expenses</div>

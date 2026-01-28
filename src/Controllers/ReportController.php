@@ -58,6 +58,28 @@ class ReportController {
         $todayRealizedProfit = ($todayCollected / $dailySales) * $dailyProfit;
     }
 
+    // 2.b Debt Recovered Today (Payments made today for sales created BEFORE today)
+    // Admin sees ALL, Sales sees OWN.
+    // If $isSales, filter by p.recorded_by = $uid.
+    // Note: $userFilterS filters Sales table, not Payments table. Payments table has recorded_by.
+    // We should use p.recorded_by for Sales users.
+    $debtFilter = $isSales ? " AND p.recorded_by = :uid" : "";
+    $sqlDebtCol = "SELECT SUM(p.amount) 
+                   FROM payments p 
+                   JOIN sales s ON p.sale_id = s.id 
+                   WHERE DATE(p.payment_date) = :today_pay 
+                   AND DATE(s.created_at) < :today_sale" . $debtFilter;
+    
+    $stmtDebtCol = $pdo->prepare($sqlDebtCol);
+    // Determine params: today_pay, today_sale, and optionally uid
+    $debtParams = ['today_pay' => $today, 'today_sale' => $today];
+    if ($isSales) {
+        $debtParams['uid'] = $uid;
+    }
+    
+    $stmtDebtCol->execute($debtParams);
+    $todayDebtCollected = $stmtDebtCol->fetchColumn() ?: 0;
+
         // 3. Outstanding Debt (Sales-based)
         $sqlDebt = "SELECT SUM(total_amount - paid_amount) FROM sales WHERE payment_status != 'paid' AND voided = 0" . $userFilter;
         $stmt = $pdo->prepare($sqlDebt);

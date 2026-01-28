@@ -127,4 +127,18 @@ class Customer {
         $stmt = $this->pdo->prepare("UPDATE customers SET name = :name, phone = :phone, address = :address WHERE id = :id");
         return $stmt->execute(['name' => $name, 'phone' => $phone, 'address' => $address, 'id' => $id]);
     }
+
+    public function findByPhone($phone, $excludeId = null) {
+        $sql = "SELECT * FROM customers WHERE phone = :phone";
+        $params = ['phone' => $phone];
+
+        if ($excludeId) {
+            $sql .= " AND id != :id";
+            $params['id'] = $excludeId;
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch();
+    }
 }

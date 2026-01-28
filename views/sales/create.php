@@ -57,7 +57,7 @@ ob_start();
                                 <select id="customerSelect" class="form-select">
                                     <option value="">-- Select Customer --</option>
                                     <?php foreach ($customers as $cx): ?>
-                                    <option value="<?= $cx['id'] ?>"><?= e($cx['name']) ?></option>
+                                    <option value="<?= $cx['id'] ?>"><?= e($cx['name'] . ' (' . $cx['phone'] . ')') ?></option>
                                     <?php endforeach; ?>
                                 </select>
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#quickAddCustomerModal" title="Quick Add Customer">+</button>
@@ -341,7 +341,7 @@ document.getElementById('saveNewCustomerBtn').addEventListener('click', function
             const select = document.getElementById('customerSelect');
             const option = document.createElement('option');
             option.value = data.customer.id;
-            option.text = data.customer.name;
+            option.text = data.customer.name + ' (' + data.customer.phone + ')';
             select.add(option);
             
             // Select it
@@ -355,8 +355,10 @@ document.getElementById('saveNewCustomerBtn').addEventListener('click', function
 
             // Notify
             // alert('Customer added and selected!');
+            // Notify
+            // alert('Customer added and selected!');
         } else {
-            alert('Error adding customer');
+            alert(data.message || 'Error adding customer');
         }
     })
     .catch(err => {

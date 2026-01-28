@@ -4,6 +4,12 @@ ob_start();
 ?>
 <div class="row justify-content-center">
     <div class="col-md-8">
+        <?php if (isset($_GET['error']) && $_GET['error'] === 'phone_exists'): ?>
+            <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                <strong>Error!</strong> A customer with that phone number already exists. Please check the number or use the existing customer.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
             <h1 class="h2">Customers</h1>
             <div class="d-flex gap-3 align-items-center">

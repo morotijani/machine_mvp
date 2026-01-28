@@ -18,27 +18,37 @@
                 </h5>
             </div>
             
-            <div class="col-md-4 mb-4">
+            <div class="col-md-3 mb-4">
                 <div class="card p-3 h-100 bg-primary-subtle border-0 shadow-sm">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Cash Collected Today</h6>
                     <h2 class="text-primary mb-0">₵<?php echo number_format($todayCollected, 2); ?></h2>
                     <small class="text-muted">From today's sales only</small>
                 </div>
             </div>
-            <?php if ($isAdmin): ?>
-            <div class="col-md-4 mb-4">
+            
+            <div class="col-md-3 mb-4">
                 <div class="card p-3 h-100 bg-success-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Realized Gross Profit</h6>
-                    <h2 class="text-success mb-0">₵<?php echo number_format($todayRealizedProfit, 2); ?></h2>
-                    <small class="text-muted">Proportional to collection</small>
-                    <small class="text-muted" style="font-size: 10px;">Formula: (Collected / Total Sales) * Potential Profit</small>
+                     <!-- Success-subtle matches cash collected vibe -->
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Debt Recovered</h6>
+                    <h2 class="text-success mb-0">₵<?php echo number_format($todayDebtCollected, 2); ?></h2>
+                    <small class="text-muted">From past invoices</small>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
+
+            <?php if ($isAdmin): ?>
+            <div class="col-md-3 mb-4">
+                <div class="card p-3 h-100 bg-info-subtle border-0 shadow-sm">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Realized Gross Profit</h6>
+                    <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedProfit, 2); ?></h2>
+                    <small class="text-muted">Proportional to collection</small>
+                    <!-- <small class="text-muted" style="font-size: 10px;">Formula: (Collected / Total Sales) * Potential Profit</small> -->
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
                 <div class="card p-3 h-100 bg-dark border-0 shadow-sm text-white">
                     <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Realized Net Profit</h6>
                     <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedNetProfit, 2); ?></h2>
-                    <small class="text-white-50" style="font-size: 10px;">Formula: Realized Gross Profit - Today's Expenditures</small>
+                    <small class="text-white-50" style="font-size: 10px;">Realized GP - Expenditures</small>
                 </div>
             </div>
             <?php endif; ?>
