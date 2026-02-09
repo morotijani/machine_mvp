@@ -5,6 +5,7 @@ use App\Config\Database;
 use App\Models\User;
 use App\Models\Item;
 use App\Models\Sale;
+use App\Models\Customer;
 use App\Middleware\AuthMiddleware;
 
 class AdminController {
@@ -23,6 +24,9 @@ class AdminController {
         
         $expModel = new \App\Models\Expenditure($pdo);
         $deletedExpenditures = $expModel->getDeleted();
+
+        $customerModel = new Customer($pdo);
+        $deletedCustomers = $customerModel->getDeleted();
         
         require __DIR__ . '/../../views/admin/trash.php';
     }
@@ -46,6 +50,9 @@ class AdminController {
                     $model->restore($id);
                 } elseif ($type === 'expenditure') {
                     $model = new \App\Models\Expenditure($pdo);
+                    $model->restore($id);
+                } elseif ($type === 'customer') {
+                    $model = new Customer($pdo);
                     $model->restore($id);
                 }
                 header('Location: ' . BASE_URL . '/admin/trash?success=Restored successfully');
@@ -75,6 +82,9 @@ class AdminController {
                     $model->hardDelete($id);
                 } elseif ($type === 'expenditure') {
                     $model = new \App\Models\Expenditure($pdo);
+                    $model->hardDelete($id);
+                } elseif ($type === 'customer') {
+                    $model = new Customer($pdo);
                     $model->hardDelete($id);
                 }
                 header('Location: ' . BASE_URL . '/admin/trash?success=Deleted forever');

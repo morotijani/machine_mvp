@@ -79,6 +79,12 @@ class Item {
         return $stmt->fetch();
     }
 
+    public function findBySku($sku) {
+        $stmt = $this->pdo->prepare("SELECT * FROM items WHERE sku = :sku AND is_deleted = 0");
+        $stmt->execute(['sku' => $sku]);
+        return $stmt->fetch();
+    }
+
     public function delete($id) {
         $stmt = $this->pdo->prepare("UPDATE items SET is_deleted = 1 WHERE id = :id");
         return $stmt->execute(['id' => $id]);

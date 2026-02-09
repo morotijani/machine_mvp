@@ -6,7 +6,10 @@ ob_start();
     <div class="col-md-10">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
             <h1 class="h2">Reports & Analytics</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+                <a href="<?= BASE_URL ?>/reports/export?type=monthly_comparison&year=<?= $selectedYear ?>" class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">download</span> Export CSV
+                </a>
                 <form action="<?= BASE_URL ?>/reports" method="GET" class="d-flex align-items-center">
                     <label class="me-2 fw-bold text-muted">Year:</label>
                     <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -28,6 +31,108 @@ ob_start();
             </div>
             <div class="card-body">
                 <canvas id="salesChart" width="400" height="150"></canvas>
+            </div>
+        </div>
+
+        <!-- Advanced KPIs Row -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-start border-primary border-4 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1 text-uppercase small fw-bold">Customer Retention Rate</h6>
+                                <h3 class="mb-0 fw-bold"><?= number_format($retentionRate, 1) ?>%</h3>
+                                <p class="text-muted small mb-0 mt-2">Percentage of customers with >1 purchase.</p>
+                            </div>
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                <span class="material-symbols-outlined fs-1">group_add</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm border-start border-success border-4 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1 text-uppercase small fw-bold">Inventory Turnover Ratio</h6>
+                                <h3 class="mb-0 fw-bold"><?= number_format($inventoryTurnover, 2) ?>x</h3>
+                                <p class="text-muted small mb-0 mt-2">Frequency of inventory stock replacement.</p>
+                            </div>
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                <span class="material-symbols-outlined fs-1">inventory_2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Selling Items Row -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Top 5 Items (By Volume)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle">
+                                <thead>
+                                    <tr class="text-muted">
+                                        <th>Item</th>
+                                        <th class="text-center">Qty Sold</th>
+                                        <th class="text-end">Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($topSellingItems as $top): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold"><?= e($top['name']) ?></div>
+                                            <small class="text-muted"><?= e($top['sku']) ?></small>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-info bg-opacity-10 text-info"><?= number_format($top['total_qty']) ?></span></td>
+                                        <td class="text-end fw-bold">₵<?= number_format($top['total_revenue'], 2) ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Top 5 Items (By Revenue)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle">
+                                <thead>
+                                    <tr class="text-muted">
+                                        <th>Item</th>
+                                        <th class="text-end">Total Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($topRevenueItems as $top): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold"><?= e($top['name']) ?></div>
+                                            <small class="text-muted"><?= e($top['sku']) ?></small>
+                                        </td>
+                                        <td class="text-end fw-bold text-success">₵<?= number_format($top['total_revenue'], 2) ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

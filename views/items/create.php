@@ -7,7 +7,7 @@ ob_start();
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
             <h1 class="h2">Add New Item</h1>
             <div class="btn-toolbar mb-2 mb-md-0">
-                <a href="<?= BASE_URL ?>/items" class="btn btn-sm btn-outline-secondary">Back to List</a>
+                <a href="<?= $_SESSION['last_items_url'] ?? (BASE_URL . '/items') ?>" class="btn btn-sm btn-outline-secondary">Back to List</a>
             </div>
         </div>
 

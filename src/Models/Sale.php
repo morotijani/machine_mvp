@@ -134,7 +134,7 @@ class Sale {
 
         $whereSql = implode(" AND ", $where);
 
-        $sql = "SELECT s.*, c.name as customer_name, u.username as seller_name 
+        $sql = "SELECT s.*, c.name as customer_name, c.is_deleted as customer_is_deleted, u.username as seller_name 
                 FROM sales s 
                 LEFT JOIN customers c ON s.customer_id = c.id 
                 JOIN users u ON s.user_id = u.id 
@@ -211,7 +211,7 @@ class Sale {
     }
 
     public function getById($id) {
-        $sql = "SELECT s.*, c.name as customer_name, c.address as customer_address, c.phone as customer_phone, u.username as seller_name 
+        $sql = "SELECT s.*, c.name as customer_name, c.is_deleted as customer_is_deleted, c.address as customer_address, c.phone as customer_phone, u.username as seller_name 
                 FROM sales s 
                 LEFT JOIN customers c ON s.customer_id = c.id 
                 JOIN users u ON s.user_id = u.id 

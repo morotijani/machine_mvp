@@ -15,12 +15,13 @@ class Customer {
                 (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
                 MAX(s.created_at) as last_purchase
                 FROM customers c
-                LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0";
+                LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0
+                WHERE c.is_deleted = 0";
         
         $params = [];
         
         if ($search) {
-            $sql .= " WHERE c.name LIKE :search1 OR c.phone LIKE :search2";
+            $sql .= " AND (c.name LIKE :search1 OR c.phone LIKE :search2)";
             $params['search'] = "%$search%";
         }
         
@@ -54,11 +55,11 @@ class Customer {
     }
 
     public function countAll($search = null) {
-        $sql = "SELECT COUNT(*) FROM customers";
+        $sql = "SELECT COUNT(*) FROM customers WHERE is_deleted = 0";
         $params = [];
         
         if ($search) {
-            $sql .= " WHERE name LIKE :s1 OR phone LIKE :s2";
+            $sql .= " AND (name LIKE :s1 OR phone LIKE :s2)";
             $params['search'] = "%$search%";
         }
         
@@ -80,6 +81,7 @@ class Customer {
                 MAX(s.created_at) as last_purchase
                 FROM customers c
                 LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0
+                WHERE c.is_deleted = 0
                 GROUP BY c.id
                 ORDER BY total_debt DESC";
         $stmt = $this->pdo->query($sql);
@@ -140,5 +142,43 @@ class Customer {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetch();
+    }
+
+    public function softDelete($id) {
+        $stmt = $this->pdo->prepare("UPDATE customers SET is_deleted = 1 WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
+    public function restore($id) {
+        $stmt = $this->pdo->prepare("UPDATE customers SET is_deleted = 0 WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
+    public function getDeleted() {
+        $sql = "SELECT c.*, 
+                (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
+                MAX(s.created_at) as last_purchase
+                FROM customers c
+                LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0
+                WHERE c.is_deleted = 1
+                GROUP BY c.id
+                ORDER BY c.name ASC";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll();
+    }
+
+    public function countDeleted() {
+        return $this->pdo->query("SELECT COUNT(*) FROM customers WHERE is_deleted = 1")->fetchColumn();
+    }
+
+    public function hardDelete($id) {
+        // Block if transactions exist
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM sales WHERE customer_id = :id");
+        $stmt->execute(['id' => $id]);
+        if ($stmt->fetchColumn() > 0) {
+            throw new \Exception("Cannot delete customer with transaction history.");
+        }
+        $stmt = $this->pdo->prepare("DELETE FROM customers WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
     }
 }

@@ -12,6 +12,9 @@ class ItemController {
         $pdo = Database::getInstance();
         $itemModel = new Item($pdo);
         
+        // Store current URL for persistence
+        $_SESSION['last_items_url'] = $_SERVER['REQUEST_URI'];
+        
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $search = isset($_GET['search']) ? trim($_GET['search']) : null;
         $lowStock = isset($_GET['low_stock']) && $_GET['low_stock'] == 1;
@@ -84,7 +87,8 @@ class ItemController {
                 }
 
                 $itemModel->create($data);
-                header('Location: ' . BASE_URL . '/items');
+                $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
+                header('Location: ' . $returnUrl);
                 exit;
 
             } catch (\Exception $e) {
@@ -162,7 +166,8 @@ class ItemController {
                     if (empty($newComponents)) throw new \Exception("A bundle must have at least one item.");
                     
                     $itemModel->updateBundle($id, $data, $newComponents);
-                    header('Location: ' . BASE_URL . '/items');
+                    $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
+                    header('Location: ' . $returnUrl);
                     exit;
 
                 } catch (\Exception $e) {
@@ -213,7 +218,8 @@ class ItemController {
 
                 $itemModel->update($id, $data);
                 $itemModel->updateParentBundlePrices($id);
-                header('Location: ' . BASE_URL . '/items');
+                $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
+                header('Location: ' . $returnUrl);
                 exit;
 
             } catch (\Exception $e) {
@@ -273,7 +279,8 @@ class ItemController {
                 if (empty($components)) throw new \Exception("A bundle must have at least one item.");
 
                 $itemModel->createBundle($data, $components);
-                header('Location: ' . BASE_URL . '/items');
+                $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
+                header('Location: ' . $returnUrl);
                 exit;
 
             } catch (\Exception $e) {
@@ -358,10 +365,32 @@ class ItemController {
                 exit;
             }
 
-            $itemModel = new Item($pdo);
             $itemModel->delete($id);
-            header('Location: ' . BASE_URL . '/items?success=Item removed');
+            $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
+            header('Location: ' . $returnUrl . (strpos($returnUrl, '?') === false ? '?' : '&') . 'success=Item removed');
             exit;
         }
+    }
+
+    public function apiFindItemBySku() {
+        header('Content-Type: application/json');
+        AuthMiddleware::requireLogin();
+        
+        $sku = trim($_GET['sku'] ?? '');
+        if (empty($sku)) {
+            echo json_encode(['success' => false, 'message' => 'SKU is required']);
+            exit;
+        }
+
+        $pdo = Database::getInstance();
+        $itemModel = new Item($pdo);
+        $item = $itemModel->findBySku($sku);
+
+        if ($item) {
+            echo json_encode(['success' => true, 'item' => $item]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Item not found']);
+        }
+        exit;
     }
 }

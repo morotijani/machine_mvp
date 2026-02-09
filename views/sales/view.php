@@ -84,7 +84,12 @@ ob_start();
                 <div class="col-4 text-end">
                     <h4 class="fw-bold text-primary">INVOICE</h4>
                     <div class="fs-5">#<?= str_pad($sale['id'], 6, '0', STR_PAD_LEFT) ?></div>
-                    <div class="text-muted small">Date: <?= date('M j, Y', strtotime($sale['created_at'])) ?></div>
+                    <div class="text-muted small mb-2">Date: <?= date('M j, Y', strtotime($sale['created_at'])) ?></div>
+                    <div class="d-flex justify-content-end">
+                        <svg id="invoice-barcode" 
+                             data-value="<?= $sale['id'] ?>"
+                             style="max-height: 40px; width: 120px;"></svg>
+                    </div>
                 </div>
             </div>
 
@@ -93,7 +98,7 @@ ob_start();
                 <div class="col-6">
                     <p class="mb-1 text-uppercase text-muted small fw-bold">Bill To</p>
                     <?php if ($sale['customer_name']): ?>
-                        <h5 class="fw-bold"><?= e($sale['customer_name']) ?></h5>
+                        <h5 class="fw-bold"><?= e($sale['customer_name']) ?><?= ($sale['customer_is_deleted'] == 1) ? ' <span class="text-danger small">[Deleted]</span>' : '' ?></h5>
                         <p>
                             <?= e($sale['customer_address'] ?? '') ?><br>
                             <?= e($sale['customer_phone'] ?? '') ?>
@@ -347,6 +352,23 @@ ob_start();
 
 <?php
 $content = ob_get_clean();
+?>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const barcodeEl = document.getElementById('invoice-barcode');
+        if (barcodeEl) {
+            JsBarcode("#invoice-barcode", barcodeEl.getAttribute('data-value'), {
+                format: "CODE128",
+                width: 1.5,
+                height: 35,
+                displayValue: false,
+                margin: 0,
+                background: "transparent"
+            });
+        }
+    });
+</script>
+<?php
 require __DIR__ . '/../layouts/main.php';
 ?>
 

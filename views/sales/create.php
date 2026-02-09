@@ -52,7 +52,10 @@ ob_start();
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label class="form-label">Customer</label>
+                            <label class="form-label d-flex justify-content-between">
+                                Customer
+                                <span class="badge bg-info bg-opacity-10 text-info" style="font-size: 0.65rem;">OR SCAN BARCODE BELOW</span>
+                            </label>
                             <div class="input-group">
                                 <select id="customerSelect" class="form-select">
                                     <option value="">-- Select Customer --</option>
@@ -62,6 +65,16 @@ ob_start();
                                 </select>
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#quickAddCustomerModal" title="Quick Add Customer">+</button>
                             </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-white">
+                                    <span class="material-symbols-outlined fs-5">barcode_scanner</span>
+                                </span>
+                                <input type="text" id="barcodeInput" class="form-control form-control-lg border-dark" placeholder="SCAN BARCODE HERE..." autofocus>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.65rem;">The scanner will automatically add the item to your cart.</small>
                         </div>
 
                         <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;">
@@ -169,26 +182,55 @@ document.getElementById('itemSearch').addEventListener('input', function(e) {
 });
 */
 
-document.getElementById('itemList').addEventListener('click', function(e) {
-    const btn = e.target.closest('.item-row');
-    if (!btn) return;
+// Barcode Scanner Logic
+const barcodeInput = document.getElementById('barcodeInput');
+if (barcodeInput) {
+    barcodeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const sku = e.target.value.trim();
+            if (sku) {
+                findAndAddItemBySku(sku);
+            }
+            e.target.value = ''; // Clear for next scan
+        }
+    });
 
-    const id = btn.dataset.id;
-    const name = btn.dataset.name;
-    const price = parseFloat(btn.dataset.price);
-    
-    // Parse stock carefully
-    let stock = parseFloat(btn.dataset.stock);
-    if (isNaN(stock)) stock = 0;
+    // Auto-focus barcode input when clicking anywhere outside of other inputs
+    document.addEventListener('click', function(e) {
+        if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) {
+            barcodeInput.focus();
+        }
+    });
+}
 
-    console.log('Clicked item:', name, 'Stock:', stock); // Debug log
+function findAndAddItemBySku(sku) {
+    // Show a small loader or feedback if needed
+    fetch('<?= BASE_URL ?>/api/items/find-by-sku?sku=' + encodeURIComponent(sku))
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const item = data.item;
+                addItemToCart(item.id, item.name, parseFloat(item.price), parseFloat(item.quantity));
+                
+                // Optional: Play a "beep" sound or show success toast
+                console.log('Added via barcode:', item.name);
+            } else {
+                alert('Item not found for SKU: ' + sku);
+            }
+        })
+        .catch(err => {
+            console.error('Barcode error:', err);
+            alert('Error scanning barcode');
+        });
+}
 
+function addItemToCart(id, name, price, stock) {
     if(stock <= 0) {
         alert('Item is Out of Stock!');
         return;
     }
 
-    const existing = cart.find(i => i.id === id);
+    const existing = cart.find(i => i.id == id); // Loose equal for ID types
     if (existing) {
         if (existing.quantity >= stock) {
             alert('Max stock reached (' + stock + ')');
@@ -199,6 +241,19 @@ document.getElementById('itemList').addEventListener('click', function(e) {
         cart.push({ id, name, price, quantity: 1, max: stock });
     }
     renderCart();
+}
+
+// Refactor list click to use the same addItemToCart function
+document.getElementById('itemList').addEventListener('click', function(e) {
+    const btn = e.target.closest('.item-row');
+    if (!btn) return;
+
+    addItemToCart(
+        btn.dataset.id, 
+        btn.dataset.name, 
+        parseFloat(btn.dataset.price), 
+        parseFloat(btn.dataset.stock)
+    );
 });
 
 function renderCart() {

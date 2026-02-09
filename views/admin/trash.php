@@ -45,6 +45,11 @@ ob_start();
                             <span class="material-symbols-outlined">payments</span> Expenditures
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link d-flex align-items-center gap-2" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">
+                            <span class="material-symbols-outlined">person_outline</span> Customers
+                        </button>
+                    </li>
                 </ul>
             </div>
             <div class="card-body">
@@ -229,6 +234,57 @@ ob_start();
                                     <?php endforeach; ?>
                                     <?php if (empty($deletedExpenditures)): ?>
                                         <tr><td colspan="5" class="text-center py-4 text-muted small">No deleted expenditures.</td></tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Customers Tab -->
+                    <div class="tab-pane fade" id="customers" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Customer Name</th>
+                                        <th>Phone</th>
+                                        <th class="text-end">Balance (Debt)</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($deletedCustomers as $customer): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold"><?= htmlspecialchars($customer['name']) ?></div>
+                                            <div class="text-muted smaller"><?= htmlspecialchars($customer['address'] ?? '') ?></div>
+                                        </td>
+                                        <td><?= htmlspecialchars($customer['phone'] ?? 'N/A') ?></td>
+                                        <td class="text-end fw-bold <?= $customer['total_debt'] > 0 ? 'text-danger' : 'text-success' ?>">
+                                            ₵<?= number_format($customer['total_debt'], 2) ?>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <form action="<?= BASE_URL ?>/admin/restore" method="POST">
+                                                    <input type="hidden" name="type" value="customer">
+                                                    <input type="hidden" name="id" value="<?= $customer['id'] ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Restore">
+                                                        <span class="material-symbols-outlined" style="font-size: 18px;">settings_backup_restore</span>
+                                                    </button>
+                                                </form>
+                                                <form action="<?= BASE_URL ?>/admin/delete-forever" method="POST" onsubmit="return confirm('PERMANENT DELETE: This cannot be undone. Customers with transaction history cannot be deleted forever. Proceed?')">
+                                                    <input type="hidden" name="type" value="customer">
+                                                    <input type="hidden" name="id" value="<?= $customer['id'] ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Forever">
+                                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete_forever</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                    <?php if (empty($deletedCustomers)): ?>
+                                        <tr><td colspan="4" class="text-center py-4 text-muted small">No deleted customers.</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>

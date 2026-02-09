@@ -181,6 +181,41 @@ class ReportController {
             $monthlyProfits[$row['month']] = $row['profit'];
         }
 
+        // 2.a Customer Retention (Repeat Rate)
+        // Ratio of customers with more than 1 sale to total unique customers
+        $stmtRet = $pdo->query("
+            SELECT 
+                (SELECT COUNT(*) FROM (SELECT customer_id FROM sales WHERE customer_id IS NOT NULL AND voided = 0 GROUP BY customer_id HAVING COUNT(*) > 1) as repeats) as repeat_customers,
+                (SELECT COUNT(DISTINCT customer_id) FROM sales WHERE customer_id IS NOT NULL AND voided = 0) as total_customers
+        ");
+        $retentionData = $stmtRet->fetch(PDO::FETCH_ASSOC);
+        $totalCustomers = $retentionData['total_customers'] ?: 1; // Avoid div by zero
+        $repeatCustomers = $retentionData['repeat_customers'] ?: 0;
+        $retentionRate = ($repeatCustomers / $totalCustomers) * 100;
+
+        // 2.b Inventory Turnover Ratio (Annual Approximation)
+        // Formula: COGS / Average Inventory
+        // COGS = Cost of goods sold during the selected year
+        $stmtCOGS = $pdo->prepare("
+            SELECT SUM(si.quantity * i.cost_price) 
+            FROM sale_items si 
+            JOIN items i ON si.item_id = i.id 
+            JOIN sales s ON si.sale_id = s.id
+            WHERE YEAR(s.created_at) = :year AND s.voided = 0
+        ");
+        $stmtCOGS->execute(['year' => $selectedYear]);
+        $annualCOGS = $stmtCOGS->fetchColumn() ?: 0;
+        
+        // Ending Inventory = Current Stock Value (Cost)
+        $stmtStockCost = $pdo->query("SELECT SUM(quantity * cost_price) FROM items WHERE is_deleted = 0");
+        $endingInventory = $stmtStockCost->fetchColumn() ?: 0;
+        
+        // Approximation: Beginning Inventory = Ending Inventory + Sold items cost (not perfect but standard for static data)
+        $beginningInventorySimple = $endingInventory + $annualCOGS;
+        $avgInventory = ($beginningInventorySimple + $endingInventory) / 2;
+        
+        $inventoryTurnover = ($avgInventory > 0) ? ($annualCOGS / $avgInventory) : 0;
+
         // 3. Comparison Data (Last Year vs Selected Year)
         $lastYear = $selectedYear - 1;
         $comparisonData = [];
@@ -243,7 +278,82 @@ class ReportController {
             $runningValue += ($report['total'] ?? 0);
         }
         unset($report); // break reference
+
+        // 6. Top Selling Items (By Volume)
+        $stmtTopQty = $pdo->prepare("
+            SELECT i.name, i.sku, SUM(si.quantity) as total_qty, SUM(si.subtotal) as total_revenue
+            FROM sale_items si
+            JOIN items i ON si.item_id = i.id
+            JOIN sales s ON si.sale_id = s.id
+            WHERE s.voided = 0 AND YEAR(s.created_at) = :year
+            GROUP BY si.item_id
+            ORDER BY total_qty DESC
+            LIMIT 5
+        ");
+        $stmtTopQty->execute(['year' => $selectedYear]);
+        $topSellingItems = $stmtTopQty->fetchAll(PDO::FETCH_ASSOC);
+
+        // 7. Top Revenue Items
+        $stmtTopRev = $pdo->prepare("
+            SELECT i.name, i.sku, SUM(si.subtotal) as total_revenue
+            FROM sale_items si
+            JOIN items i ON si.item_id = i.id
+            JOIN sales s ON si.sale_id = s.id
+            WHERE s.voided = 0 AND YEAR(s.created_at) = :year
+            GROUP BY si.item_id
+            ORDER BY total_revenue DESC
+            LIMIT 5
+        ");
+        $stmtTopRev->execute(['year' => $selectedYear]);
+        $topRevenueItems = $stmtTopRev->fetchAll(PDO::FETCH_ASSOC);
         
         require __DIR__ . '/../../views/reports/index.php';
+    }
+
+    public function export() {
+        AuthMiddleware::requireAdmin();
+        $pdo = Database::getInstance();
+        $type = $_GET['type'] ?? 'sales';
+        $year = $_GET['year'] ?? date('Y');
+
+        $filename = "report_{$type}_{$year}_" . date('Ymd') . ".csv";
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        $output = fopen('php://output', 'w');
+
+        if ($type === 'monthly_comparison') {
+            fputcsv($output, ['Month', 'Last Year Sales', 'Current Year Sales', 'Profit', 'Difference', 'Growth %']);
+            
+            // Logic similar to index() to get data
+            $monthlySales = array_fill(1, 12, 0);
+            $stmt = $pdo->prepare("SELECT MONTH(created_at) as month, SUM(total_amount) as total FROM sales WHERE YEAR(created_at) = :year AND voided = 0 GROUP BY MONTH(created_at)");
+            $stmt->execute(['year' => $year]);
+            $results = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            foreach ($results as $m => $t) $monthlySales[$m] = $t;
+
+            $lastYear = $year - 1;
+            $stmt = $pdo->prepare("SELECT MONTH(created_at) as month, SUM(total_amount) as total FROM sales WHERE YEAR(created_at) = :lastYear AND voided = 0 GROUP BY MONTH(created_at)");
+            $stmt->execute(['lastYear' => $lastYear]);
+            $lastYearResults = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+            for ($m = 1; $m <= 12; $m++) {
+                $cur = $monthlySales[$m] ?? 0;
+                $prev = $lastYearResults[$m] ?? 0;
+                $diff = $cur - $prev;
+                $growth = ($prev > 0) ? ($diff / $prev) * 100 : 0;
+                fputcsv($output, [date('F', mktime(0, 0, 0, $m, 1)), $prev, $cur, 'N/A', $diff, round($growth, 2) . '%']);
+            }
+        } else {
+            // Default: Daily Sales last 30 days
+            fputcsv($output, ['Date', 'Sales Count', 'Total Revenue']);
+            $stmt = $pdo->query("SELECT DATE(created_at) as d, COUNT(*) as c, SUM(total_amount) as t FROM sales WHERE voided = 0 GROUP BY d ORDER BY d DESC LIMIT 100");
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                fputcsv($output, $row);
+            }
+        }
+
+        fclose($output);
+        exit;
     }
 }

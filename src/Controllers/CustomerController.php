@@ -188,6 +188,34 @@ class CustomerController {
         }
         header('Location: ' . BASE_URL . '/customers');
     }
+
+    public function delete() {
+        AuthMiddleware::requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'];
+            $pdo = Database::getInstance();
+            $customerModel = new Customer($pdo);
+            $customerModel->softDelete($id);
+            header('Location: ' . BASE_URL . '/customers?success=Customer soft-deleted');
+            exit;
+        }
+    }
+
+    public function restore() {
+        AuthMiddleware::requireAdmin();
+        $id = $_POST['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . BASE_URL . '/admin/trash?error=Missing ID');
+            exit;
+        }
+
+        $pdo = Database::getInstance();
+        $customerModel = new Customer($pdo);
+        $customerModel->restore($id);
+        header('Location: ' . BASE_URL . '/admin/trash?success=Customer restored');
+        exit;
+    }
+
     public function view() {
         AuthMiddleware::requireLogin();
         $id = $_GET['id'] ?? null;

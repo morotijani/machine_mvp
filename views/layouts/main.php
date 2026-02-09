@@ -101,6 +101,13 @@
                                 <span class="material-symbols-outlined icon">person_search</span> Debt System
                             </a>
                         </li>
+                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/admin/finance') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/admin/finance">
+                                <span class="material-symbols-outlined icon">account_balance</span> Finance & Coffers
+                            </a>
+                        </li>
+                        <?php endif; ?>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/expenditures') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/expenditures">
                                 <span class="material-symbols-outlined icon">payments</span> Expenditures
@@ -136,6 +143,12 @@
                         </li>
                         <?php endif; ?>
 
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/docs') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/docs">
+                                <span class="material-symbols-outlined icon">help</span> System Guide
+                            </a>
+                        </li>
+
                         <li class="nav-item mt-3">
                             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-4 mt-4 mb-2 text-muted text-uppercase" style="font-size: 0.75rem;">
                                 <span>Account</span>
@@ -164,6 +177,7 @@
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script>
         // System Status Polling
         function updateStatus() {

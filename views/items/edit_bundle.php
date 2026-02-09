@@ -9,7 +9,7 @@ ob_start();
         <button type="button" class="btn btn-outline-warning me-2" data-bs-toggle="modal" data-bs-target="#ungroupModal">
             <span class="material-symbols-outlined align-middle" style="font-size: 18px;">call_split</span> Ungroup
         </button>
-        <a href="<?= BASE_URL ?>/items" class="btn btn-outline-secondary">Cancel</a>
+        <a href="<?= $_SESSION['last_items_url'] ?? (BASE_URL . '/items') ?>" class="btn btn-outline-secondary">Cancel</a>
     </div>
 </div>
 

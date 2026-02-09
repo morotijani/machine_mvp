@@ -5,7 +5,7 @@ ob_start();
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
     <h1 class="h2">Create Bundle / Group Item</h1>
-    <a href="<?= BASE_URL ?>/items" class="btn btn-outline-secondary">Cancel</a>
+    <a href="<?= $_SESSION['last_items_url'] ?? (BASE_URL . '/items') ?>" class="btn btn-outline-secondary">Cancel</a>
 </div>
 
 <?php if (isset($error)): ?>

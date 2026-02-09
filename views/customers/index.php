@@ -26,9 +26,9 @@ ob_start();
                             <option value="last_purchase" <?= ($sort == 'last_purchase') ? 'selected' : '' ?>>Last Purchase</option>
                         </select>
 
-                        <select name="order" class="form-select border-start-0" onchange="this.form.submit()" style="max-width: 120px;">
-                            <option value="ASC" <?= ($order == 'ASC') ? 'selected' : '' ?>>Ascending</option>
-                            <option value="DESC" <?= ($order == 'DESC') ? 'selected' : '' ?>>Descending</option>
+                        <select name="order" class="form-select border-start-0" onchange="this.form.submit()" style="max-width: 100px;">
+                            <option value="DESC" <?= ($order == 'DESC') ? 'selected' : '' ?>>DESC</option>
+                            <option value="ASC" <?= ($order == 'ASC') ? 'selected' : '' ?>>ASC</option>
                         </select>
 
                         <button type="submit" class="btn btn-primary">Search</button>
@@ -37,7 +37,11 @@ ob_start();
                         <?php endif; ?>
                     </div>
                 </form>
-
+                <?php if ($_SESSION['role'] === 'admin'): ?>
+                <a href="<?= BASE_URL ?>/admin/trash" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined">delete</span> View Trash
+                </a>
+                <?php endif; ?>
                 <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
                     <span class="material-symbols-outlined" style="font-size: 20px;">person_add</span> New Customer
                 </button>
@@ -77,15 +81,26 @@ ob_start();
                                 </td>
                                 <td><small class="text-muted"><?php echo $customer['last_purchase'] ? date('M j, Y', strtotime($customer['last_purchase'])) : '-'; ?></small></td>
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editCustomerModal"
-                                            data-id="<?= $customer['id'] ?>"
-                                            data-name="<?= e($customer['name']) ?>"
-                                            data-phone="<?= e($customer['phone'] ?? '') ?>"
-                                            data-address="<?= e($customer['address'] ?? '') ?>">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
-                                    </button>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editCustomerModal"
+                                                data-id="<?= $customer['id'] ?>"
+                                                data-name="<?= e($customer['name']) ?>"
+                                                data-phone="<?= e($customer['phone'] ?? '') ?>"
+                                                data-address="<?= e($customer['address'] ?? '') ?>">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
+                                        </button>
+                                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                                        <form action="<?= BASE_URL ?>/customers/delete" method="POST" class="d-inline" onsubmit="return confirm('Soft-delete this customer? They can be restored from Trash.')">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                            <input type="hidden" name="id" value="<?= $customer['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                                            </button>
+                                        </form>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

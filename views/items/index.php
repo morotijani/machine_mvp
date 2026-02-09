@@ -109,7 +109,7 @@ if (isset($isPrint) && $isPrint) {
                                 <th style="width: 60px;">Image</th>
                                 <th>Name</th>
                                 <th>Category</th>
-                                <th>SKU</th>
+                                <th>SKU / Barcode</th>
                                 <th>Location</th>
                                 <th class="text-end">Price</th>
                                 <th class="text-center">Stock</th>
@@ -139,7 +139,14 @@ if (isset($isPrint) && $isPrint) {
                                     <?php endif; ?>
                                 </td>
                                 <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><?= e($item['category']) ?></span></td>
-                                <td><small class="text-muted"><?= e($item['sku']) ?></small></td>
+                                <td style="min-width: 140px;">
+                                    <div class="barcode-container text-center">
+                                        <svg class="barcode" 
+                                             data-value="<?= e($item['sku']) ?>" 
+                                             id="barcode-<?= $item['id'] ?>"></svg>
+                                        <div class="text-muted smaller" style="font-size: 0.7rem;"><?= e($item['sku']) ?></div>
+                                    </div>
+                                </td>
                                 <td><?= e($item['location']) ?></td>
                                 <td class="text-end fw-bold text-primary">₵<?php echo number_format($item['price'], 2); ?></td>
                                 <td>
@@ -242,6 +249,28 @@ if (isset($isPrint) && $isPrint) {
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    renderBarcodes();
+});
+
+function renderBarcodes() {
+    const bars = document.querySelectorAll('.barcode');
+    bars.forEach(bar => {
+        const sku = bar.dataset.value;
+        if (sku) {
+            JsBarcode(bar, sku, {
+                format: "CODE128",
+                width: 1.2,
+                height: 30,
+                displayValue: false,
+                margin: 0,
+                background: "transparent"
+            });
+        }
+    });
+}
+</script>
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/../layouts/main.php';

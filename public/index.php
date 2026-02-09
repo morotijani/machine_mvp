@@ -8,6 +8,8 @@ use App\Controllers\ItemController;
 use App\Controllers\CustomerController;
 use App\Controllers\SaleController;
 use App\Controllers\ReportController;
+use App\Controllers\ExpenditureController;
+use App\Controllers\FinanceController;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
@@ -18,9 +20,12 @@ session_start();
 $router = new Router();
 
 // Define Base URL for subfolder support
-$scriptName = dirname($_SERVER['SCRIPT_NAME']);
-$scriptName = str_replace('\\', '/', $scriptName); // Normalize slashes for Windows
-$baseUrl = ($scriptName === '/') ? '' : $scriptName;
+$scriptName = $_SERVER['SCRIPT_NAME']; // e.g. /machine_mvp/public/index.php
+$baseUrl = str_replace('\\', '/', dirname($scriptName));
+if ($baseUrl === '/' || $baseUrl === '\\' || $baseUrl === '.') {
+    $baseUrl = '';
+}
+$baseUrl = rtrim($baseUrl, '/');
 define('BASE_URL', $baseUrl);
 
 // Routes
@@ -41,8 +46,12 @@ $router->get('/logout', [new AuthController(), 'logout']);
 // Dashboard
 $router->get('/dashboard', [new ReportController(), 'dashboard']);
 
+// Documentation
+$router->get('/docs', [new \App\Controllers\DocsController(), 'index']);
+
 // Reports
 $router->get('/reports', [new ReportController(), 'index']);
+$router->get('/reports/export', [new ReportController(), 'export']);
 
 // Staff Performance
 $staffController = new \App\Controllers\StaffController();
@@ -70,6 +79,19 @@ $settingController = new \App\Controllers\SettingController();
 $router->get('/settings', [$settingController, 'index']);
 $router->post('/settings/update', [$settingController, 'update']);
 
+// Expenditures (previously incorrectly labeled expenses in routes)
+$expenditureController = new ExpenditureController();
+$router->get('/expenses', [$expenditureController, 'index']);
+$router->post('/expenses/create', [$expenditureController, 'create']);
+$router->post('/expenses/delete', [$expenditureController, 'delete']);
+
+// Finance
+$financeController = new FinanceController();
+$router->get('/admin/finance', [$financeController, 'index']);
+$router->post('/admin/finance/withdraw', [$financeController, 'withdraw']);
+$router->post('/admin/finance/update', [$financeController, 'update']);
+$router->post('/admin/finance/delete', [$financeController, 'delete']);
+
 // Items
 $itemController = new ItemController();
 $router->get('/items', [$itemController, 'index']);
@@ -78,6 +100,7 @@ $router->post('/items/create', [$itemController, 'create']);
 $router->get('/items/edit', [$itemController, 'edit']);
 $router->post('/items/edit', [$itemController, 'edit']);
 $router->get('/items/preview', [$itemController, 'preview']);
+$router->get('/api/items/find-by-sku', [$itemController, 'apiFindItemBySku']);
 $router->get('/items/create-bundle', [$itemController, 'createBundle']);
 $router->post('/items/create-bundle', [$itemController, 'createBundle']);
 $router->post('/items/ungroup-bundle', [$itemController, 'ungroupBundle']);
@@ -93,10 +116,11 @@ $router->post('/admin/delete-forever', [$adminController, 'deleteForever']);
 $customerController = new CustomerController();
 $router->get('/customers', [$customerController, 'index']);
 $router->post('/customers/create', [$customerController, 'create']);
-$router->get('/customers/edit', [$customerController, 'edit']);
 $router->post('/customers/edit', [$customerController, 'edit']);
-$router->get('/api/customers/search', [$customerController, 'apiSearch']);
 $router->get('/customers/view', [$customerController, 'view']);
+$router->get('/customers/api-search', [$customerController, 'apiSearch']);
+$router->post('/customers/delete', [$customerController, 'delete']);
+$router->post('/customers/restore', [$customerController, 'restore']);
 
 // Sales
 $saleController = new SaleController();
