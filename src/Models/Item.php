@@ -423,6 +423,13 @@ class Item {
     public function hardDelete($id) {
         $this->pdo->beginTransaction();
         try {
+            // Block if item has sale history
+            $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM sale_items WHERE item_id = :id");
+            $stmt->execute(['id' => $id]);
+            if ($stmt->fetchColumn() > 0) {
+                throw new \Exception("Cannot delete item with transaction history. Keep it in the bin or restore it.");
+            }
+
             // Delete relations first
             $stmt = $this->pdo->prepare("DELETE FROM item_bundles WHERE parent_item_id = :id OR child_item_id = :id");
             $stmt->execute(['id' => $id]);

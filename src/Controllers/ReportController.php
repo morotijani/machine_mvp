@@ -51,12 +51,16 @@ class ReportController {
     $stmtCol->execute(array_merge(['today_sale' => $today, 'today_pay' => $today], $params));
     $todayCollected = $stmtCol->fetchColumn() ?: 0;
 
-    // Realized Profit: (CollectToday / TotalToday) * TotalProfitToday
-    // This is an approximation. For exact precision, we'd need to calculate profit-per-cent collected.
-    $todayRealizedProfit = 0;
-    if ($dailySales > 0) {
-        $todayRealizedProfit = ($todayCollected / $dailySales) * $dailyProfit;
-    }
+    // Realized Profit (Exact): Sum over items in today's sales: (PaidAmount / TotalAmount) * Qty * (PriceAtSale - ItemCostPrice)
+    // This is much more precise than the previous approximation.
+    $sqlProfitExact = "SELECT SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) 
+                       FROM sales s 
+                       JOIN sale_items si ON s.id = si.sale_id 
+                       JOIN items i ON si.item_id = i.id 
+                       WHERE DATE(s.created_at) = :today AND s.voided = 0 AND s.total_amount > 0" . $userFilterS;
+    $stmtProfitExact = $pdo->prepare($sqlProfitExact);
+    $stmtProfitExact->execute(array_merge(['today' => $today], $params));
+    $todayRealizedProfit = $stmtProfitExact->fetchColumn() ?: 0;
 
     // 2.b Debt Recovered Today (Payments made today for sales created BEFORE today)
     // Admin sees ALL, Sales sees OWN.
@@ -166,11 +170,11 @@ class ReportController {
             SELECT 
                 MONTH(s.created_at) as month, 
                 SUM(s.total_amount) as total,
-                SUM(si.subtotal - (si.quantity * i.cost_price)) as profit
+                SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) as profit
             FROM sales s
             JOIN sale_items si ON s.id = si.sale_id
             JOIN items i ON si.item_id = i.id
-            WHERE YEAR(s.created_at) = :year AND s.voided = 0
+            WHERE YEAR(s.created_at) = :year AND s.voided = 0 AND s.total_amount > 0
             GROUP BY MONTH(s.created_at)
         ");
         $stmt->execute(['year' => $selectedYear]);
@@ -250,13 +254,13 @@ class ReportController {
             SELECT 
                 DATE(s.created_at) as sale_date, 
                 COUNT(DISTINCT s.id) as count, 
-                SUM(si.subtotal) as total,
-                SUM(si.subtotal - (si.quantity * i.cost_price)) as profit,
+                SUM(s.total_amount) as total,
+                SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) as profit,
                 (SELECT SUM(amount) FROM expenditures WHERE DATE(date) = DATE(s.created_at)) as total_expenditure
             FROM sales s
             JOIN sale_items si ON s.id = si.sale_id
             JOIN items i ON si.item_id = i.id
-            WHERE s.voided = 0 
+            WHERE s.voided = 0 AND s.total_amount > 0
             GROUP BY DATE(s.created_at) 
             ORDER BY sale_date DESC 
             LIMIT 30

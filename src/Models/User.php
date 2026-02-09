@@ -82,6 +82,20 @@ class User {
     }
 
     public function hardDelete($id) {
+        // Block if user has recorded sales
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM sales WHERE user_id = :id");
+        $stmt->execute(['id' => $id]);
+        if ($stmt->fetchColumn() > 0) {
+            throw new \Exception("Cannot delete user who has recorded sales.");
+        }
+
+        // Block if user has recorded expenditures
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM expenditures WHERE recorded_by = :id");
+        $stmt->execute(['id' => $id]);
+        if ($stmt->fetchColumn() > 0) {
+            throw new \Exception("Cannot delete user who has recorded expenditures.");
+        }
+
         $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
