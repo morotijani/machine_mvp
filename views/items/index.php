@@ -98,6 +98,22 @@ if (isset($isPrint) && $isPrint) {
                     </div>
                 </div>
             </div>
+            
+            <?php if (isset($_GET['success'])): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span class="material-symbols-outlined align-middle me-2">check_circle</span>
+                    <?= htmlspecialchars($_GET['success']) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['error'])): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span class="material-symbols-outlined align-middle me-2">error</span>
+                    <?= htmlspecialchars($_GET['error']) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
 
             <div class="card shadow-sm">
                 <div class="card-body">

@@ -169,7 +169,7 @@ class ReportController {
         $stmt = $pdo->prepare("
             SELECT 
                 MONTH(s.created_at) as month, 
-                SUM(s.total_amount) as total,
+                SUM(si.subtotal) as total,
                 SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) as profit
             FROM sales s
             JOIN sale_items si ON s.id = si.sale_id
@@ -254,7 +254,7 @@ class ReportController {
             SELECT 
                 DATE(s.created_at) as sale_date, 
                 COUNT(DISTINCT s.id) as count, 
-                SUM(s.total_amount) as total,
+                SUM(si.subtotal) as total,
                 SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) as profit,
                 (SELECT SUM(amount) FROM expenditures WHERE DATE(date) = DATE(s.created_at)) as total_expenditure
             FROM sales s

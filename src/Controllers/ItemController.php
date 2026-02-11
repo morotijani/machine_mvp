@@ -365,6 +365,7 @@ class ItemController {
                 exit;
             }
 
+            $itemModel = new \App\Models\Item($pdo);
             $itemModel->delete($id);
             $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
             header('Location: ' . $returnUrl . (strpos($returnUrl, '?') === false ? '?' : '&') . 'success=Item removed');
