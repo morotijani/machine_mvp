@@ -89,6 +89,7 @@ $router->post('/expenses/delete', [$expenditureController, 'delete']);
 $financeController = new FinanceController();
 $router->get('/admin/finance', [$financeController, 'index']);
 $router->post('/admin/finance/withdraw', [$financeController, 'withdraw']);
+$router->post('/admin/finance/deposit', [$financeController, 'deposit']);
 $router->post('/admin/finance/update', [$financeController, 'update']);
 $router->post('/admin/finance/delete', [$financeController, 'delete']);
 
@@ -121,6 +122,7 @@ $router->get('/customers/view', [$customerController, 'view']);
 $router->get('/customers/api-search', [$customerController, 'apiSearch']);
 $router->post('/customers/delete', [$customerController, 'delete']);
 $router->post('/customers/restore', [$customerController, 'restore']);
+$router->post('/customers/repay-bulk', [$customerController, 'repayBulk']);
 
 // Sales
 $saleController = new SaleController();

@@ -51,6 +51,45 @@ class ReportController {
     $stmtCol->execute(array_merge(['today_sale' => $today, 'today_pay' => $today], $params));
     $todayCollected = $stmtCol->fetchColumn() ?: 0;
 
+    // Deduct Returns processed TODAY
+    $sqlReturns = "SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :today_return"; 
+    
+    if ($isSales) {
+        $sqlReturns .= " AND recorded_by = :uid";
+    }
+
+    $stmtReturns = $pdo->prepare($sqlReturns);
+    $returnParams = ['today_return' => $today];
+    if ($isSales) {
+        $returnParams['uid'] = $uid;
+    }
+    $stmtReturns->execute($returnParams);
+    $todayReturns = $stmtReturns->fetchColumn() ?: 0;
+
+    $todayCollected -= $todayReturns;
+
+    // Deduct Returns processed TODAY
+    // Returns are recorded in sale_returns. created_at is the return date.
+    $sqlReturns = "SELECT SUM(total_deduction) 
+                   FROM sale_returns 
+                   WHERE DATE(created_at) = :today_return"; 
+                   // Note: If sales user, we might want to filter by recorded_by.
+                   // But for now, let's keep it global or match $userFilterS logic if returns have user_id?
+                   // sale_returns has recorded_by.
+    if ($isSales) {
+        $sqlReturns .= " AND recorded_by = :uid";
+    }
+
+    $stmtReturns = $pdo->prepare($sqlReturns);
+    $returnParams = ['today_return' => $today];
+    if ($isSales) {
+        $returnParams['uid'] = $uid;
+    }
+    $stmtReturns->execute($returnParams);
+    $todayReturns = $stmtReturns->fetchColumn() ?: 0;
+
+    $todayCollected -= $todayReturns;
+
     // Realized Profit (Exact): Sum over items in today's sales: (PaidAmount / TotalAmount) * Qty * (PriceAtSale - ItemCostPrice)
     // This is much more precise than the previous approximation.
     $sqlProfitExact = "SELECT SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) 

@@ -238,6 +238,53 @@ class CustomerController {
 
         $history = $customerModel->getHistory($id);
 
+        // Group history by date
+        $groupedHistory = [];
+        $today = date('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
+
+        foreach ($history as $sale) {
+            $dateKey = date('Y-m-d', strtotime($sale['created_at']));
+            $label = match($dateKey) {
+                $today => 'Today',
+                $yesterday => 'Yesterday',
+                default => date('jS F, Y', strtotime($sale['created_at']))
+            };
+            $groupedHistory[$label][] = $sale;
+        }
+
         require __DIR__ . '/../../views/customers/view.php';
+    }
+
+    public function repayBulk() {
+        AuthMiddleware::requireLogin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $customerId = $_POST['customer_id'] ?? null;
+            $amount = $_POST['amount'] ?? 0;
+
+            if (!$customerId || $amount <= 0) {
+                header('Location: ' . BASE_URL . '/customers?error=Invalid payment data');
+                exit;
+            }
+
+            $pdo = Database::getInstance();
+            $saleModel = new \App\Models\Sale($pdo);
+
+            try {
+                $result = $saleModel->repayBulkDebt($customerId, $amount, $_SESSION['user_id']);
+                if ($result) {
+                    $ids = array_column($result['affected_sales'], 'id');
+                    $msg = "Bulk payment of ₵" . number_format($amount, 2) . " processed successfully. ";
+                    $msg .= "Applied to Invoices: #" . implode(', #', $ids);
+                    $_SESSION['success'] = $msg;
+                } else {
+                    $_SESSION['error'] = "Bulk payment failed.";
+                }
+            } catch (\Exception $e) {
+                $_SESSION['error'] = "Payment Error: " . $e->getMessage();
+            }
+            header('Location: ' . BASE_URL . '/customers/view?id=' . $customerId);
+            exit;
+        }
     }
 }

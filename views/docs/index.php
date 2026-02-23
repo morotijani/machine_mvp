@@ -100,9 +100,13 @@ ob_start();
                             <h6 class="fw-bold"><span class="material-symbols-outlined align-middle fs-6">payments</span> Recording Payments</h6>
                             <p class="small text-muted">Found an invoice with pending debt? Click "Record Payment" to update the balance. This money is tracked as <strong>Debt Recovered</strong> on your dashboard.</p>
                         </li>
-                        <li>
+                        <li class="mb-3">
                             <h6 class="fw-bold"><span class="material-symbols-outlined align-middle fs-6">assignment_return</span> Processing Returns</h6>
                             <p class="small text-muted">Items returned by customers are restored to stock, and the invoice total is adjusted automatically. This prevents "phantom sales" in your records.</p>
+                        </li>
+                        <li>
+                            <h6 class="fw-bold text-success"><span class="material-symbols-outlined align-middle fs-6">speed</span> Bulk Debt Repayment (Smart Allocation)</h6>
+                            <p class="small text-muted">A customer has 5 different invoices with debt? No problem. Use the <strong class="text-success">Bulk Repayment</strong> button on their profile. Enter the total cash they brought, and the system will automatically settle the <strong>oldest invoices first</strong> (FIFO) until the money runs out. This saves you from recording payments for each invoice manually.</p>
                         </li>
                     </ul>
                 </div>

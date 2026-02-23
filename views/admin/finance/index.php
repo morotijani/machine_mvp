@@ -4,9 +4,14 @@ ob_start();
 ?>
 <div class="pt-3 pb-2 mb-3 border-bottom d-flex justify-content-between align-items-center">
     <h1 class="h2">Finance & Coffers Management</h1>
-    <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#withdrawModal">
-        <span class="material-symbols-outlined">payments</span> Record Withdrawal
-    </button>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-success d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#depositModal">
+            <span class="material-symbols-outlined">add_circle</span> Record Deposit
+        </button>
+        <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#withdrawModal">
+            <span class="material-symbols-outlined">payments</span> Record Withdrawal
+        </button>
+    </div>
 </div>
 
 <?php if (isset($_GET['success'])): ?>
@@ -52,7 +57,7 @@ ob_start();
             <div class="card-body">
                 <h6 class="text-muted text-uppercase small mb-2">System Coffers Balance</h6>
                 <div class="h3 mb-0 text-warning">₵<?= number_format($cofferBalance, 2) ?></div>
-                <div class="text-muted small mt-2">Available liquid cash (Paid - Exp - Wdr)</div>
+                <div class="text-muted small mt-2">Available liquid cash (Paid - Exp - Wdr + Dep)</div>
             </div>
         </div>
     </div>
@@ -70,6 +75,7 @@ ob_start();
                         <thead class="table-light">
                             <tr>
                                 <th>Date</th>
+                                <th>Type</th>
                                 <th>Amount</th>
                                 <th>Purpose / Details</th>
                                 <th>Recorded By</th>
@@ -80,7 +86,16 @@ ob_start();
                             <?php foreach ($transactions as $tx): ?>
                             <tr>
                                 <td><?= date('M j, Y H:i', strtotime($tx['created_at'])) ?></td>
-                                <td class="fw-bold text-danger">-₵<?= number_format($tx['amount'], 2) ?></td>
+                                <td>
+                                    <?php if ($tx['type'] === 'deposit'): ?>
+                                        <span class="badge bg-success-subtle text-success">Deposit</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger-subtle text-danger">Withdrawal</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="fw-bold <?= $tx['type'] === 'deposit' ? 'text-success' : 'text-danger' ?>">
+                                    <?= $tx['type'] === 'deposit' ? '+' : '-' ?>₵<?= number_format($tx['amount'], 2) ?>
+                                </td>
                                 <td><?= e($tx['purpose']) ?></td>
                                 <td><?= e($tx['recorder_name']) ?></td>
                                 <td class="text-end">
@@ -104,13 +119,48 @@ ob_start();
                             <?php endforeach; ?>
                             <?php if (empty($transactions)): ?>
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No coffer transactions recorded.</td>
+                                <td colspan="6" class="text-center py-4 text-muted">No coffer transactions recorded.</td>
                             </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Record Deposit Modal -->
+<div class="modal fade" id="depositModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?= BASE_URL ?>/admin/finance/deposit" method="POST" class="prevent-double-submit">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                <div class="modal-header">
+                    <h5 class="modal-title">Record Coffer Deposit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-success small">
+                        Use this to record external funds being added to the business coffers.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Amount (₵)</label>
+                        <input type="number" name="amount" class="form-control form-control-lg" step="0.01" required placeholder="0.00">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Source / Purpose</label>
+                        <textarea name="purpose" class="form-control" rows="3" required placeholder="Source of funds or purpose of deposit"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success d-flex align-items-center gap-2">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span class="btn-text">Confirm Deposit</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

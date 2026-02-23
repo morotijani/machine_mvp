@@ -14,6 +14,80 @@ ob_start();
     /* Show print title, hide normal title */
     .print-title { display: block !important; }
     .card-header h5:not(.print-title) { display: none !important; }
+    .timeline-thread { display: none !important; }
+</style>
+<style>
+    /* Purchase Timeline Styles */
+    .purchase-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    .timeline-thread {
+        position: absolute;
+        left: 31px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+        z-index: 1;
+    }
+    .timeline-date-group {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 2.5rem;
+    }
+    .timeline-date-header {
+        position: relative;
+        background: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 700;
+        color: #495057;
+        margin-left: -2.3rem;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+    .timeline-date-header .material-symbols-outlined {
+        font-size: 20px;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    .timeline-item-marker {
+        position: absolute;
+        left: -33px;
+        top: 20px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #0d6efd;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px #dee2e6;
+        z-index: 2;
+    }
+    .timeline-card {
+        transition: transform 0.2s, shadow-sm 0.2s;
+        border: 1px solid rgba(0,0,0,0.05) !important;
+    }
+    .timeline-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.8em;
+    }
+    @media (max-width: 576px) {
+        .purchase-timeline { padding-left: 1.5rem; }
+        .timeline-thread { left: 15px; }
+        .timeline-date-header { margin-left: -1.8rem; font-size: 0.9rem; }
+        .timeline-item-marker { left: -25px; }
+    }
 </style>
 <div class="row justify-content-center">
     <div class="col-md-10">
@@ -42,6 +116,13 @@ ob_start();
                         <li><a class="dropdown-item fw-bold text-danger" href="#" onclick="printRecords('outstanding'); return false;">Outstanding (Partial & Unpaid)</a></li>
                     </ul>
                 </div>
+                <?php if ($customer['total_debt'] > 0): ?>
+                <button type="button" class="btn btn-sm btn-success d-flex align-items-center gap-1"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#bulkRepayModal">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">payments</span> Bulk Repayment
+                </button>
+                <?php endif; ?>
                 <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
                         data-bs-toggle="modal" 
                         data-bs-target="#editCustomerModal"
@@ -53,6 +134,24 @@ ob_start();
                 </button>
             </div>
         </div>
+        
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+                <span class="material-symbols-outlined align-middle me-2">check_circle</span>
+                <?= $_SESSION['success'] ?>
+                <?php unset($_SESSION['success']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+                <span class="material-symbols-outlined align-middle me-2">error</span>
+                <?= $_SESSION['error'] ?>
+                <?php unset($_SESSION['error']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
 
         <!-- Profile & Stats Card -->
         <div class="row mb-4">
@@ -118,74 +217,135 @@ ob_start();
             </div>
         </div>
 
-        <!-- Purchase History Table -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Purchase History</h5>
-                <h5 class="mb-0 print-title" id="printTitle" style="display:none;"></h5>
+        <!-- Purchase History Timeline -->
+        <div class="card shadow-sm border-0 mb-4 no-print">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">history</span>
+                    Purchase History Timeline
+                </h5>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="purchaseHistoryTable">
+            <div class="card-body">
+                <?php if (empty($groupedHistory)): ?>
+                    <div class="text-center py-5">
+                        <span class="material-symbols-outlined fs-1 text-muted mb-3">shopping_cart_off</span>
+                        <p class="text-muted">No purchase history found for this customer.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="purchase-timeline">
+                        <div class="timeline-thread"></div>
+                        
+                        <?php foreach ($groupedHistory as $date => $sales): ?>
+                            <div class="timeline-date-group">
+                                <div class="timeline-date-header">
+                                    <span class="material-symbols-outlined">calendar_today</span>
+                                    <?= e($date) ?>
+                                </div>
+                                
+                                <?php foreach ($sales as $sale): 
+                                    $statusClass = match($sale['payment_status']) {
+                                        'paid' => 'bg-success',
+                                        'partial' => 'bg-warning text-dark',
+                                        'unpaid' => 'bg-danger',
+                                        default => 'bg-secondary'
+                                    };
+                                ?>
+                                    <div class="timeline-item">
+                                        <div class="timeline-item-marker"></div>
+                                        <div class="card timeline-card shadow-sm <?php echo $sale['voided'] ? 'opacity-50 grayscale' : ''; ?>">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                                            <span class="fw-bold text-primary">#<?= $sale['id'] ?></span>
+                                                            <span class="text-muted small d-flex align-items-center gap-1">
+                                                                <span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>
+                                                                <?= date('h:i A', strtotime($sale['created_at'])) ?>
+                                                            </span>
+                                                        </div>
+                                                        <div class="small text-dark mb-2">
+                                                            <?= !empty($sale['items_summary']) ? e($sale['items_summary']) : '<em class="text-muted">No item details</em>' ?>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <?php if ($sale['voided']): ?>
+                                                            <span class="badge bg-dark status-badge rounded-pill">Voided</span>
+                                                        <?php else: ?>
+                                                            <span class="badge <?= $statusClass ?> status-badge rounded-pill"><?= ucfirst($sale['payment_status']) ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row g-2 align-items-center border-top pt-2">
+                                                    <div class="col-4">
+                                                        <label class="text-muted small d-block">Total</label>
+                                                        <span class="fw-bold">₵<?= number_format($sale['total_amount'], 2) ?></span>
+                                                    </div>
+                                                    <div class="col-4 border-start border-end">
+                                                        <label class="text-muted small d-block">Paid</label>
+                                                        <span class="text-success fw-bold">₵<?= number_format($sale['paid_amount'], 2) ?></span>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <label class="text-muted small d-block">Balance</label>
+                                                        <span class="<?= $sale['balance'] > 0 ? 'text-danger' : 'text-muted' ?> fw-bold">
+                                                            <?= ($sale['balance'] > 0) ? '₵'.number_format($sale['balance'], 2) : '-' ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="d-flex justify-content-end gap-2 mt-3">
+                                                    <a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" class="btn btn-sm btn-outline-primary py-1 px-3">
+                                                        Details
+                                                    </a>
+                                                    <?php if (!$sale['voided'] && $sale['balance'] > 0): ?>
+                                                        <button class="btn btn-sm btn-success py-1 px-3"
+                                                                onclick="openPayModal(<?= $sale['id'] ?>, <?= $sale['balance'] ?>)">
+                                                            Pay Debt
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Hidden Table for Printing (Maintains existing Print functionality) -->
+        <div class="d-none d-print-block">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 print-title">Purchase History</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table align-middle mb-0" id="purchaseHistoryTable">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-3">Date</th>
+                                <th>Date</th>
                                 <th>Invoice #</th>
-                                <th>Items Bought</th>
+                                <th>Items</th>
                                 <th>Total</th>
                                 <th>Paid</th>
-                                <th class="text-end">Balance</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-end pe-3">Actions</th>
+                                <th>Balance</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($history as $sale): 
-                                $statusClass = match($sale['payment_status']) {
-                                    'paid' => 'bg-success',
-                                    'partial' => 'bg-warning text-dark',
-                                    'unpaid' => 'bg-danger',
-                                    default => 'bg-secondary'
-                                };
-                            ?>
-                            <tr class="<?php echo $sale['voided'] ? 'table-light opacity-50' : ''; ?>">
-                                <td class="ps-3"><?php echo date('M j, Y H:i', strtotime($sale['created_at'])); ?></td>
-                                <td><a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="fw-bold text-decoration-none">#<?php echo $sale['id']; ?></a></td>
-                                <td>
-                                    <small class="text-secondary">
-                                        <?php echo !empty($sale['items_summary']) ? e($sale['items_summary']) : '-'; ?>
-                                    </small>
-                                </td>
-                                <td class="fw-bold">₵<?php echo number_format($sale['total_amount'], 2); ?></td>
-                                <td class="text-success">₵<?php echo number_format($sale['paid_amount'], 2); ?></td>
-                                <td class="text-end text-danger fw-bold">
-                                    <?php echo ($sale['balance'] > 0) ? '₵'.number_format($sale['balance'], 2) : '-'; ?>
-                                </td>
-                                <td class="text-center">
-                                    <?php if ($sale['voided']): ?>
-                                        <span class="badge bg-dark">Voided</span>
-                                    <?php else: ?>
-                                        <span class="badge <?php echo $statusClass; ?> rounded-pill"><?php echo ucfirst($sale['payment_status']); ?></span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="text-end pe-3">
-                                    <?php if (!$sale['voided'] && $sale['balance'] > 0): ?>
-                                        <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-1 ms-auto"
-                                                onclick="openPayModal(<?php echo $sale['id']; ?>, <?php echo $sale['balance']; ?>)">
-                                            <span class="material-symbols-outlined" style="font-size: 16px;">payments</span> Pay Debt
-                                        </button>
-                                    <?php else: ?>
-                                        <a href="<?= BASE_URL ?>/sales/view?id=<?php echo $sale['id']; ?>" class="btn btn-sm btn-outline-secondary">View</a>
-                                    <?php endif; ?>
-                                </td>
+                            <?php foreach ($history as $sale): ?>
+                            <tr>
+                                <td><?= date('M j, Y H:i', strtotime($sale['created_at'])) ?></td>
+                                <td>#<?= $sale['id'] ?></td>
+                                <td><small><?= e($sale['items_summary']) ?></small></td>
+                                <td>₵<?= number_format($sale['total_amount'], 2) ?></td>
+                                <td>₵<?= number_format($sale['paid_amount'], 2) ?></td>
+                                <td>₵<?= number_format($sale['balance'], 2) ?></td>
+                                <td><?= ucfirst($sale['payment_status']) ?></td>
                             </tr>
                             <?php endforeach; ?>
-                            
-                            <?php if (empty($history)): ?>
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">No purchase history found.</td>
-                            </tr>
-                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -356,6 +516,50 @@ if (editCustomerModal) {
     });
 }
 </script>
+
+<!-- Bulk Repayment Modal -->
+<div class="modal fade" id="bulkRepayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined">payments</span>
+                    Bulk Debt Repayment
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="<?= BASE_URL ?>/customers/repay-bulk" method="POST" onsubmit="return confirm('Are you sure you want to allocate this payment across all oldest invoices?')">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                <input type="hidden" name="customer_id" value="<?= $customer['id'] ?>">
+                <div class="modal-body py-4">
+                    <div class="mb-4">
+                        <label class="form-label text-muted small text-uppercase fw-bold">Customer</label>
+                        <div class="h5 mb-0 fw-bold"><?= e($customer['name']) ?></div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small text-uppercase fw-bold">Total Amount Brought</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">₵</span>
+                            <input type="number" name="amount" class="form-control fw-bold border-start-0" step="0.01" min="0.01" max="<?= $customer['total_debt'] + 1000000 ?>" value="<?= $customer['total_debt'] ?>" required autofocus>
+                        </div>
+                        <div class="form-text mt-2 d-flex justify-content-between">
+                            <span>Total Debt: <span class="text-danger fw-bold">₵<?= number_format($customer['total_debt'], 2) ?></span></span>
+                            <span class="text-muted italic small">FIFO Allocation (Oldest First)</span>
+                        </div>
+                    </div>
+                    <div class="alert alert-info border-0 shadow-sm small py-2 d-flex align-items-start gap-2">
+                        <span class="material-symbols-outlined text-info" style="font-size: 18px;">info</span>
+                        <div>This payment will be automatically applied to the oldest invoices first until the amount is exhausted.</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">Process Repayment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <?php
 $content = ob_get_clean();

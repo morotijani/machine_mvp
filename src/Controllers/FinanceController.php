@@ -27,13 +27,18 @@ class FinanceController {
         // 3. Total Expenses (Expenditures)
         $stmt = $pdo->query("SELECT SUM(amount) FROM expenditures");
         $totalExpenses = $stmt->fetchColumn() ?: 0;
+        
+        // 4. Coffer Transactions (Withdrawals and Deposits)
+        $stmt = $pdo->query("SELECT 
+                             SUM(CASE WHEN type = 'withdrawal' THEN amount ELSE 0 END) as total_withdrawals,
+                             SUM(CASE WHEN type = 'deposit' THEN amount ELSE 0 END) as total_deposits
+                             FROM coffer_transactions");
+        $cofferStats = $stmt->fetch(PDO::FETCH_ASSOC);
+        $totalWithdrawals = $cofferStats['total_withdrawals'] ?: 0;
+        $totalDeposits = $cofferStats['total_deposits'] ?: 0;
 
-        // 4. Coffer Withdrawals
-        $stmt = $pdo->query("SELECT SUM(amount) FROM coffer_transactions");
-        $totalWithdrawals = $stmt->fetchColumn() ?: 0;
-
-        // 5. Coffer Balance = (Total Paid - Total Expenses - Total Withdrawals)
-        $cofferBalance = $totalRevenue - $totalExpenses - $totalWithdrawals;
+        // 5. Coffer Balance = (Total Paid - Total Expenses - Total Withdrawals + Total Deposits)
+        $cofferBalance = $totalRevenue - $totalExpenses - $totalWithdrawals + $totalDeposits;
 
         // 6. Recent Coffer Transactions
         $stmt = $pdo->query("SELECT ct.*, u.username as recorder_name 
@@ -57,7 +62,7 @@ class FinanceController {
             }
 
             $pdo = Database::getInstance();
-            $stmt = $pdo->prepare("INSERT INTO coffer_transactions (amount, purpose, recorded_by) VALUES (:amount, :purpose, :user_id)");
+            $stmt = $pdo->prepare("INSERT INTO coffer_transactions (amount, type, purpose, recorded_by) VALUES (:amount, 'withdrawal', :purpose, :user_id)");
             $stmt->execute([
                 'amount' => $amount,
                 'purpose' => $purpose,
@@ -65,6 +70,30 @@ class FinanceController {
             ]);
 
             header('Location: ' . BASE_URL . '/admin/finance?success=Withdrawal recorded successfully');
+            exit;
+        }
+    }
+
+    public function deposit() {
+        AuthMiddleware::requireAdmin();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $amount = $_POST['amount'] ?? 0;
+            $purpose = $_POST['purpose'] ?? '';
+            
+            if ($amount <= 0 || empty($purpose)) {
+                header('Location: ' . BASE_URL . '/admin/finance?error=Invalid amount or purpose');
+                exit;
+            }
+
+            $pdo = Database::getInstance();
+            $stmt = $pdo->prepare("INSERT INTO coffer_transactions (amount, type, purpose, recorded_by) VALUES (:amount, 'deposit', :purpose, :user_id)");
+            $stmt->execute([
+                'amount' => $amount,
+                'purpose' => $purpose,
+                'user_id' => $_SESSION['user_id']
+            ]);
+
+            header('Location: ' . BASE_URL . '/admin/finance?success=Deposit recorded successfully');
             exit;
         }
     }

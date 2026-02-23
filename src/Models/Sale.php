@@ -406,4 +406,69 @@ class Sale {
             throw $e;
         }
     }
+
+    public function repayBulkDebt($customerId, $totalPayment, $userId) {
+        $this->pdo->beginTransaction();
+        try {
+            // Fetch all unpaid/partial sales for this customer, oldest first
+            $stmt = $this->pdo->prepare("
+                SELECT id, total_amount, paid_amount 
+                FROM sales 
+                WHERE customer_id = :cid 
+                AND voided = 0 
+                AND payment_status != 'paid' 
+                ORDER BY created_at ASC
+            ");
+            $stmt->execute(['cid' => $customerId]);
+            $outstandingSales = $stmt->fetchAll();
+
+            $remainingPayment = $totalPayment;
+            $affectedSales = [];
+
+            foreach ($outstandingSales as $sale) {
+                if ($remainingPayment <= 0) break;
+
+                $debt = $sale['total_amount'] - $sale['paid_amount'];
+                $allocation = min($remainingPayment, $debt);
+
+                if ($allocation <= 0) continue;
+
+                $newPaidAmount = $sale['paid_amount'] + $allocation;
+                $newStatus = ($newPaidAmount >= $sale['total_amount']) ? 'paid' : 'partial';
+
+                // Record Payment
+                $stmtPay = $this->pdo->prepare("INSERT INTO payments (sale_id, amount, recorded_by) VALUES (:sid, :amount, :uid)");
+                $stmtPay->execute([
+                    'sid' => $sale['id'],
+                    'amount' => $allocation,
+                    'uid' => $userId
+                ]);
+
+                // Update Sale
+                $stmtUpdate = $this->pdo->prepare("UPDATE sales SET paid_amount = :paid, payment_status = :status WHERE id = :id");
+                $stmtUpdate->execute([
+                    'paid' => $newPaidAmount,
+                    'status' => $newStatus,
+                    'id' => $sale['id']
+                ]);
+                
+                $affectedSales[] = [
+                    'id' => $sale['id'],
+                    'allocation' => $allocation,
+                    'new_status' => $newStatus
+                ];
+
+                $remainingPayment -= $allocation;
+            }
+
+            $this->pdo->commit();
+            return [
+                'total_allocated' => $totalPayment - $remainingPayment,
+                'affected_sales' => $affectedSales
+            ];
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
 }
