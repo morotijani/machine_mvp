@@ -392,7 +392,7 @@ ob_start();
                                 <td>₵<?= number_format($sale['total_amount'], 2) ?></td>
                                 <td>₵<?= number_format($sale['paid_amount'], 2) ?></td>
                                 <td>₵<?= number_format($sale['balance'], 2) ?></td>
-                                <td><?= ucfirst($sale['payment_status']) ?></td>
+                                <td><span class="badge"><?= ucfirst($sale['payment_status']) ?></span></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

@@ -92,25 +92,29 @@ ob_start();
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3">2. Collections & Returns</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-3">
-                            <h6 class="fw-bold"><span class="material-symbols-outlined align-middle fs-6">payments</span> Recording Payments</h6>
-                            <p class="small text-muted">Found an invoice with pending debt? Click "Record Payment" to update the balance. This money is tracked as <strong>Debt Recovered</strong> on your dashboard.</p>
-                        </li>
-                        <li class="mb-3">
-                            <h6 class="fw-bold"><span class="material-symbols-outlined align-middle fs-6">assignment_return</span> Processing Returns</h6>
-                            <p class="small text-muted">Items returned by customers are restored to stock, and the invoice total is adjusted automatically. This prevents "phantom sales" in your records.</p>
-                        </li>
-                        <li>
-                            <h6 class="fw-bold text-success"><span class="material-symbols-outlined align-middle fs-6">speed</span> Bulk Debt Repayment (Smart Allocation)</h6>
-                            <p class="small text-muted">A customer has 5 different invoices with debt? No problem. Use the <strong class="text-success">Bulk Repayment</strong> button on their profile. Enter the total cash they brought, and the system will automatically settle the <strong>oldest invoices first</strong> (FIFO) until the money runs out. This saves you from recording payments for each invoice manually.</p>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3">2. Collections & Returns</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <h6 class="fw-bold"><span class="material-symbols-outlined align-middle fs-6">payments</span> Recording Payments</h6>
+                                    <p class="small text-muted">Found an invoice with pending debt? Click "Record Payment" to update the balance. This money is tracked as <strong>Debt Recovered</strong> on your dashboard.</p>
+                                </li>
+                                <li class="mb-3">
+                                    <h6 class="fw-bold"><span class="material-symbols-outlined align-middle fs-6">assignment_return</span> Processing Returns</h6>
+                                    <p class="small text-muted">Items returned by customers are restored to stock, and the invoice total is adjusted automatically. This prevents "phantom sales" in your records.</p>
+                                </li>
+                                <li class="mb-3">
+                                    <h6 class="fw-bold text-success"><span class="material-symbols-outlined align-middle fs-6">speed</span> Bulk Debt Repayment (Smart Allocation)</h6>
+                                    <p class="small text-muted">A customer has 5 different invoices with debt? No problem. Use the <strong class="text-success">Bulk Repayment</strong> button on their profile. Enter the total cash they brought, and the system will automatically settle the <strong>oldest invoices first</strong> (FIFO) until the money runs out. This saves you from recording payments for each invoice manually.</p>
+                                </li>
+                                <li>
+                                    <h6 class="fw-bold text-primary"><span class="material-symbols-outlined align-middle fs-6">history_edu</span> Purchase Timeline & Debt History</h6>
+                                    <p class="small text-muted">The customer profile now feature a <strong>Chronological Timeline</strong>. Every purchase and every debt repayment is recorded as a standalone event on the "thread". This gives you and the customer a transparent record of all financial activity over time.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
         </section>
 
         <hr class="my-5 opacity-25">
@@ -140,6 +144,15 @@ ob_start();
                             <h6 class="fw-bold mb-3">Staff & Performance</h6>
                             <p class="small text-muted">Navigate to <span class="text-primary fw-bold">Staff Performance</span> to see individual dealer stats. You can view <strong>Live Performance</strong> cards (Sales, Revenue, Profit, Expenses) and generate printable PDF-style reports.</p>
                         </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm bg-gradient-success p-4 rounded-4" style="background: linear-gradient(135deg, #059669, #10b981); color: white;">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <span class="material-symbols-outlined fs-2">savings</span>
+                            <h6 class="fw-bold mb-0">Coffer & Cash Management</h6>
+                        </div>
+                        <p class="small mb-0 opacity-90">Admins can now record <strong class="text-white">Deposits</strong> and <strong>Withdrawals</strong> from the business coffers. The dashboard tracks the real-time balance based on (Total Cash Invoiced + Deposits - Withdrawals - Recorded Expenses). Use the <span class="badge bg-white text-success px-2 py-1">Record Deposit</span> button in the Finance section for fund injections.</p>
                     </div>
                 </div>
                 <div class="col-12">
