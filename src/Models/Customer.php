@@ -181,4 +181,18 @@ class Customer {
         $stmt = $this->pdo->prepare("DELETE FROM customers WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
+
+    public function getDebtPaymentHistory($customerId) {
+        $sql = "SELECT dp.*, u.username as recorder_name,
+                GROUP_CONCAT(p.sale_id SEPARATOR ', ') as affected_invoices
+                FROM customer_debt_payments dp
+                LEFT JOIN users u ON dp.recorded_by = u.id
+                LEFT JOIN payments p ON dp.id = p.customer_debt_payment_id
+                WHERE dp.customer_id = :cid
+                GROUP BY dp.id
+                ORDER BY dp.payment_date DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['cid' => $customerId]);
+        return $stmt->fetchAll();
+    }
 }

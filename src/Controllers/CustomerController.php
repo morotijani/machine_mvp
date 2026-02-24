@@ -237,20 +237,43 @@ class CustomerController {
         }
 
         $history = $customerModel->getHistory($id);
+        $debtPayments = $customerModel->getDebtPaymentHistory($id);
 
-        // Group history by date
+        // Merge and Sort chronologically
+        $mergedEvents = [];
+        foreach ($history as $sale) {
+            $mergedEvents[] = [
+                'type' => 'sale',
+                'date' => $sale['created_at'],
+                'data' => $sale
+            ];
+        }
+        foreach ($debtPayments as $pay) {
+            $mergedEvents[] = [
+                'type' => 'payment',
+                'date' => $pay['payment_date'],
+                'data' => $pay
+            ];
+        }
+
+        // Sort: Newest first
+        usort($mergedEvents, function($a, $b) {
+            return strtotime($b['date']) - strtotime($a['date']);
+        });
+
+        // Group by date
         $groupedHistory = [];
         $today = date('Y-m-d');
         $yesterday = date('Y-m-d', strtotime('-1 day'));
 
-        foreach ($history as $sale) {
-            $dateKey = date('Y-m-d', strtotime($sale['created_at']));
+        foreach ($mergedEvents as $event) {
+            $dateKey = date('Y-m-d', strtotime($event['date']));
             $label = match($dateKey) {
                 $today => 'Today',
                 $yesterday => 'Yesterday',
-                default => date('jS F, Y', strtotime($sale['created_at']))
+                default => date('jS F, Y', strtotime($event['date']))
             };
-            $groupedHistory[$label][] = $sale;
+            $groupedHistory[$label][] = $event;
         }
 
         require __DIR__ . '/../../views/customers/view.php';

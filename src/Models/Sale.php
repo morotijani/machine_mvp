@@ -410,6 +410,19 @@ class Sale {
     public function repayBulkDebt($customerId, $totalPayment, $userId) {
         $this->pdo->beginTransaction();
         try {
+            // 1. Create a Master Debt Payment Record
+            $stmtMaster = $this->pdo->prepare("
+                INSERT INTO customer_debt_payments (customer_id, amount, recorded_by, notes) 
+                VALUES (:cid, :amount, :uid, :notes)
+            ");
+            $stmtMaster->execute([
+                'cid' => $customerId,
+                'amount' => $totalPayment,
+                'uid' => $userId,
+                'notes' => 'Bulk repayment'
+            ]);
+            $debtPaymentId = $this->pdo->lastInsertId();
+
             // Fetch all unpaid/partial sales for this customer, oldest first
             $stmt = $this->pdo->prepare("
                 SELECT id, total_amount, paid_amount 
@@ -436,12 +449,16 @@ class Sale {
                 $newPaidAmount = $sale['paid_amount'] + $allocation;
                 $newStatus = ($newPaidAmount >= $sale['total_amount']) ? 'paid' : 'partial';
 
-                // Record Payment
-                $stmtPay = $this->pdo->prepare("INSERT INTO payments (sale_id, amount, recorded_by) VALUES (:sid, :amount, :uid)");
+                // Record Individual Sale Payment linked to Master Record
+                $stmtPay = $this->pdo->prepare("
+                    INSERT INTO payments (sale_id, amount, recorded_by, customer_debt_payment_id) 
+                    VALUES (:sid, :amount, :uid, :dpid)
+                ");
                 $stmtPay->execute([
                     'sid' => $sale['id'],
                     'amount' => $allocation,
-                    'uid' => $userId
+                    'uid' => $userId,
+                    'dpid' => $debtPaymentId
                 ]);
 
                 // Update Sale
@@ -461,13 +478,20 @@ class Sale {
                 $remainingPayment -= $allocation;
             }
 
+            // Update master record if extra remains (shouldn't happen with current logic, but keeps it safe)
+            if ($remainingPayment > 0 && $remainingPayment < $totalPayment) {
+                 $stmtUpdateMaster = $this->pdo->prepare("UPDATE customer_debt_payments SET amount = :alloc WHERE id = :id");
+                 $stmtUpdateMaster->execute(['alloc' => $totalPayment - $remainingPayment, 'id' => $debtPaymentId]);
+            }
+
             $this->pdo->commit();
             return [
                 'total_allocated' => $totalPayment - $remainingPayment,
-                'affected_sales' => $affectedSales
+                'affected_sales' => $affectedSales,
+                'debt_payment_id' => $debtPaymentId
             ];
         } catch (Exception $e) {
-            $this->pdo->rollBack();
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
             throw $e;
         }
     }

@@ -11,40 +11,53 @@ class Payment {
     }
 
     public function recordPayment($saleId, $amount, $userId) {
-        // 1. Get Sale Info
-        $stmt = $this->pdo->prepare("SELECT total_amount, paid_amount FROM sales WHERE id = :id");
-        $stmt->execute(['id' => $saleId]);
-        $sale = $stmt->fetch();
-        
-        if (!$sale) {
-            throw new \Exception("Sale not found");
-        }
-
-        $newPaidAmount = $sale['paid_amount'] + $amount;
-        if ($newPaidAmount > $sale['total_amount']) {
-             $newPaidAmount = $sale['total_amount']; // Auto-cap?
-        }
-
-        $status = 'partial';
-        if ($newPaidAmount >= $sale['total_amount']) {
-            $status = 'paid';
-        }
-
         try {
             $this->pdo->beginTransaction();
 
-            // 2. Insert Payment Record
-            $stmt = $this->pdo->prepare("INSERT INTO payments (sale_id, amount, recorded_by) VALUES (:sid, :amount, :uid)");
-            $stmt->execute(['sid' => $saleId, 'amount' => $amount, 'uid' => $userId]);
+            // 1. Get Sale Info
+            $stmt = $this->pdo->prepare("SELECT customer_id, total_amount, paid_amount FROM sales WHERE id = :id");
+            $stmt->execute(['id' => $saleId]);
+            $sale = $stmt->fetch();
+            
+            if (!$sale) {
+                throw new \Exception("Sale not found");
+            }
 
-            // 3. Update Sale
+            // 2. Create Debt Payment Event
+            $stmtDebt = $this->pdo->prepare("
+                INSERT INTO customer_debt_payments (customer_id, amount, recorded_by, notes) 
+                VALUES (:cid, :amount, :uid, :notes)
+            ");
+            $stmtDebt->execute([
+                'cid' => $sale['customer_id'],
+                'amount' => $amount,
+                'uid' => $userId,
+                'notes' => "Payment for Invoice #$saleId"
+            ]);
+            $debtPaymentId = $this->pdo->lastInsertId();
+
+            $newPaidAmount = $sale['paid_amount'] + $amount;
+            if ($newPaidAmount > $sale['total_amount']) {
+                 $newPaidAmount = $sale['total_amount'];
+            }
+
+            $status = 'partial';
+            if ($newPaidAmount >= $sale['total_amount']) {
+                $status = 'paid';
+            }
+
+            // 3. Insert Payment Record
+            $stmt = $this->pdo->prepare("INSERT INTO payments (sale_id, amount, recorded_by, customer_debt_payment_id) VALUES (:sid, :amount, :uid, :dpid)");
+            $stmt->execute(['sid' => $saleId, 'amount' => $amount, 'uid' => $userId, 'dpid' => $debtPaymentId]);
+
+            // 4. Update Sale
             $stmt = $this->pdo->prepare("UPDATE sales SET paid_amount = :paid, payment_status = :status WHERE id = :id");
             $stmt->execute(['paid' => $newPaidAmount, 'status' => $status, 'id' => $saleId]);
 
             $this->pdo->commit();
             return true;
         } catch (\Exception $e) {
-            $this->pdo->rollBack();
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
             return false;
         }
     }

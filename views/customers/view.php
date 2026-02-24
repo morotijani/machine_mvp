@@ -62,17 +62,24 @@ ob_start();
         position: absolute;
         left: -33px;
         top: 20px;
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
         background: #0d6efd;
         border: 3px solid #fff;
         box-shadow: 0 0 0 2px #dee2e6;
         z-index: 2;
     }
+    .timeline-item-marker.payment-marker {
+        background: #198754;
+        box-shadow: 0 0 0 2px #19875444;
+    }
     .timeline-card {
         transition: transform 0.2s, shadow-sm 0.2s;
         border: 1px solid rgba(0,0,0,0.05) !important;
+    }
+    .timeline-card.payment-card {
+        border-right: 4px solid #198754 !important;
     }
     .timeline-card:hover {
         transform: translateX(5px);
@@ -235,20 +242,22 @@ ob_start();
                     <div class="purchase-timeline">
                         <div class="timeline-thread"></div>
                         
-                        <?php foreach ($groupedHistory as $date => $sales): ?>
+                        <?php foreach ($groupedHistory as $date => $events): ?>
                             <div class="timeline-date-group">
                                 <div class="timeline-date-header">
                                     <span class="material-symbols-outlined">calendar_today</span>
                                     <?= e($date) ?>
                                 </div>
                                 
-                                <?php foreach ($sales as $sale): 
-                                    $statusClass = match($sale['payment_status']) {
-                                        'paid' => 'bg-success',
-                                        'partial' => 'bg-warning text-dark',
-                                        'unpaid' => 'bg-danger',
-                                        default => 'bg-secondary'
-                                    };
+                                <?php foreach ($events as $event): 
+                                    if ($event['type'] === 'sale'):
+                                        $sale = $event['data'];
+                                        $statusClass = match($sale['payment_status']) {
+                                            'paid' => 'bg-success',
+                                            'partial' => 'bg-warning text-dark',
+                                            'unpaid' => 'bg-danger',
+                                            default => 'bg-secondary'
+                                        };
                                 ?>
                                     <div class="timeline-item">
                                         <div class="timeline-item-marker"></div>
@@ -257,7 +266,7 @@ ob_start();
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                                     <div>
                                                         <div class="d-flex align-items-center gap-2 mb-1">
-                                                            <span class="fw-bold text-primary">#<?= $sale['id'] ?></span>
+                                                            <span class="fw-bold text-primary">Purchase #<?= $sale['id'] ?></span>
                                                             <span class="text-muted small d-flex align-items-center gap-1">
                                                                 <span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>
                                                                 <?= date('h:i A', strtotime($sale['created_at'])) ?>
@@ -307,6 +316,46 @@ ob_start();
                                             </div>
                                         </div>
                                     </div>
+                                <?php else: // Payment Event
+                                    $pay = $event['data'];
+                                ?>
+                                    <div class="timeline-item">
+                                        <div class="timeline-item-marker payment-marker"></div>
+                                        <div class="card timeline-card payment-card shadow-sm border-success bg-success bg-opacity-10">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                                            <span class="fw-bold text-success d-flex align-items-center gap-1">
+                                                                <span class="material-symbols-outlined" style="font-size: 18px;">payments</span>
+                                                                Debt Repayment
+                                                            </span>
+                                                            <span class="text-muted small d-flex align-items-center gap-1">
+                                                                <span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>
+                                                                <?= date('h:i A', strtotime($pay['payment_date'])) ?>
+                                                            </span>
+                                                        </div>
+                                                        <div class="small text-muted mb-1">
+                                                            <strong>Recorded By:</strong> <?= e($pay['recorder_name']) ?>
+                                                        </div>
+                                                        <div class="small text-dark">
+                                                            <strong>Note:</strong> <?= e($pay['notes'] ?: 'No details') ?>
+                                                        </div>
+                                                        <?php if (!empty($pay['affected_invoices'])): ?>
+                                                            <div class="mt-2 small">
+                                                                <span class="text-muted">Applied to Invoices:</span>
+                                                                <span class="badge bg-white text-dark border shadow-sm">#<?= str_replace(', ', '</span> <span class="badge bg-white text-dark border shadow-sm">#', e($pay['affected_invoices'])) ?></span>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <div class="h5 mb-0 text-success fw-bold">+₵<?= number_format($pay['amount'], 2) ?></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                                 <?php endforeach; ?>
                             </div>
                         <?php endforeach; ?>
@@ -319,7 +368,7 @@ ob_start();
         <div class="d-none d-print-block">
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0 print-title">Purchase History</h5>
+                    <h5 class="mb-0 print-title" id="printTitle">Purchase History</h5>
                 </div>
                 <div class="card-body p-0">
                     <table class="table align-middle mb-0" id="purchaseHistoryTable">
@@ -429,7 +478,7 @@ ob_start();
 function printRecords(filter) {
     const rows = document.querySelectorAll('#purchaseHistoryTable tbody tr');
     const printTitle = document.getElementById('printTitle');
-    const normalTitle = document.querySelector('.card-header h5:not(.print-title)');
+    const normalTitle = document.querySelector('.no-print .card-header h5');
     
     // Set title based on filter
     const titles = {
@@ -440,7 +489,10 @@ function printRecords(filter) {
         'outstanding': 'Outstanding Debt Records (Unpaid & Partial)'
     };
     
-    printTitle.textContent = titles[filter] || 'Purchase History';
+    if (printTitle) {
+        printTitle.textContent = titles[filter] || 'Purchase History';
+        printTitle.style.display = 'block';
+    }
     
     // Filter rows
     rows.forEach(row => {
@@ -473,8 +525,7 @@ function printRecords(filter) {
     });
     
     // Show print title, hide normal title
-    printTitle.style.display = 'block';
-    normalTitle.style.display = 'none';
+    if (normalTitle) normalTitle.style.display = 'none';
     
     // Print
     window.print();
@@ -482,8 +533,8 @@ function printRecords(filter) {
     // Restore after print
     setTimeout(() => {
         rows.forEach(row => row.style.display = '');
-        printTitle.style.display = 'none';
-        normalTitle.style.display = 'block';
+        if (printTitle) printTitle.style.display = 'none';
+        if (normalTitle) normalTitle.style.display = 'block';
     }, 100);
 }
 
