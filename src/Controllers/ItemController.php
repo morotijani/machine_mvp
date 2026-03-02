@@ -394,4 +394,31 @@ class ItemController {
         }
         exit;
     }
+
+    public function view() {
+        AuthMiddleware::requireLogin();
+        $id = $_GET['id'] ?? null;
+        if (!$id) { header('Location: ' . BASE_URL . '/items'); exit; }
+
+        $pdo = Database::getInstance();
+        $itemModel = new Item($pdo);
+        $item = $itemModel->find($id);
+
+        if (!$item) { header('Location: ' . BASE_URL . '/items'); exit; }
+
+        $salesHistory = $itemModel->getSalesHistory($id);
+        $components = [];
+        if ($item['type'] === 'bundle') {
+            $components = $itemModel->getBundleComponents($id);
+            foreach ($components as &$comp) {
+                $stmt = $pdo->prepare("SELECT price, sku FROM items WHERE id = :id");
+                $stmt->execute(['id' => $comp['child_item_id']]);
+                $child = $stmt->fetch();
+                $comp['selling_price'] = $child['price'] ?? 0;
+                $comp['child_sku'] = $child['sku'] ?? 'N/A';
+            }
+        }
+
+        require __DIR__ . '/../../views/items/view.php';
+    }
 }

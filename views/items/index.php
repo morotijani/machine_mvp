@@ -149,7 +149,9 @@ if (isset($isPrint) && $isPrint) {
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div class="fw-bold"><?= e($item['name']) ?></div>
+                                    <a href="<?= BASE_URL ?>/items/view?id=<?= $item['id'] ?>" class="text-decoration-none">
+                                        <div class="fw-bold"><?= e($item['name']) ?></div>
+                                    </a>
                                     <?php if ($item['type'] === 'bundle'): ?>
                                         <span class="badge bg-info bg-opacity-10 text-info smaller">Bundle</span>
                                     <?php endif; ?>

@@ -101,6 +101,7 @@ $router->post('/items/create', [$itemController, 'create']);
 $router->get('/items/edit', [$itemController, 'edit']);
 $router->post('/items/edit', [$itemController, 'edit']);
 $router->get('/items/preview', [$itemController, 'preview']);
+$router->get('/items/view', [$itemController, 'view']);
 $router->get('/api/items/find-by-sku', [$itemController, 'apiFindItemBySku']);
 $router->get('/items/create-bundle', [$itemController, 'createBundle']);
 $router->post('/items/create-bundle', [$itemController, 'createBundle']);

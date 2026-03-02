@@ -444,4 +444,17 @@ class Item {
             throw $e;
         }
     }
+
+    public function getSalesHistory($itemId) {
+        $sql = "SELECT si.*, s.created_at, s.payment_status, c.name as customer_name, c.id as customer_id, u.username as seller_name
+                FROM sale_items si
+                JOIN sales s ON si.sale_id = s.id
+                LEFT JOIN customers c ON s.customer_id = c.id
+                LEFT JOIN users u ON s.user_id = u.id
+                WHERE si.item_id = :iid AND s.voided = 0
+                ORDER BY s.created_at DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['iid' => $itemId]);
+        return $stmt->fetchAll();
+    }
 }
