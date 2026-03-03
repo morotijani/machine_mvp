@@ -39,89 +39,55 @@ class ReportController {
         $stmtProfit->execute(array_merge(['today' => $today], $params));
         $dailyProfit = $stmtProfit->fetchColumn() ?: 0;
 
-    // 2.a Realized Today (Collections from Today's Sales)
-    // Actual Cash Collected Today for sales created today
-    $sqlCol = "SELECT SUM(p.amount) 
+    // 2.a Realized Today (Collections & Refunds)
+// 1. Total Payments received TODAY (from any sale)
+$sqlPayToday = "SELECT SUM(p.amount) FROM payments p WHERE DATE(p.payment_date) = :today" . ($isSales ? " AND p.recorded_by = :uid" : "");
+$stmtPayToday = $pdo->prepare($sqlPayToday);
+$stmtPayToday->execute(array_merge(['today' => $today], $params));
+$totalPaymentsToday = $stmtPayToday->fetchColumn() ?: 0;
+
+// 2. Debt Recovered Today (Payments today where sale was created BEFORE today)
+$sqlDebtCol = "SELECT SUM(p.amount) 
                FROM payments p 
                JOIN sales s ON p.sale_id = s.id 
-               WHERE DATE(s.created_at) = :today_sale 
-               AND DATE(p.payment_date) = :today_pay 
-               AND s.voided = 0" . $userFilterS;
-    $stmtCol = $pdo->prepare($sqlCol);
-    $stmtCol->execute(array_merge(['today_sale' => $today, 'today_pay' => $today], $params));
-    $todayCollected = $stmtCol->fetchColumn() ?: 0;
+               WHERE DATE(p.payment_date) = :today_pay 
+               AND DATE(s.created_at) < :today_sale" . ($isSales ? " AND p.recorded_by = :uid" : "");
+$stmtDebtCol = $pdo->prepare($sqlDebtCol);
+$stmtDebtCol->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
+$todayDebtCollected = $stmtDebtCol->fetchColumn() ?: 0;
 
-    // Deduct Returns processed TODAY
-    $sqlReturns = "SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :today_return"; 
-    
-    if ($isSales) {
-        $sqlReturns .= " AND recorded_by = :uid";
-    }
+// 3. Cash from Today's Sales Only
+$todayNewSalesCollected = $totalPaymentsToday - $todayDebtCollected;
 
-    $stmtReturns = $pdo->prepare($sqlReturns);
-    $returnParams = ['today_return' => $today];
-    if ($isSales) {
-        $returnParams['uid'] = $uid;
-    }
-    $stmtReturns->execute($returnParams);
-    $todayReturns = $stmtReturns->fetchColumn() ?: 0;
+// 4. Actual Cash Returns/Refunds processed TODAY
+$sqlReturns = "SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :today_return";
+if ($isSales) $sqlReturns .= " AND recorded_by = :uid";
+$stmtReturns = $pdo->prepare($sqlReturns);
+$stmtReturns->execute(array_merge(['today_return' => $today], $params));
+$todayReturnsValue = $stmtReturns->fetchColumn() ?: 0;
 
-    $todayCollected -= $todayReturns;
+// 5. Total Net Collections (Actual Cash In - Actual Cash Out)
+$totalNetCollections = $totalPaymentsToday - $todayReturnsValue; 
 
-    // Deduct Returns processed TODAY
-    // Returns are recorded in sale_returns. created_at is the return date.
-    $sqlReturns = "SELECT SUM(total_deduction) 
-                   FROM sale_returns 
-                   WHERE DATE(created_at) = :today_return"; 
-                   // Note: If sales user, we might want to filter by recorded_by.
-                   // But for now, let's keep it global or match $userFilterS logic if returns have user_id?
-                   // sale_returns has recorded_by.
-    if ($isSales) {
-        $sqlReturns .= " AND recorded_by = :uid";
-    }
+// 2.b Realized Gross Profit (Actual earned profit from collections)
+// Formula: SUM( (payment_amount / sale_total) * sale_potential_profit )
+// We calculate this for ALL payments made today.
+$sqlRealizedProfit = "
+    SELECT SUM(
+        (p.amount / s.total_amount) * 
+        (SELECT SUM(si.quantity * (si.price_at_sale - i.cost_price)) 
+         FROM sale_items si 
+         JOIN items i ON si.item_id = i.id 
+         WHERE si.sale_id = s.id)
+    )
+    FROM payments p
+    JOIN sales s ON p.sale_id = s.id
+    WHERE DATE(p.payment_date) = :today AND s.voided = 0 AND s.total_amount > 0
+" . ($isSales ? " AND p.recorded_by = :uid" : "");
 
-    $stmtReturns = $pdo->prepare($sqlReturns);
-    $returnParams = ['today_return' => $today];
-    if ($isSales) {
-        $returnParams['uid'] = $uid;
-    }
-    $stmtReturns->execute($returnParams);
-    $todayReturns = $stmtReturns->fetchColumn() ?: 0;
-
-    $todayCollected -= $todayReturns;
-
-    // Realized Profit (Exact): Sum over items in today's sales: (PaidAmount / TotalAmount) * Qty * (PriceAtSale - ItemCostPrice)
-    // This is much more precise than the previous approximation.
-    $sqlProfitExact = "SELECT SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) 
-                       FROM sales s 
-                       JOIN sale_items si ON s.id = si.sale_id 
-                       JOIN items i ON si.item_id = i.id 
-                       WHERE DATE(s.created_at) = :today AND s.voided = 0 AND s.total_amount > 0" . $userFilterS;
-    $stmtProfitExact = $pdo->prepare($sqlProfitExact);
-    $stmtProfitExact->execute(array_merge(['today' => $today], $params));
-    $todayRealizedProfit = $stmtProfitExact->fetchColumn() ?: 0;
-
-    // 2.b Debt Recovered Today (Payments made today for sales created BEFORE today)
-    // Admin sees ALL, Sales sees OWN.
-    // If $isSales, filter by p.recorded_by = $uid.
-    // Note: $userFilterS filters Sales table, not Payments table. Payments table has recorded_by.
-    // We should use p.recorded_by for Sales users.
-    $debtFilter = $isSales ? " AND p.recorded_by = :uid" : "";
-    $sqlDebtCol = "SELECT SUM(p.amount) 
-                   FROM payments p 
-                   JOIN sales s ON p.sale_id = s.id 
-                   WHERE DATE(p.payment_date) = :today_pay 
-                   AND DATE(s.created_at) < :today_sale" . $debtFilter;
-    
-    $stmtDebtCol = $pdo->prepare($sqlDebtCol);
-    // Determine params: today_pay, today_sale, and optionally uid
-    $debtParams = ['today_pay' => $today, 'today_sale' => $today];
-    if ($isSales) {
-        $debtParams['uid'] = $uid;
-    }
-    
-    $stmtDebtCol->execute($debtParams);
-    $todayDebtCollected = $stmtDebtCol->fetchColumn() ?: 0;
+$stmtRealized = $pdo->prepare($sqlRealizedProfit);
+$stmtRealized->execute(array_merge(['today' => $today], $params));
+$todayRealizedProfit = $stmtRealized->fetchColumn() ?: 0;
 
         // 3. Outstanding Debt (Sales-based)
         $sqlDebt = "SELECT SUM(total_amount - paid_amount) FROM sales WHERE payment_status != 'paid' AND voided = 0" . $userFilter;
