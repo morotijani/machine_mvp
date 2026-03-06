@@ -56,22 +56,43 @@ $stmtDebtCol = $pdo->prepare($sqlDebtCol);
 $stmtDebtCol->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
 $todayDebtCollected = $stmtDebtCol->fetchColumn() ?: 0;
 
-// 3. Cash from Today's Sales Only
-$todayNewSalesCollected = $totalPaymentsToday - $todayDebtCollected;
+// 3. Gross Today's New Sales Payments (Payments today for sales created today)
+$sqlNewPay = "SELECT SUM(p.amount) 
+              FROM payments p 
+              JOIN sales s ON p.sale_id = s.id 
+              WHERE DATE(p.payment_date) = :today_pay 
+              AND DATE(s.created_at) = :today_sale" . ($isSales ? " AND p.recorded_by = :uid" : "");
+$stmtNewPay = $pdo->prepare($sqlNewPay);
+$stmtNewPay->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
+$todayNewSalesGross = $stmtNewPay->fetchColumn() ?: 0;
 
-// 4. Actual Cash Returns/Refunds processed TODAY
-$sqlReturns = "SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :today_return";
-if ($isSales) $sqlReturns .= " AND recorded_by = :uid";
-$stmtReturns = $pdo->prepare($sqlReturns);
-$stmtReturns->execute(array_merge(['today_return' => $today], $params));
-$todayReturnsValue = $stmtReturns->fetchColumn() ?: 0;
+// 4. Returns Partitioning
+// 4a. Returns of Today's Sales (New Business returns)
+$sqlNewReturns = "SELECT SUM(r.total_deduction) 
+                  FROM sale_returns r 
+                  JOIN sales s ON r.sale_id = s.id 
+                  WHERE DATE(r.created_at) = :today_ret 
+                  AND DATE(s.created_at) = :today_sale" . ($isSales ? " AND r.recorded_by = :uid" : "");
+$stmtNewReturns = $pdo->prepare($sqlNewReturns);
+$stmtNewReturns->execute(array_merge(['today_ret' => $today, 'today_sale' => $today], $params));
+$todayReturnsValueNew = $stmtNewReturns->fetchColumn() ?: 0;
 
-// 5. Total Net Collections (Actual Cash In - Actual Cash Out)
-$totalNetCollections = $totalPaymentsToday - $todayReturnsValue; 
+// 4b. Total Returns processed TODAY (Global/User-filtered)
+$sqlTotalReturns = "SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :today_return" . ($isSales ? " AND recorded_by = :uid" : "");
+$stmtTotalReturns = $pdo->prepare($sqlTotalReturns);
+$stmtTotalReturns->execute(array_merge(['today_return' => $today], $params));
+$totalReturnsToday = $stmtTotalReturns->fetchColumn() ?: 0;
+
+// 5. Final Metrics for View
+// Net Cash from New Sales = Gross Payments for Today's Sales - Returns of Today's Sales
+$todayNewSalesCollected = $todayNewSalesGross - $todayReturnsValueNew;
+
+// Total Net Collections = All payments today - all returns today
+$totalNetCollections = $totalPaymentsToday - $totalReturnsToday;
 
 // 2.b Realized Gross Profit (Actual earned profit from collections)
 // Formula: SUM( (payment_amount / sale_total) * sale_potential_profit )
-// We calculate this for ALL payments made today.
+// This naturally accounts for returns because total_amount is reduced in the denominator.
 $sqlRealizedProfit = "
     SELECT SUM(
         (p.amount / s.total_amount) * 
@@ -150,6 +171,25 @@ $todayRealizedProfit = $stmtRealized->fetchColumn() ?: 0;
         $stmt = $pdo->prepare($sqlMonthly);
         $stmt->execute(array_merge(['start' => $monthStart], $params));
         $monthlyStats = $stmt->fetch();
+
+        // 10. Today's Returns List (Broken down by item)
+        $sqlTodayReturns = "
+            SELECT 
+                i.name as item_name, 
+                ri.quantity, 
+                (ri.quantity * ri.price_at_sale) as deduction,
+                u.username as salesperson,
+                DATE_FORMAT(r.created_at, '%H:%i') as return_time
+            FROM sale_return_items ri
+            JOIN sale_returns r ON ri.return_id = r.id
+            JOIN items i ON ri.item_id = i.id
+            JOIN users u ON r.recorded_by = u.id
+            WHERE DATE(r.created_at) = :today" . ($isSales ? " AND r.recorded_by = :uid" : "") . "
+            ORDER BY r.created_at DESC
+        ";
+        $stmtTodayReturns = $pdo->prepare($sqlTodayReturns);
+        $stmtTodayReturns->execute(array_merge(['today' => $today], $params));
+        $todayReturnedItemsList = $stmtTodayReturns->fetchAll();
 
         require __DIR__ . '/../../views/dashboard/index.php';
     }

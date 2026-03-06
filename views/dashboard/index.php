@@ -252,6 +252,62 @@
                 </div>
             </div>
         </div>
+
+        <!-- TODAY'S RETURNS TABLE -->
+        <div class="row mt-4 mb-5">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center border-0 pt-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-danger">assignment_return</span>
+                            Today's Returned Items
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger rounded-pill"><?php echo count($todayReturnedItemsList); ?> Items</span>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($todayReturnedItemsList)): ?>
+                            <div class="text-center py-4 text-muted">
+                                <span class="material-symbols-outlined fs-1 mb-2 d-block">inventory_2</span>
+                                No items have been returned today.
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Item Name</th>
+                                            <th class="text-center">Qty</th>
+                                            <th class="text-end">Deduction</th>
+                                            <?php if ($isAdmin): ?>
+                                            <th>Sales Person</th>
+                                            <?php endif; ?>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($todayReturnedItemsList as $ret): ?>
+                                            <tr>
+                                                <td class="text-muted small"><?php echo $ret['return_time']; ?></td>
+                                                <td class="fw-bold"><?php echo htmlspecialchars($ret['item_name']); ?></td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-light text-dark border"><?php echo $ret['quantity']; ?></span>
+                                                </td>
+                                                <td class="text-end fw-bold text-danger">₵<?php echo number_format($ret['deduction'], 2); ?></td>
+                                                <?php if ($isAdmin): ?>
+                                                <td>
+                                                    <span class="badge bg-info-subtle text-info"><?php echo htmlspecialchars($ret['salesperson']); ?></span>
+                                                </td>
+                                                <?php endif; ?>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <?php
