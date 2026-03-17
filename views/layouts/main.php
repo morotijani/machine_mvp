@@ -22,7 +22,7 @@
 </head>
 <body>
     <!-- Top Fixed Navbar -->
-    <header class="navbar navbar-top fixed-top flex-md-nowrap p-0 shadow-sm bg-white">
+    <header class="navbar navbar-top fixed-top flex-md-nowrap p-0 shadow-sm bg-white no-print">
         <!-- Mobile Toggle (Left aligned) -->
         <button class="navbar-toggler d-lg-none collapsed border-0" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation" style="margin-left: 10px;">
             <span class="navbar-toggler-icon"></span>
@@ -72,7 +72,7 @@
     </header>
 
     <div class="d-flex align-items-stretch w-100">
-        <nav class="sidebar collapse d-lg-block" id="sidebarMenu">
+        <nav class="sidebar collapse d-lg-block no-print" id="sidebarMenu">
             <div class="sidebar-sticky">
                     <!-- Removed Branding from here -->
                     <ul class="nav flex-column nav-flex-column mt-3">

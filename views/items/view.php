@@ -205,6 +205,7 @@ ob_start();
                 </h5>
             </div>
             <div class="card-body p-0">
+
                 <?php if (empty($activityLogs)): ?>
                     <div class="text-center py-5">
                         <span class="material-symbols-outlined fs-1 text-muted mb-3">history_toggle_off</span>

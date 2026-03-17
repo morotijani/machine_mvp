@@ -475,11 +475,12 @@ class Item {
     public function getLogs($itemId) {
         $sql = "SELECT l.*, u.username as operator_name 
                 FROM item_logs l 
-                JOIN users u ON l.user_id = u.id 
+                LEFT JOIN users u ON l.user_id = u.id 
                 WHERE l.item_id = :iid 
                 ORDER BY l.created_at DESC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['iid' => $itemId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getParentBundles($childItemId) {

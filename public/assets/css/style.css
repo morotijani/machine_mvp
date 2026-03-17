@@ -368,12 +368,22 @@
       display: none !important;
     }
 
+    header {
+      display: none !important;
+    }
+
     main {
       margin-left: 0 !important;
       width: 100% !important;
+      padding: 0 !important;
     }
 
     .sidebar {
       display: none !important;
+    }
+
+    body {
+      padding-top: 0 !important;
+      background-color: #fff !important;
     }
   }

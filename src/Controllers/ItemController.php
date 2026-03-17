@@ -5,41 +5,44 @@ use App\Config\Database;
 use App\Models\Item;
 use App\Middleware\AuthMiddleware;
 
-class ItemController {
-    
-    public function index() {
+class ItemController
+{
+
+    public function index()
+    {
         AuthMiddleware::requireLogin();
         $pdo = Database::getInstance();
         $itemModel = new Item($pdo);
-        
+
         // Store current URL for persistence
         $_SESSION['last_items_url'] = $_SERVER['REQUEST_URI'];
         $_SESSION['item_referer'] = 'list';
-        
+
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $search = isset($_GET['search']) ? trim($_GET['search']) : null;
         $lowStock = isset($_GET['low_stock']) && $_GET['low_stock'] == 1;
         $sort = $_GET['sort'] ?? 'created_at';
         $order = $_GET['order'] ?? 'DESC';
-        
+
         $limit = 10;
-        
+
         // If print mode is requested, fetch all items matching criteria
         $isPrint = isset($_GET['print']);
         if ($isPrint) {
             $limit = 999999; // Effectively "all"
         }
-        
+
         $offset = ($page - 1) * $limit;
-        
+
         $items = $itemModel->getAll($limit, $offset, $search, $lowStock, $sort, $order);
         $totalItems = $itemModel->countAll($search, $lowStock);
         $totalPages = ceil($totalItems / $limit);
-        
+
         require __DIR__ . '/../../views/items/index.php';
     }
 
-    public function create() {
+    public function create()
+    {
         AuthMiddleware::requireAdmin();
         $pdo = Database::getInstance();
         $itemModel = new Item($pdo);
@@ -47,13 +50,14 @@ class ItemController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $sku = trim($_POST['sku'] ?? '');
-                
+
                 if (!empty($sku)) {
                     // Validate manually entered SKU
                     if ($itemModel->isSkuExists($sku)) {
                         throw new \Exception("The SKU '$sku' is already in use by another item.");
                     }
-                } else {
+                }
+                else {
                     // Generate unique SKU automatically
                     $sku = $itemModel->generateUniqueSKU('SKU');
                 }
@@ -72,12 +76,13 @@ class ItemController {
 
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                     $uploadDir = __DIR__ . '/../../public/uploads/items/';
-                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-                    
+                    if (!is_dir($uploadDir))
+                        mkdir($uploadDir, 0777, true);
+
                     $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
                     $finfo = new \finfo(FILEINFO_MIME_TYPE);
                     $mimeType = $finfo->file($_FILES['image']['tmp_name']);
-                    
+
                     if (in_array($mimeType, $allowedMimeTypes)) {
                         $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
                         $filename = uniqid('item_') . '.' . $extension;
@@ -88,7 +93,7 @@ class ItemController {
                 }
 
                 $itemId = $itemModel->create($data);
-                
+
                 // Add Log
                 $itemModel->addLog([
                     'item_id' => $itemId,
@@ -102,7 +107,8 @@ class ItemController {
                 header('Location: ' . $returnUrl);
                 exit;
 
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 $error = $e->getMessage();
                 require __DIR__ . '/../../views/items/create.php';
                 return;
@@ -112,7 +118,8 @@ class ItemController {
         require __DIR__ . '/../../views/items/create.php';
     }
 
-    public function edit() {
+    public function edit()
+    {
         AuthMiddleware::requireAdmin();
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -129,8 +136,8 @@ class ItemController {
             exit;
         }
 
-        $backUrl = ($_SESSION['item_referer'] ?? 'list') === 'detail' 
-            ? BASE_URL . '/items/view?id=' . $id 
+        $backUrl = ($_SESSION['item_referer'] ?? 'list') === 'detail'
+            ? BASE_URL . '/items/view?id=' . $id
             : ($_SESSION['last_items_url'] ?? (BASE_URL . '/items'));
 
         if ($item['type'] === 'bundle') {
@@ -140,7 +147,7 @@ class ItemController {
                     if (empty($sku)) {
                         $sku = $item['sku'];
                     }
-                    
+
                     if ($sku !== $item['sku'] && $itemModel->isSkuExists($sku, $id)) {
                         throw new \Exception("The SKU '$sku' is already in use by another item.");
                     }
@@ -154,7 +161,7 @@ class ItemController {
                         'quantity' => $_POST['quantity'],
                         'unit' => 'bundle'
                     ];
-                    
+
                     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                         if (!empty($item['image_path']) && file_exists(__DIR__ . '/../../public/' . $item['image_path'])) {
                             unlink(__DIR__ . '/../../public/' . $item['image_path']);
@@ -163,7 +170,8 @@ class ItemController {
                         $filename = uniqid('item_') . '.' . pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
                         move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename);
                         $data['image_path'] = 'uploads/items/' . $filename;
-                    } else {
+                    }
+                    else {
                         $data['image_path'] = $item['image_path'];
                     }
 
@@ -229,7 +237,8 @@ class ItemController {
                     header('Location: ' . $backUrl);
                     exit;
 
-                } catch (\Exception $e) {
+                }
+                catch (\Exception $e) {
                     $error = $e->getMessage();
                 }
             }
@@ -264,14 +273,16 @@ class ItemController {
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                     if (!empty($item['image_path'])) {
                         $old = __DIR__ . '/../../public/' . $item['image_path'];
-                        if (file_exists($old)) unlink($old);
+                        if (file_exists($old))
+                            unlink($old);
                     }
                     $uploadDir = __DIR__ . '/../../public/uploads/items/';
                     $filename = uniqid('item_') . '.' . pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
                     if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename)) {
                         $data['image_path'] = 'uploads/items/' . $filename;
                     }
-                } else {
+                }
+                else {
                     $data['image_path'] = $item['image_path'];
                 }
 
@@ -331,7 +342,8 @@ class ItemController {
                 header('Location: ' . $backUrl);
                 exit;
 
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 $error = $e->getMessage();
             }
         }
@@ -339,7 +351,8 @@ class ItemController {
         require __DIR__ . '/../../views/items/edit.php';
     }
 
-    public function createBundle() {
+    public function createBundle()
+    {
         AuthMiddleware::requireAdmin();
         $pdo = Database::getInstance();
         $itemModel = new Item($pdo);
@@ -347,13 +360,14 @@ class ItemController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $sku = trim($_POST['sku'] ?? '');
-                
+
                 if (!empty($sku)) {
                     // Validate manually entered SKU
                     if ($itemModel->isSkuExists($sku)) {
                         throw new \Exception("The SKU '$sku' is already in use by another item.");
                     }
-                } else {
+                }
+                else {
                     // Generate unique SKU automatically
                     $sku = $itemModel->generateUniqueSKU('BND');
                 }
@@ -367,10 +381,11 @@ class ItemController {
                     'location' => $_POST['location'],
                     'unit' => 'bundle'
                 ];
-                
+
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                     $uploadDir = __DIR__ . '/../../public/uploads/items/';
-                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+                    if (!is_dir($uploadDir))
+                        mkdir($uploadDir, 0777, true);
                     $fileName = uniqid() . '_' . basename($_FILES['image']['name']);
                     move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $fileName);
                     $data['image_path'] = 'uploads/items/' . $fileName;
@@ -385,7 +400,8 @@ class ItemController {
                     }
                 }
 
-                if (empty($components)) throw new \Exception("A bundle must have at least one item.");
+                if (empty($components))
+                    throw new \Exception("A bundle must have at least one item.");
 
                 $bundleId = $itemModel->createBundle($data, $components);
 
@@ -402,7 +418,8 @@ class ItemController {
                 header('Location: ' . $returnUrl);
                 exit;
 
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 $error = $e->getMessage();
                 $items = $itemModel->getAll();
                 require __DIR__ . '/../../views/items/create_bundle.php';
@@ -424,16 +441,23 @@ class ItemController {
         require __DIR__ . '/../../views/items/create_bundle.php';
     }
 
-    public function preview() {
+    public function preview()
+    {
         AuthMiddleware::requireLogin();
         $id = $_GET['id'] ?? null;
-        if (!$id) { header('Location: ' . BASE_URL . '/items'); exit; }
+        if (!$id) {
+            header('Location: ' . BASE_URL . '/items');
+            exit;
+        }
 
         $pdo = Database::getInstance();
         $itemModel = new Item($pdo);
         $item = $itemModel->find($id);
-        
-        if (!$item || $item['type'] !== 'bundle') { header('Location: ' . BASE_URL . '/items'); exit; }
+
+        if (!$item || $item['type'] !== 'bundle') {
+            header('Location: ' . BASE_URL . '/items');
+            exit;
+        }
 
         $components = $itemModel->getBundleComponents($id);
         foreach ($components as &$comp) {
@@ -446,12 +470,13 @@ class ItemController {
         require __DIR__ . '/../../views/items/preview.php';
     }
 
-    public function ungroupBundle() {
+    public function ungroupBundle()
+    {
         AuthMiddleware::requireLogin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $bundleId = $_POST['bundle_id'];
             $quantity = (int)$_POST['quantity'];
-            
+
             if ($quantity < 1) {
                 header('Location: ' . BASE_URL . '/items/edit?id=' . $bundleId . '&error=Invalid quantity');
                 exit;
@@ -459,10 +484,10 @@ class ItemController {
 
             $pdo = Database::getInstance();
             $itemModel = new Item($pdo);
-            
+
             try {
                 $itemModel->disassembleBundle($bundleId, $quantity);
-                
+
                 // Add Log
                 $itemModel->addLog([
                     'item_id' => $bundleId,
@@ -472,19 +497,21 @@ class ItemController {
                 ]);
 
                 header('Location: ' . BASE_URL . '/items?success=Ungrouped successfully');
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 header('Location: ' . BASE_URL . '/items/edit?id=' . $bundleId . '&error=' . urlencode($e->getMessage()));
             }
             exit;
         }
     }
 
-    public function delete() {
+    public function delete()
+    {
         AuthMiddleware::requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'];
             $pdo = Database::getInstance();
-            
+
             // Check if item is part of a bundle
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM item_bundles WHERE child_item_id = :id");
             $stmt->execute(['id' => $id]);
@@ -501,10 +528,11 @@ class ItemController {
         }
     }
 
-    public function apiFindItemBySku() {
+    public function apiFindItemBySku()
+    {
         header('Content-Type: application/json');
         AuthMiddleware::requireLogin();
-        
+
         $sku = trim($_GET['sku'] ?? '');
         if (empty($sku)) {
             echo json_encode(['success' => false, 'message' => 'SKU is required']);
@@ -517,22 +545,30 @@ class ItemController {
 
         if ($item) {
             echo json_encode(['success' => true, 'item' => $item]);
-        } else {
+        }
+        else {
             echo json_encode(['success' => false, 'message' => 'Item not found']);
         }
         exit;
     }
 
-    public function view() {
+    public function view()
+    {
         AuthMiddleware::requireLogin();
         $id = $_GET['id'] ?? null;
-        if (!$id) { header('Location: ' . BASE_URL . '/items'); exit; }
+        if (!$id) {
+            header('Location: ' . BASE_URL . '/items');
+            exit;
+        }
 
         $pdo = Database::getInstance();
         $itemModel = new Item($pdo);
         $item = $itemModel->find($id);
 
-        if (!$item) { header('Location: ' . BASE_URL . '/items'); exit; }
+        if (!$item) {
+            header('Location: ' . BASE_URL . '/items');
+            exit;
+        }
 
         $_SESSION['item_referer'] = 'detail';
 
