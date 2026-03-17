@@ -7,6 +7,9 @@ ob_start();
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
             <h1 class="h2">Reports & Analytics</h1>
             <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+                <a href="<?= BASE_URL ?>/reports/daily" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span> Daily Activity Report
+                </a>
                 <a href="<?= BASE_URL ?>/reports/export?type=monthly_comparison&year=<?= $selectedYear ?>" class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
                     <span class="material-symbols-outlined" style="font-size: 18px;">download</span> Export CSV
                 </a>

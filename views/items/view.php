@@ -8,7 +8,7 @@ ob_start();
         <!-- Back and Title -->
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 no-print">
             <div class="d-flex align-items-center gap-2">
-                <a href="<?= BASE_URL ?>/items" class="btn btn-outline-secondary btn-sm">
+                <a href="<?= $_SESSION['last_items_url'] ?? (BASE_URL . '/items') ?>" class="btn btn-outline-secondary btn-sm">
                     <span class="material-symbols-outlined align-middle" style="font-size: 18px;">arrow_back</span>
                 </a>
                 <h1 class="h2 mb-0">Item Detail</h1>
@@ -141,6 +141,106 @@ ob_start();
                                     </td>
                                     <td class="text-end">₵<?= number_format($sale['price_at_sale'], 2) ?></td>
                                     <td class="text-end pe-4 fw-bold text-primary">₵<?= number_format($sale['subtotal'], 2) ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <!-- Parent Bundles (If part of any bundle) -->
+        <?php if (!empty($parentBundles)): ?>
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">inventory_2</span>
+                    Included in Bundles
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="bg-light text-muted small text-uppercase fw-bold">
+                            <tr>
+                                <th class="ps-4">Bundle Name</th>
+                                <th>Category</th>
+                                <th class="text-center">Qty per Bundle</th>
+                                <th class="text-center">Total Bundle Stock</th>
+                                <th class="pe-4 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($parentBundles as $bundle): ?>
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark"><?= e($bundle['name']) ?></div>
+                                    <div class="text-muted smaller"><?= e($bundle['sku']) ?></div>
+                                </td>
+                                <td><span class="badge bg-light text-dark border"><?= e($bundle['category']) ?></span></td>
+                                <td class="text-center fw-bold text-primary"><?= $bundle['qty_required'] ?></td>
+                                <td class="text-center">
+                                    <span class="badge bg-<?= $bundle['quantity'] > 0 ? 'success' : 'danger' ?> bg-opacity-10 text-dark border">
+                                        <?= $bundle['quantity'] ?> available
+                                    </span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="<?= BASE_URL ?>/items/view?id=<?= $bundle['id'] ?>" class="btn btn-sm btn-outline-primary">View Bundle</a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Activity & Stock Logs -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-info">history</span>
+                    Activity & Stock Logs
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <?php if (empty($activityLogs)): ?>
+                    <div class="text-center py-5">
+                        <span class="material-symbols-outlined fs-1 text-muted mb-3">history_toggle_off</span>
+                        <p class="text-muted">No activity logs recorded for this item.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="bg-light text-muted small text-uppercase fw-bold">
+                                <tr>
+                                    <th class="ps-4">Date & Time</th>
+                                    <th>Action</th>
+                                    <th>Details</th>
+                                    <th class="text-center">Old Qty</th>
+                                    <th class="text-center">New Qty</th>
+                                    <th class="pe-4">Operator</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($activityLogs as $log): ?>
+                                <tr>
+                                    <td class="ps-4 text-nowrap">
+                                        <div class="fw-bold"><?= date('M j, Y', strtotime($log['created_at'])) ?></div>
+                                        <div class="text-muted smaller"><?= date('h:i A', strtotime($log['created_at'])) ?></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $log['action'] === 'created' ? 'bg-success' : ($log['action'] === 'stock_adjustment' ? 'bg-info' : 'bg-secondary') ?> bg-opacity-10 text-dark border">
+                                            <?= ucfirst(str_replace('_', ' ', $log['action'])) ?>
+                                        </span>
+                                    </td>
+                                    <td><div style="max-width: 300px;"><?= e($log['details']) ?></div></td>
+                                    <td class="text-center text-muted"><?= is_null($log['old_quantity']) ? '-' : $log['old_quantity'] ?></td>
+                                    <td class="text-center fw-bold"><?= is_null($log['new_quantity']) ? '-' : $log['new_quantity'] ?></td>
+                                    <td class="pe-4 text-nowrap">
+                                        <span class="badge bg-secondary-subtle text-secondary"><?= e($log['operator_name']) ?></span>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>

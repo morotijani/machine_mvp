@@ -102,7 +102,7 @@ ob_start();
                                 </li>
                                 <li class="mb-3">
                                     <h6 class="fw-bold"><span class="material-symbols-outlined align-middle fs-6">assignment_return</span> Processing Returns</h6>
-                                    <p class="small text-muted">Items returned by customers are restored to stock, and the invoice total is adjusted automatically. This prevents "phantom sales" in your records.</p>
+                                    <p class="small text-muted">Items returned by customers are restored to stock, and the invoice total is adjusted automatically. You can track all returns processed today in the <strong>Today's Returned Items</strong> list at the bottom of the dashboard.</p>
                                 </li>
                                 <li class="mb-3">
                                     <h6 class="fw-bold text-success"><span class="material-symbols-outlined align-middle fs-6">speed</span> Bulk Debt Repayment (Smart Allocation)</h6>
@@ -131,10 +131,16 @@ ob_start();
                 <div class="col-md-6">
                     <div class="card h-100 border-0 shadow-sm">
                         <div class="card-body p-4">
-                            <h6 class="fw-bold mb-3">Inventory Mastery</h6>
-                            <p class="small text-muted">Admins have full control over items. Use <strong>Bundles</strong> to group items that are sold together (e.g., a "Combo Kit"). Bundle sales correctly deduct quantities from all sub-items.</p>
-                            <span class="badge bg-warning-subtle text-warning border px-2 py-1">Low Stock Alerts</span>
-                            <p class="mt-2 small text-muted">Dashboard monitors items below threshold (5 units) to help you restock proactively.</p>
+                            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                <span class="material-symbols-outlined text-warning">inventory_2</span>
+                                Inventory Mastery & Auditing
+                            </h6>
+                            <p class="small text-muted mb-3">Admins have full control over items. Beyond basic CRUD, you can now use:</p>
+                            <ul class="small text-muted ps-3 mb-0">
+                                <li class="mb-2"><strong>Bundles & Membership:</strong> Group items sold together. The item detail page now shows all bundles an item belongs to.</li>
+                                <li class="mb-2"><strong>Item Activity Logs:</strong> Click "Activity Log" on any item to see a chronological history of changes, including price updates and stock adjustments, with "Before" and "After" values.</li>
+                                <li><strong>Low Stock Alerts:</strong> Threshold is set to 5 units. Check the dashboard for proactive restocking.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -152,12 +158,25 @@ ob_start();
                             <span class="material-symbols-outlined fs-2">savings</span>
                             <h6 class="fw-bold mb-0">Coffer & Cash Management</h6>
                         </div>
-                        <p class="small mb-0 opacity-90">Admins can now record <strong class="text-white">Deposits</strong> and <strong>Withdrawals</strong> from the business coffers. The dashboard tracks the real-time balance based on (Total Cash Invoiced + Deposits - Withdrawals - Recorded Expenses). Use the <span class="badge bg-white text-success px-2 py-1">Record Deposit</span> button in the Finance section for fund injections.</p>
+                        <p class="small mb-0 opacity-90">Admins can record <strong>Deposits</strong> and <strong>Withdrawals</strong> from the business coffers. The Dashboard tracks the real-time balance based on (Total Cash Invoiced + Deposits - Withdrawals - Recorded Expenses).</p>
                     </div>
                 </div>
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm bg-dark text-white p-4">
-                        <h6 class="fw-bold mb-3 text-info">Financial Safety (Recycle Bin)</h6>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm bg-dark text-white p-4 h-100">
+                        <h6 class="fw-bold mb-3 text-info d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined">event_note</span>
+                            Daily Activity Report
+                        </h6>
+                        <p class="small text-white-50">The ultimate auditing tool. Select any date to see a full ledger of that day's activity: Sales, Returns, Debt Recovery, Expenditures, and a complete system log of who did what and when.</p>
+                        <a href="<?= BASE_URL ?>/reports/daily" class="btn btn-sm btn-outline-info mt-auto">Open Daily Report</a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm bg-dark text-white p-4 h-100">
+                        <h6 class="fw-bold mb-3 text-warning d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined">delete_sweep</span>
+                            Financial Safety (Recycle Bin)
+                        </h6>
                         <p class="small text-white-50">Sales cannot be deleted instantly. Staff must "Request Delete". Admins review these in the <strong>Recycle Bin</strong> to Approve (restoring stock) or Reject the request.</p>
                     </div>
                 </div>
@@ -192,12 +211,24 @@ ob_start();
                                 <td><code>Gross Profit - Today's Expenses</code></td>
                             </tr>
                             <tr>
+                                <td class="ps-4 fw-bold">Cash Collected Today (Net)</td>
+                                <td><code>Payments for Today's Sales - Returns of Today's Sales</code>. <br><small class="text-muted">Strictly includes new business from today.</small></td>
+                            </tr>
+                            <tr>
+                                <td class="ps-4 fw-bold">Total Net Collections</td>
+                                <td><code>(All Payments Today) - (All Returns Today)</code>. <br><small class="text-muted">Your final drawer total including debt recovery.</small></td>
+                            </tr>
+                            <tr>
                                 <td class="ps-4 fw-bold">Debt Recovered</td>
-                                <td>Payments made today for invoices generated in the past.</td>
+                                <td>Gross payments made today for invoices generated in the past.</td>
                             </tr>
                             <tr>
                                 <td class="ps-4 fw-bold">Realized GP</td>
-                                <td><code>(Cash Collected / Total Sales) × Potential Gross Profit</code></td>
+                                <td><code>(Cash Collected / Total Sales) × Potential Gross Profit</code>. <br><small class="text-muted">Actual earned profit from money in hand.</small></td>
+                            </tr>
+                            <tr>
+                                <td class="ps-4 fw-bold">Realized Net Profit</td>
+                                <td><code>Realized Gross Profit - Today's Expenses</code>. <br><small class="text-muted">Your final earnings after costs and overhead.</small></td>
                             </tr>
                         </tbody>
                     </table>
@@ -235,8 +266,9 @@ ob_start();
                             <ul class="small mb-0">
                                 <li><strong>Top Selling:</strong> View lists by volume and revenue.</li>
                                 <li><strong>CSV Export:</strong> Download any report for Excel/Google Sheets.</li>
-                                <li><strong>Customer Retention:</strong> The percentage of your customers who return to make a second purchase. A higher rate means better loyalty.</li>
-                                <li><strong>Inventory Turnover:</strong> Shows how many times you sell through your entire stock value in a year. Higher turnover usually means high efficiency.</li>
+                                <li><strong>Product Sales History:</strong> Click on any item name in the stock list to see a full chronological timeline of its sales and transactions.</li>
+                                <li><strong>Customer Retention:</strong> The percentage of your customers who return to make a second purchase.</li>
+                                <li><strong>Inventory Turnover:</strong> Shows how many times you sell through your entire stock value in a year.</li>
                                 <li><strong>Realized Profit:</strong> Accurate tracking of actual cash performance.</li>
                             </ul>
                         </div>

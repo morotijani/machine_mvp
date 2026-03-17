@@ -51,6 +51,7 @@ $router->get('/docs', [new \App\Controllers\DocsController(), 'index']);
 
 // Reports
 $router->get('/reports', [new ReportController(), 'index']);
+$router->get('/reports/daily', [new ReportController(), 'daily']);
 $router->get('/reports/export', [new ReportController(), 'export']);
 
 // Staff Performance

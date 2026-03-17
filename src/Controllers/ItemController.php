@@ -14,6 +14,7 @@ class ItemController {
         
         // Store current URL for persistence
         $_SESSION['last_items_url'] = $_SERVER['REQUEST_URI'];
+        $_SESSION['item_referer'] = 'list';
         
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $search = isset($_GET['search']) ? trim($_GET['search']) : null;
@@ -86,7 +87,17 @@ class ItemController {
                     }
                 }
 
-                $itemModel->create($data);
+                $itemId = $itemModel->create($data);
+                
+                // Add Log
+                $itemModel->addLog([
+                    'item_id' => $itemId,
+                    'user_id' => $_SESSION['user_id'],
+                    'action' => 'created',
+                    'details' => "Item '{$data['name']}' added to inventory.",
+                    'new_quantity' => $data['quantity']
+                ]);
+
                 $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
                 header('Location: ' . $returnUrl);
                 exit;
@@ -117,6 +128,10 @@ class ItemController {
             header('Location: ' . BASE_URL . '/items');
             exit;
         }
+
+        $backUrl = ($_SESSION['item_referer'] ?? 'list') === 'detail' 
+            ? BASE_URL . '/items/view?id=' . $id 
+            : ($_SESSION['last_items_url'] ?? (BASE_URL . '/items'));
 
         if ($item['type'] === 'bundle') {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -162,12 +177,56 @@ class ItemController {
                         }
                     }
 
-                    if ((int)$data['quantity'] <= 0) throw new \Exception("Bundle quantity cannot be 0.");
-                    if (empty($newComponents)) throw new \Exception("A bundle must have at least one item.");
-                    
+                    $oldQuantity = $item['quantity'];
+                    $newQuantity = (int)$data['quantity'];
+
                     $itemModel->updateBundle($id, $data, $newComponents);
-                    $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
-                    header('Location: ' . $returnUrl);
+
+                    // Detect granular changes for logging
+                    $changes = [];
+                    $fieldsToTrack = [
+                        'name' => 'Name',
+                        'category' => 'Category',
+                        'sku' => 'SKU',
+                        'price' => 'Price',
+                        'location' => 'Location'
+                    ];
+
+                    foreach ($fieldsToTrack as $field => $label) {
+                        $oldVal = $item[$field];
+                        $newVal = $data[$field];
+                        if ($oldVal != $newVal) {
+                            $changes[] = "$label: $oldVal -> $newVal";
+                        }
+                    }
+
+                    $details = "";
+                    $action = 'updated';
+
+                    // Stock adjustment for bundle
+                    if ($oldQuantity != $newQuantity) {
+                        $action = 'stock_adjustment';
+                        $diff = $newQuantity - $oldQuantity;
+                        $details = ($diff > 0 ? "Bundle Stock Fixed: Added " : "Bundle Stock Fixed: Removed ") . abs($diff) . " units. (Previous: $oldQuantity, New: $newQuantity)";
+                    }
+
+                    if (!empty($changes)) {
+                        $fieldChangeStr = "Bundle Metadata Updated: " . implode(", ", $changes);
+                        $details = empty($details) ? $fieldChangeStr : $details . " | " . $fieldChangeStr;
+                    }
+
+                    if (!empty($details)) {
+                        $itemModel->addLog([
+                            'item_id' => $id,
+                            'user_id' => $_SESSION['user_id'],
+                            'action' => $action,
+                            'details' => $details,
+                            'old_quantity' => $oldQuantity,
+                            'new_quantity' => $newQuantity
+                        ]);
+                    }
+
+                    header('Location: ' . $backUrl);
                     exit;
 
                 } catch (\Exception $e) {
@@ -216,10 +275,60 @@ class ItemController {
                     $data['image_path'] = $item['image_path'];
                 }
 
+                $oldQuantity = $item['quantity'];
+                $newQuantity = (int)$_POST['quantity'];
+
                 $itemModel->update($id, $data);
+
+                // Detect granular changes for logging
+                $changes = [];
+                $fieldsToTrack = [
+                    'name' => 'Name',
+                    'category' => 'Category',
+                    'sku' => 'SKU',
+                    'price' => 'Selling Price',
+                    'cost_price' => 'Cost Price',
+                    'location' => 'Location',
+                    'unit' => 'Unit'
+                ];
+
+                foreach ($fieldsToTrack as $field => $label) {
+                    $oldVal = $item[$field];
+                    $newVal = $data[$field];
+                    if ($oldVal != $newVal) {
+                        $changes[] = "$label: $oldVal -> $newVal";
+                    }
+                }
+
+                $details = "";
+                $action = 'updated';
+
+                // Handle Stock Adjustment first
+                if ($oldQuantity != $newQuantity) {
+                    $action = 'stock_adjustment';
+                    $diff = $newQuantity - $oldQuantity;
+                    $details = ($diff > 0 ? "Manual Stock Addition: Added " : "Manual Stock Reduction: Removed ") . abs($diff) . " units. (Previous: $oldQuantity, New: $newQuantity)";
+                }
+
+                // Append other field changes
+                if (!empty($changes)) {
+                    $fieldChangeStr = "Fields updated: " . implode(", ", $changes);
+                    $details = empty($details) ? $fieldChangeStr : $details . " | " . $fieldChangeStr;
+                }
+
+                if (!empty($details)) {
+                    $itemModel->addLog([
+                        'item_id' => $id,
+                        'user_id' => $_SESSION['user_id'],
+                        'action' => $action,
+                        'details' => $details,
+                        'old_quantity' => $oldQuantity,
+                        'new_quantity' => $newQuantity
+                    ]);
+                }
+
                 $itemModel->updateParentBundlePrices($id);
-                $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
-                header('Location: ' . $returnUrl);
+                header('Location: ' . $backUrl);
                 exit;
 
             } catch (\Exception $e) {
@@ -278,7 +387,17 @@ class ItemController {
 
                 if (empty($components)) throw new \Exception("A bundle must have at least one item.");
 
-                $itemModel->createBundle($data, $components);
+                $bundleId = $itemModel->createBundle($data, $components);
+
+                // Add Log
+                $itemModel->addLog([
+                    'item_id' => $bundleId,
+                    'user_id' => $_SESSION['user_id'],
+                    'action' => 'created',
+                    'details' => "Bundle '{$data['name']}' created with " . count($components) . " components.",
+                    'new_quantity' => $data['quantity']
+                ]);
+
                 $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
                 header('Location: ' . $returnUrl);
                 exit;
@@ -343,6 +462,15 @@ class ItemController {
             
             try {
                 $itemModel->disassembleBundle($bundleId, $quantity);
+                
+                // Add Log
+                $itemModel->addLog([
+                    'item_id' => $bundleId,
+                    'user_id' => $_SESSION['user_id'],
+                    'action' => 'stock_adjustment',
+                    'details' => "Ungrouped $quantity units of this bundle. Components restored to stock."
+                ]);
+
                 header('Location: ' . BASE_URL . '/items?success=Ungrouped successfully');
             } catch (\Exception $e) {
                 header('Location: ' . BASE_URL . '/items/edit?id=' . $bundleId . '&error=' . urlencode($e->getMessage()));
@@ -406,7 +534,12 @@ class ItemController {
 
         if (!$item) { header('Location: ' . BASE_URL . '/items'); exit; }
 
+        $_SESSION['item_referer'] = 'detail';
+
         $salesHistory = $itemModel->getSalesHistory($id);
+        $activityLogs = $itemModel->getLogs($id);
+        $parentBundles = $itemModel->getParentBundles($id);
+
         $components = [];
         if ($item['type'] === 'bundle') {
             $components = $itemModel->getBundleComponents($id);

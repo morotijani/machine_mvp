@@ -457,4 +457,39 @@ class Item {
         $stmt->execute(['iid' => $itemId]);
         return $stmt->fetchAll();
     }
+
+    public function addLog($data) {
+        $sql = "INSERT INTO item_logs (item_id, user_id, action, details, old_quantity, new_quantity) 
+                VALUES (:item_id, :user_id, :action, :details, :old_quantity, :new_quantity)";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            'item_id' => $data['item_id'],
+            'user_id' => $data['user_id'],
+            'action' => $data['action'],
+            'details' => $data['details'] ?? null,
+            'old_quantity' => $data['old_quantity'] ?? null,
+            'new_quantity' => $data['new_quantity'] ?? null
+        ]);
+    }
+
+    public function getLogs($itemId) {
+        $sql = "SELECT l.*, u.username as operator_name 
+                FROM item_logs l 
+                JOIN users u ON l.user_id = u.id 
+                WHERE l.item_id = :iid 
+                ORDER BY l.created_at DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['iid' => $itemId]);
+    }
+
+    public function getParentBundles($childItemId) {
+        $stmt = $this->pdo->prepare("
+            SELECT i.*, ib.quantity as qty_required 
+            FROM items i
+            JOIN item_bundles ib ON i.id = ib.parent_item_id
+            WHERE ib.child_item_id = :cid AND i.is_deleted = 0
+        ");
+        $stmt->execute(['cid' => $childItemId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
