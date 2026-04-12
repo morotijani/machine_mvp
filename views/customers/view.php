@@ -205,9 +205,14 @@ ob_start();
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card shadow-sm h-100 border-start border-4 border-danger">
+                        <div class="card shadow-sm h-100 border-start border-4 border-danger position-relative">
                             <div class="card-body">
-                                <h6 class="text-muted text-uppercase small fw-bold mb-2">Total Debt</h6>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-0">Total Debt</h6>
+                                    <button class="btn btn-sm btn-link p-0 text-decoration-none d-flex align-items-center gap-1 text-danger opacity-75 hover-opacity-100" data-bs-toggle="modal" data-bs-target="#debtAnalysisModal" title="View Calculation Breakdown">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">calculate</span> <small>Analysis</small>
+                                    </button>
+                                </div>
                                 <h3 class="text-danger mb-0">₵<?php echo number_format($customer['total_debt'], 2); ?></h3>
                             </div>
                         </div>
@@ -572,10 +577,10 @@ if (editCustomerModal) {
 <div class="modal fade" id="bulkRepayModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-success text-white border-0">
+            <div class="modal-header <?= $_SESSION['role'] === 'sales' ? 'bg-primary' : 'bg-success' ?> text-white border-0">
                 <h5 class="modal-title d-flex align-items-center gap-2">
                     <span class="material-symbols-outlined">payments</span>
-                    Bulk Debt Repayment
+                    <?= $_SESSION['role'] === 'sales' ? 'Request Bulk Repayment' : 'Bulk Debt Repayment' ?>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -588,7 +593,7 @@ if (editCustomerModal) {
                         <div class="h5 mb-0 fw-bold"><?= e($customer['name']) ?></div>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label text-muted small text-uppercase fw-bold">Total Amount Brought</label>
+                        <label class="form-label text-muted small text-uppercase fw-bold"><?= $_SESSION['role'] === 'sales' ? 'Amount Customer Wants to Pay' : 'Total Amount Brought' ?></label>
                         <div class="input-group input-group-lg">
                             <span class="input-group-text bg-light border-end-0">₵</span>
                             <input type="number" name="amount" class="form-control fw-bold border-start-0" step="0.01" min="0.01" max="<?= $customer['total_debt'] + 1000000 ?>" value="<?= $customer['total_debt'] ?>" required autofocus>
@@ -605,9 +610,56 @@ if (editCustomerModal) {
                 </div>
                 <div class="modal-footer bg-light border-0">
                     <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">Process Repayment</button>
+                    <button type="submit" class="btn <?= $_SESSION['role'] === 'sales' ? 'btn-primary' : 'btn-success' ?> px-4 fw-bold shadow-sm">
+                        <?= $_SESSION['role'] === 'sales' ? 'Send Request to Cashier' : 'Process Repayment' ?>
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Debt Analysis Modal -->
+<div class="modal fade" id="debtAnalysisModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined">calculate</span>
+                    Debt Calculation Analysis
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="text-muted small">This represents the exact mathematical breakdown of all transactions for <strong><?= e($customer['name']) ?></strong>.</p>
+                
+                <table class="table table-borderless table-sm mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted"><span class="fw-bold text-dark">Total Lifetime Purchases</span><br><small>Sum of all items bought</small></td>
+                            <td class="text-end fw-bold align-middle">₵<?= number_format($customer['total_sales_amount'], 2) ?></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted"><span class="fw-bold text-dark">Total All Payments</span><br><small>Includes direct invoice payments & bulk debt payments</small></td>
+                            <td class="text-end fw-bold text-success align-middle">- ₵<?= number_format($customer['total_paid'], 2) ?></td>
+                        </tr>
+                        <tr class="border-top border-2 border-dark">
+                            <td class="fw-bold text-uppercase pt-2">Remaining Debt</td>
+                            <td class="text-end fw-bold text-danger fs-5 pt-2">₵<?= number_format($customer['total_debt'], 2) ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="alert alert-warning border-0 shadow-sm small py-3 mt-4 mb-0 d-flex align-items-start gap-2">
+                    <span class="material-symbols-outlined text-warning" style="font-size: 20px;">lightbulb</span>
+                    <div>
+                        <strong>Note on manual counting:</strong> When calculating manually, avoid adding the Timeline "Debt Repayment" events to the "Paid" amounts listed inside the invoices. The system automatically incorporates bulk debt payments into the paid amount of the invoices they settle. Counting them again will result in double-counting your payments!
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>

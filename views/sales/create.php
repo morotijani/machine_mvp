@@ -98,7 +98,7 @@ ob_start();
                                 <span class="fw-bold">Total:</span>
                                 <span class="fw-bold fs-5" id="cartTotal">₵0.00</span>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 <?php echo ($_SESSION['role'] === 'sales') ? 'd-none' : ''; ?>">
                                 <label class="form-label">Amount Paid</label>
                                 <div class="input-group">
                                     <input type="number" id="payAmount" class="form-control" step="0.01" value="0.00">
@@ -106,7 +106,9 @@ ob_start();
                                 </div>
                             </div>
                             <div class="d-grid">
-                                <button id="btnCompleteSale" class="btn btn-success btn-lg">Complete Sale & Print</button>
+                                <button id="btnCompleteSale" class="btn btn-success btn-lg">
+                                    <?php echo ($_SESSION['role'] === 'sales') ? 'Authorize Sale & Send to Cashier' : 'Complete Sale & Print'; ?>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -276,7 +278,15 @@ function renderCart() {
     });
 
     document.getElementById('cartTotal').textContent = '₵' + total.toFixed(2);
-    document.getElementById('payAmount').value = total.toFixed(2);
+    
+    // Only auto-fill pay amount if the user is ALLOWED to edit it (not pure sales)
+    const payInput = document.getElementById('payAmount');
+    if (payInput && !payInput.parentElement.parentElement.classList.contains('d-none')) {
+        payInput.value = total.toFixed(2);
+    } else {
+        // For pure sales, payAmount is effectively total internally to the request logic
+        payInput.value = total.toFixed(2);
+    }
 }
 
 document.getElementById('cartTableBody').addEventListener('change', (e) => {

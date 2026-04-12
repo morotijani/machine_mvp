@@ -23,18 +23,21 @@ class Payment {
                 throw new \Exception("Sale not found");
             }
 
-            // 2. Create Debt Payment Event
-            $stmtDebt = $this->pdo->prepare("
-                INSERT INTO customer_debt_payments (customer_id, amount, recorded_by, notes) 
-                VALUES (:cid, :amount, :uid, :notes)
-            ");
-            $stmtDebt->execute([
-                'cid' => $sale['customer_id'],
-                'amount' => $amount,
-                'uid' => $userId,
-                'notes' => "Payment for Invoice #$saleId"
-            ]);
-            $debtPaymentId = $this->pdo->lastInsertId();
+            // 2. Create Debt Payment Event (only if we have a customer)
+            $debtPaymentId = null;
+            if (!empty($sale['customer_id'])) {
+                $stmtDebt = $this->pdo->prepare("
+                    INSERT INTO customer_debt_payments (customer_id, amount, recorded_by, notes) 
+                    VALUES (:cid, :amount, :uid, :notes)
+                ");
+                $stmtDebt->execute([
+                    'cid' => $sale['customer_id'],
+                    'amount' => $amount,
+                    'uid' => $userId,
+                    'notes' => "Payment for Invoice #$saleId"
+                ]);
+                $debtPaymentId = $this->pdo->lastInsertId();
+            }
 
             $newPaidAmount = $sale['paid_amount'] + $amount;
             if ($newPaidAmount > $sale['total_amount']) {

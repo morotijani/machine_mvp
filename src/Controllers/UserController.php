@@ -90,7 +90,7 @@ class UserController {
             }
 
             // Validate role
-            if (!in_array($role, ['admin', 'sales'])) {
+            if (!in_array($role, ['admin', 'sales', 'cashier', 'sales_cashier'])) {
                 header('Location: ' . BASE_URL . '/users');
                 exit;
             }
@@ -99,7 +99,8 @@ class UserController {
             $userModel = new \App\Models\User($pdo);
             $userModel->updateRole($userId, $role);
             
-            header('Location: ' . BASE_URL . '/admin/staff/detail?id=' . $userId);
+            $redirect = $_POST['redirect'] ?? (BASE_URL . '/users');
+            header('Location: ' . $redirect);
             exit;
         }
     }
@@ -180,7 +181,8 @@ class UserController {
                 $stmt->execute([$hashedPassword, $userId]);
             }
 
-            header('Location: ' . BASE_URL . '/admin/staff/detail?id=' . $userId);
+            $redirect = $_POST['redirect'] ?? (BASE_URL . '/users');
+            header('Location: ' . $redirect);
             exit;
         }
     }

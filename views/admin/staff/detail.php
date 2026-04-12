@@ -36,14 +36,27 @@ $netContribution = $totalProfit - $totalExpenses;
                 <a href="<?= BASE_URL ?>/admin/staff" class="btn btn-outline-secondary btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                     <span class="material-symbols-outlined">arrow_back</span>
                 </a>
+                <?php 
+                    $roleClass = 'primary';
+                    $roleLabel = ucfirst($user['role']);
+                    switch($user['role']) {
+                        case 'admin': $roleClass = 'danger'; break;
+                        case 'sales': $roleClass = 'primary'; break;
+                        case 'cashier': $roleClass = 'success'; break;
+                        case 'sales_cashier': 
+                            $roleClass = 'info'; 
+                            $roleLabel = 'Sales & Cashier';
+                            break;
+                    }
+                ?>
                 <?php if ($user['profile_image']): ?>
                     <img src="<?= BASE_URL ?>/<?= $user['profile_image'] ?>" class="rounded-circle shadow-sm" style="width: 45px; height: 45px; object-fit: cover;">
                 <?php else: ?>
-                    <div class="avatar-circle bg-<?= $user['role'] === 'admin' ? 'dark' : 'primary' ?> text-white d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px; border-radius: 50%;">
+                    <div class="avatar-circle bg-<?= $roleClass ?> text-white d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px; border-radius: 50%;">
                         <?= strtoupper(substr($user['fullname'], 0, 1)) ?>
                     </div>
                 <?php endif; ?>
-                <h1 class="h2 mb-0"><?= e($user['fullname']) ?> <span class="badge bg-<?= $user['role'] === 'admin' ? 'dark' : 'primary' ?> fs-6 align-middle ms-2"><?= ucfirst($user['role']) ?></span></h1>
+                <h1 class="h2 mb-0"><?= e($user['fullname']) ?> <span class="badge bg-<?= $roleClass ?> fs-6 align-middle ms-2"><?= e($roleLabel) ?></span></h1>
             </div>
             <div class="d-flex align-items-center gap-2 no-print">
                 <button onclick="window.print()" class="btn btn-primary d-flex align-items-center gap-2">
@@ -284,9 +297,12 @@ $netContribution = $totalProfit - $totalExpenses;
                             <form action="<?= BASE_URL ?>/users/update-role" method="POST" class="mb-2">
                                 <input type="hidden" name="user_id" value="<?= $uid ?>">
                                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                <input type="hidden" name="redirect" value="<?= $_SERVER['REQUEST_URI'] ?>">
                                 <div class="input-group input-group-sm">
                                     <select name="role" class="form-select" <?= $uid == $_SESSION['user_id'] ? 'disabled' : '' ?>>
                                         <option value="sales" <?= $user['role'] === 'sales' ? 'selected' : '' ?>>Sales Role</option>
+                                        <option value="cashier" <?= $user['role'] === 'cashier' ? 'selected' : '' ?>>Cashier Role</option>
+                                        <option value="sales_cashier" <?= $user['role'] === 'sales_cashier' ? 'selected' : '' ?>>Sales & Cashier</option>
                                         <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin Role</option>
                                     </select>
                                     <button class="btn btn-outline-secondary" type="submit" <?= $uid == $_SESSION['user_id'] ? 'disabled' : '' ?>>Update</button>

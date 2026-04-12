@@ -76,6 +76,7 @@
             <div class="sidebar-sticky">
                     <!-- Removed Branding from here -->
                     <ul class="nav flex-column nav-flex-column mt-3">
+                        <?php if (in_array($_SESSION['role'], ['admin', 'sales', 'sales_cashier'])): ?>
                         <li class="nav-item">
                             <a class="nav-link <?php echo ($_SERVER['REQUEST_URI'] == BASE_URL . '/dashboard') ? 'active' : ''; ?>" href="<?= BASE_URL ?>/dashboard">
                                 <span class="material-symbols-outlined icon">dashboard</span> Dashboard
@@ -101,20 +102,28 @@
                                 <span class="material-symbols-outlined icon">person_search</span> Debt System
                             </a>
                         </li>
+                        <?php endif; ?>
+
+                        <?php if (in_array($_SESSION['role'], ['admin', 'cashier', 'sales_cashier'])): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/cashier') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/cashier" style="background-color: <?= (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/cashier') !== false) ? '' : '#f8f9fa' ?>; border-left: 3px solid #0d6efd;">
+                                <span class="material-symbols-outlined icon text-primary">point_of_sale</span> Live Cashier Desk
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
                         <?php if ($_SESSION['role'] === 'admin'): ?>
+                        <div class="my-2 border-top mx-3"></div>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/admin/finance') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/admin/finance">
                                 <span class="material-symbols-outlined icon">account_balance</span> Finance & Coffers
                             </a>
                         </li>
-                        <?php endif; ?>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/expenditures') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/expenditures">
                                 <span class="material-symbols-outlined icon">payments</span> Expenditures
                             </a>
                         </li>
-                        
-                        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                         <div class="my-2 border-top mx-3"></div>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/users') !== false) ? 'active' : ''; ?>" href="<?= BASE_URL ?>/users">

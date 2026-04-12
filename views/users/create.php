@@ -36,7 +36,9 @@ ob_start();
                             <div class="mb-3">
                                 <label class="form-label">Role</label>
                                 <select name="role" class="form-select">
-                                    <option value="sales">Sales / Cashier</option>
+                                    <option value="sales">Sales (Pure)</option>
+                                    <option value="cashier">Cashier (Pure)</option>
+                                    <option value="sales_cashier">Sales & Cashier (Combined)</option>
                                     <option value="admin">Administrator</option>
                                 </select>
                             </div>

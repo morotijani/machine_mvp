@@ -41,7 +41,11 @@ class AuthController {
                     $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
                 ]);
                 
-                header('Location: ' . BASE_URL . '/sales/create');
+                if ($_SESSION['role'] === 'cashier') {
+                    header('Location: ' . BASE_URL . '/cashier');
+                } else {
+                    header('Location: ' . BASE_URL . '/sales/create');
+                }
                 exit;
             } else {
                 $error = "Invalid username or password";

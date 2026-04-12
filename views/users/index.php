@@ -47,8 +47,17 @@ ob_start();
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge <?php echo $user['role'] === 'admin' ? 'bg-danger' : 'bg-primary'; ?>">
-                                        <?= e(ucfirst($user['role'])) ?>
+                                    <?php 
+                                        $roleClass = 'bg-secondary';
+                                        switch($user['role']) {
+                                            case 'admin': $roleClass = 'bg-danger'; break;
+                                            case 'sales': $roleClass = 'bg-primary'; break;
+                                            case 'cashier': $roleClass = 'bg-success'; break;
+                                            case 'sales_cashier': $roleClass = 'bg-info'; break;
+                                        }
+                                    ?>
+                                    <span class="badge <?= $roleClass ?>">
+                                        <?= e(str_replace('_', ' & ', ucfirst($user['role']))) ?>
                                     </span>
                                 </td>
                                 <td>
@@ -71,14 +80,58 @@ ob_start();
                                             </button>
                                         </form>
                                         
-                                        <form action="<?= BASE_URL ?>/users/update-role" method="POST" style="display:inline;">
-                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
-                                            <input type="hidden" name="role" value="<?= $user['role'] === 'admin' ? 'sales' : 'admin' ?>">
-                                            <button type="submit" class="btn btn-sm <?= $user['role'] === 'admin' ? 'btn-outline-secondary' : 'btn-outline-primary' ?>" title="<?= $user['role'] === 'admin' ? 'Demote to Sales' : 'Promote to Admin' ?>" onclick="return confirm('Are you sure you want to change this user\'s role to <?= $user['role'] === 'admin' ? 'Sales' : 'Admin' ?>?')">
-                                                <span class="material-symbols-outlined" style="font-size: 16px;"><?= $user['role'] === 'admin' ? 'person_remove' : 'admin_panel_settings' ?></span>
+                                        <a href="<?= BASE_URL ?>/users/edit?id=<?= $user['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Edit Profile">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                                        </a>
+
+                                        <div class="dropdown" style="display:inline;">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Change Role">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">manage_accounts</span>
                                             </button>
-                                        </form>
+                                            <ul class="dropdown-menu shadow border-0 dropdown-menu-end">
+                                                <li><h6 class="dropdown-header">Set Role To:</h6></li>
+                                                <li>
+                                                    <form action="<?= BASE_URL ?>/users/update-role" method="POST">
+                                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                                        <input type="hidden" name="role" value="sales">
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 <?= $user['role'] === 'sales' ? 'active' : '' ?>">
+                                                            <span class="material-symbols-outlined text-primary" style="font-size: 18px;">person</span> Sales
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="<?= BASE_URL ?>/users/update-role" method="POST">
+                                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                                        <input type="hidden" name="role" value="cashier">
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 <?= $user['role'] === 'cashier' ? 'active' : '' ?>">
+                                                            <span class="material-symbols-outlined text-success" style="font-size: 18px;">payments</span> Cashier
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="<?= BASE_URL ?>/users/update-role" method="POST">
+                                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                                        <input type="hidden" name="role" value="sales_cashier">
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 <?= $user['role'] === 'sales_cashier' ? 'active' : '' ?>">
+                                                            <span class="material-symbols-outlined text-info" style="font-size: 18px;">point_of_sale</span> Sales & Cashier
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                     <form action="<?= BASE_URL ?>/users/update-role" method="POST">
+                                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                                        <input type="hidden" name="role" value="admin">
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 <?= $user['role'] === 'admin' ? 'active' : '' ?>">
+                                                            <span class="material-symbols-outlined text-danger" style="font-size: 18px;">admin_panel_settings</span> Admin
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
                                         
                                         <form action="<?= BASE_URL ?>/users/delete" method="POST" style="display:inline;">
                                             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">

@@ -291,20 +291,25 @@ class CustomerController {
             }
 
             $pdo = Database::getInstance();
-            $saleModel = new \App\Models\Sale($pdo);
-
-            try {
-                $result = $saleModel->repayBulkDebt($customerId, $amount, $_SESSION['user_id']);
-                if ($result) {
-                    $ids = array_column($result['affected_sales'], 'id');
-                    $msg = "Bulk payment of ₵" . number_format($amount, 2) . " processed successfully. ";
-                    $msg .= "Applied to Invoices: #" . implode(', #', $ids);
-                    $_SESSION['success'] = $msg;
-                } else {
-                    $_SESSION['error'] = "Bulk payment failed.";
+            if ($_SESSION['role'] === 'sales') {
+                $prModel = new \App\Models\PaymentRequest($pdo);
+                $prModel->create('debt_bulk', $customerId, $amount, $_SESSION['user_id'], $customerId);
+                $_SESSION['success'] = "Bulk Repayment Request sent to Cashier. Customer must proceed to Cashier to tender ₵" . number_format($amount, 2);
+            } else {
+                $saleModel = new \App\Models\Sale($pdo);
+                try {
+                    $result = $saleModel->repayBulkDebt($customerId, $amount, $_SESSION['user_id']);
+                    if ($result) {
+                        $ids = array_column($result['affected_sales'], 'id');
+                        $msg = "Bulk payment of ₵" . number_format($amount, 2) . " processed successfully. ";
+                        $msg .= "Applied to Invoices: #" . implode(', #', $ids);
+                        $_SESSION['success'] = $msg;
+                    } else {
+                        $_SESSION['error'] = "Bulk payment failed.";
+                    }
+                } catch (\Exception $e) {
+                    $_SESSION['error'] = "Payment Error: " . $e->getMessage();
                 }
-            } catch (\Exception $e) {
-                $_SESSION['error'] = "Payment Error: " . $e->getMessage();
             }
             header('Location: ' . BASE_URL . '/customers/view?id=' . $customerId);
             exit;

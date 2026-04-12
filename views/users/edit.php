@@ -50,8 +50,10 @@ ob_start();
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-uppercase">System Role</label>
                                 <select name="role" class="form-select" <?= $user['id'] == $_SESSION['user_id'] ? 'disabled' : '' ?>>
-                                    <option value="sales" <?= $user['role'] === 'sales' ? 'selected' : '' ?>>Sales Role</option>
-                                    <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin Role</option>
+                                    <option value="sales" <?= $user['role'] === 'sales' ? 'selected' : '' ?>>Sales (Pure)</option>
+                                    <option value="cashier" <?= $user['role'] === 'cashier' ? 'selected' : '' ?>>Cashier (Pure)</option>
+                                    <option value="sales_cashier" <?= $user['role'] === 'sales_cashier' ? 'selected' : '' ?>>Sales & Cashier (Combined)</option>
+                                    <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Administrator</option>
                                 </select>
                                 <?php if ($user['id'] == $_SESSION['user_id']): ?>
                                     <input type="hidden" name="role" value="<?= $user['role'] ?>">

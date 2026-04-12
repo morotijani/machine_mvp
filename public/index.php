@@ -137,6 +137,12 @@ $router->get('/sales/view', [$saleController, 'view']);
 $router->post('/sales/pay', [$saleController, 'pay']);
 $router->post('/sales/return', [$saleController, 'returns']);
 
+// Cashier
+$cashierController = new \App\Controllers\CashierController();
+$router->get('/cashier', [$cashierController, 'index']);
+$router->get('/cashier/pending', [$cashierController, 'apiPending']);
+$router->post('/cashier/process', [$cashierController, 'process']);
+
 // Expenditures
 $expenditureController = new \App\Controllers\ExpenditureController();
 $router->get('/expenditures', [$expenditureController, 'index']);

@@ -5,46 +5,118 @@ ob_start();
 
 <style>
     @media print {
-        .no-print { display: none !important; }
-        .print-only { display: block !important; }
-        body { background-color: #fff !important; margin: 0; padding: 0; }
-        .invoice-card { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
-        .modal-backdrop, .modal, .navbar, .sidebar { display: none !important; }
-        .content-wrapper { margin: 0 !important; padding: 0 !important; }
+        .no-print {
+            display: none !important;
+        }
+
+        .print-only {
+            display: block !important;
+        }
+
+        body {
+            background-color: #fff !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        .invoice-card {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+        }
+
+        .modal-backdrop,
+        .modal,
+        .navbar,
+        .sidebar {
+            display: none !important;
+        }
+
+        .content-wrapper {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
     }
-    .print-only { display: none; }
-    .invoice-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
-    .header-title { font-size: 2rem; font-weight: bold; color: #333; }
+
+    .print-only {
+        display: none;
+    }
+
+    .invoice-card {
+        background: white;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .header-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #333;
+    }
+
     .cancel-watermark {
-        position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
-        font-size: 5rem; font-weight: bold; border: 8px solid;
-        padding: 5px 30px; border-radius: 10px; pointer-events: none;
-        opacity: 0.25; z-index: 0; font-family: 'Courier New', Courier, monospace;
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 5rem;
+        font-weight: bold;
+        border: 8px solid;
+        padding: 5px 30px;
+        border-radius: 10px;
+        pointer-events: none;
+        opacity: 0.25;
+        z-index: 0;
+        font-family: 'Courier New', Courier, monospace;
         text-transform: uppercase;
         letter-spacing: 5px;
     }
-    .watermark-red { color: #dc3545; border-color: #dc3545; }
-    .watermark-green { color: #198754; border-color: #198754; } /* Success Green */
-    .watermark-yellow { color: #ffca2c; border-color: #ffca2c; } /* Warning Yellow */
+
+    .watermark-red {
+        color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .watermark-green {
+        color: #198754;
+        border-color: #198754;
+    }
+
+    /* Success Green */
+    .watermark-yellow {
+        color: #ffca2c;
+        border-color: #ffca2c;
+    }
+
+    /* Warning Yellow */
 </style>
 
 <div class="row justify-content-center">
     <div class="col-md-10">
-        
+
         <!-- Toolbar -->
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 no-print">
             <h1 class="h2">Invoice #<?= $sale['id'] ?></h1>
             <div class="btn-toolbar mb-2 mb-md-0">
                 <a href="<?= $returnUrl ?>" class="btn btn-sm btn-outline-secondary me-2">
-                    <span class="material-symbols-outlined align-text-bottom" style="font-size: 18px;">arrow_back</span> Back to History
+                    <span class="material-symbols-outlined align-text-bottom" style="font-size: 18px;">arrow_back</span>
+                    <?= $_SESSION['role'] === 'cashier' ? 'Back to Cashier' : 'Back to History' ?>
                 </a>
-                <button onclick="window.print()" class="btn btn-sm btn-primary d-flex align-items-center gap-2 me-2">
-                    <span class="material-symbols-outlined" style="font-size: 18px;">print</span> Print Invoice
+                <button onclick="window.print()"
+                    class="btn btn-sm <?= ($sale['payment_status'] === 'paid') ? 'btn-primary' : 'btn-outline-primary' ?> d-flex align-items-center gap-2 me-2">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">print</span>
+                    <?= ($sale['payment_status'] === 'paid') ? 'Print Receipt' : 'Print Unpaid Draft' ?>
                 </button>
-                <?php if (!$sale['voided']): ?>
-                <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#returnModal">
-                    <span class="material-symbols-outlined" style="font-size: 18px;">keyboard_return</span> Return Items
-                </button>
+                <?php if (!$sale['voided'] && $_SESSION['role'] !== 'cashier'): ?>
+                    <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2"
+                        data-bs-toggle="modal" data-bs-target="#returnModal">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">keyboard_return</span> Return Items
+                    </button>
                 <?php endif; ?>
             </div>
         </div>
@@ -63,32 +135,36 @@ ob_start();
             <!-- Header -->
             <div class="row mb-4 border-bottom pb-4 align-items-center">
                 <div class="col-8">
-                     <div class="d-flex align-items-center mb-2">
-                         <?php if (!empty($settings['company_logo'])): ?>
-                            <img src="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>" alt="Logo" style="height: 50px; margin-right: 15px;">
+                    <div class="d-flex align-items-center mb-2">
+                        <?php if (!empty($settings['company_logo'])): ?>
+                            <img src="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>" alt="Logo"
+                                style="height: 50px; margin-right: 15px;">
                         <?php endif; ?>
                         <h1 class="header-title m-0"><?= e($settings['company_name']) ?></h1>
-                     </div>
-                     <div class="text-muted">
-                        <?php if(!empty($settings['company_address'])): ?>
+                    </div>
+                    <div class="text-muted">
+                        <?php if (!empty($settings['company_address'])): ?>
                             <?= nl2br(e($settings['company_address'])) ?><br>
                         <?php endif; ?>
-                        <?php if(!empty($settings['company_phone'])): ?>
+                        <?php if (!empty($settings['company_phone'])): ?>
                             PH: <?= e($settings['company_phone']) ?><br>
                         <?php endif; ?>
-                        <?php if(!empty($settings['company_email'])): ?>
+                        <?php if (!empty($settings['company_email'])): ?>
                             Email: <?= e($settings['company_email']) ?>
                         <?php endif; ?>
-                     </div>
+                    </div>
                 </div>
                 <div class="col-4 text-end">
-                    <h4 class="fw-bold text-primary">INVOICE</h4>
+                    <?php if ($sale['payment_status'] !== 'paid'): ?>
+                        <h4 class="fw-bold text-danger">UNPAID DRAFT</h4>
+                    <?php else: ?>
+                        <h4 class="fw-bold text-primary">RECEIPT</h4>
+                    <?php endif; ?>
                     <div class="fs-5">#<?= str_pad($sale['id'], 6, '0', STR_PAD_LEFT) ?></div>
                     <div class="text-muted small mb-2">Date: <?= date('M j, Y', strtotime($sale['created_at'])) ?></div>
                     <div class="d-flex justify-content-end">
-                        <svg id="invoice-barcode" 
-                             data-value="<?= $sale['id'] ?>"
-                             style="max-height: 40px; width: 120px;"></svg>
+                        <svg id="invoice-barcode" data-value="<?= $sale['id'] ?>"
+                            style="max-height: 40px; width: 120px;"></svg>
                     </div>
                 </div>
             </div>
@@ -98,7 +174,9 @@ ob_start();
                 <div class="col-6">
                     <p class="mb-1 text-uppercase text-muted small fw-bold">Bill To</p>
                     <?php if ($sale['customer_name']): ?>
-                        <h5 class="fw-bold"><?= e($sale['customer_name']) ?><?= ($sale['customer_is_deleted'] == 1) ? ' <span class="text-danger small">[Deleted]</span>' : '' ?></h5>
+                        <h5 class="fw-bold">
+                            <?= e($sale['customer_name']) ?>    <?= ($sale['customer_is_deleted'] == 1) ? ' <span class="text-danger small">[Deleted]</span>' : '' ?>
+                        </h5>
                         <p>
                             <?= e($sale['customer_address'] ?? '') ?><br>
                             <?= e($sale['customer_phone'] ?? '') ?>
@@ -133,10 +211,10 @@ ob_start();
                     </thead>
                     <tbody>
                         <?php foreach ($sale['items'] as $item): ?>
-                        <tr>
-                            <td class="fw-bold">
-                                <?= e($item['item_name']) ?>
-                                <?php 
+                            <tr>
+                                <td class="fw-bold">
+                                    <?= e($item['item_name']) ?>
+                                    <?php
                                     // Hacky check: In a real app we'd join 'type' from items table. 
                                     // For now, let's assume if it has sub-components we fetch them. 
                                     // But wait, the sale_items table stores the snapshot. 
@@ -155,114 +233,128 @@ ob_start();
                                     $stmtBundle = $pdo->prepare("SELECT i.name, ib.quantity FROM item_bundles ib JOIN items i ON ib.child_item_id = i.id WHERE ib.parent_item_id = :id");
                                     $stmtBundle->execute(['id' => $item['item_id']]);
                                     $components = $stmtBundle->fetchAll();
-                                ?>
-                                <?php if (!empty($components)): ?>
-                                    <div class="small text-muted fw-normal mt-1 ps-3 border-start border-3">
-                                        <?php foreach ($components as $comp): ?>
-                                            <div><?= $comp['quantity'] ?>x <?= e($comp['name']) ?></div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
-                            </td>
-                            <td class="text-center small text-muted"><?= e($item['sku']) ?></td>
-                            <td class="text-center"><?php echo $item['quantity']; ?></td>
-                            <td class="text-end">₵<?php echo number_format($item['price_at_sale'], 2); ?></td>
-                            <td class="text-end">₵<?php echo number_format($item['subtotal'], 2); ?></td>
-                        </tr>
+                                    ?>
+                                    <?php if (!empty($components)): ?>
+                                        <div class="small text-muted fw-normal mt-1 ps-3 border-start border-3">
+                                            <?php foreach ($components as $comp): ?>
+                                                <div><?= $comp['quantity'] ?>x <?= e($comp['name']) ?></div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center small text-muted"><?= e($item['sku']) ?></td>
+                                <td class="text-center"><?php echo $item['quantity']; ?></td>
+                                <td class="text-end">₵<?php echo number_format($item['price_at_sale'], 2); ?></td>
+                                <td class="text-end">₵<?php echo number_format($item['subtotal'], 2); ?></td>
+                            </tr>
                         <?php endforeach; ?>
                     </tbody>
                     <tfoot class="table-light">
                         <tr>
                             <td colspan="4" class="text-end fw-bold">Total Amount</td>
-                            <td class="text-end fw-bold fs-5">₵<?php echo number_format($sale['total_amount'], 2); ?></td>
+                            <td class="text-end fw-bold fs-5">₵<?php echo number_format($sale['total_amount'], 2); ?>
+                            </td>
                         </tr>
                         <tr>
                             <td colspan="4" class="text-end">Amount Paid</td>
-                            <td class="text-end text-success fw-bold">-₵<?php echo number_format($sale['paid_amount'], 2); ?></td>
+                            <td class="text-end text-success fw-bold">
+                                -₵<?php echo number_format($sale['paid_amount'], 2); ?></td>
                         </tr>
                         <?php if ($sale['total_amount'] - $sale['paid_amount'] > 0): ?>
-                        <tr>
-                            <td colspan="4" class="text-end fw-bold text-danger">Balance Due</td>
-                            <td class="text-end fw-bold text-danger fs-5">₵<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></td>
-                        </tr>
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold text-danger">Balance Due</td>
+                                <td class="text-end fw-bold text-danger fs-5">
+                                    ₵<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></td>
+                            </tr>
                         <?php endif; ?>
                     </tfoot>
                 </table>
             </div>
 
             <?php if (!empty($payments)): ?>
-            <div class="mb-4">
-                <h6 class="text-muted text-uppercase small fw-bold">Payment History</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Amount</th>
-                                <th>Received By</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($payments as $payment): ?>
-                            <tr>
-                                <td><?php echo date('M j, Y H:i', strtotime($payment['payment_date'])); ?></td>
-                                <td class="text-success fw-bold">₵<?php echo number_format($payment['amount'], 2); ?></td>
-                                <td><?= e($payment['username']) ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div class="mb-4">
+                    <h6 class="text-muted text-uppercase small fw-bold">Payment History</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Received By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($payments as $payment): ?>
+                                    <tr>
+                                        <td><?php echo date('M j, Y H:i', strtotime($payment['payment_date'])); ?></td>
+                                        <td class="text-success fw-bold">₵<?php echo number_format($payment['amount'], 2); ?>
+                                        </td>
+                                        <td><?= e($payment['username']) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <?php if (!empty($returns)): ?>
-            <div class="mb-4">
-                <hr>
-                <h6 class="text-danger text-uppercase small fw-bold">Return History</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered border-danger-subtle">
-                        <thead class="table-danger">
-                            <tr>
-                                <th>Date</th>
-                                <th>Items Returned</th>
-                                <th class="text-end">Deduction</th>
-                                <th>Processed By</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($returns as $ret): ?>
-                            <tr>
-                                <td><?php echo date('M j, Y H:i', strtotime($ret['created_at'])); ?></td>
-                                <td>
-                                    <?php foreach ($ret['details'] as $det): ?>
-                                        <div class="small">- <?= e($det['item_name']) ?> (qty: <?php echo $det['quantity']; ?>)</div>
-                                    <?php endforeach; ?>
-                                </td>
-                                <td class="text-end text-danger fw-bold">₵<?php echo number_format($ret['total_deduction'], 2); ?></td>
-                                <td><?= e($ret['returner_name']) ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div class="mb-4">
+                    <hr>
+                    <h6 class="text-danger text-uppercase small fw-bold">Return History</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered border-danger-subtle">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Items Returned</th>
+                                    <th class="text-end">Deduction</th>
+                                    <th>Processed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($returns as $ret): ?>
+                                    <tr>
+                                        <td><?php echo date('M j, Y H:i', strtotime($ret['created_at'])); ?></td>
+                                        <td>
+                                            <?php foreach ($ret['details'] as $det): ?>
+                                                <div class="small">- <?= e($det['item_name']) ?> (qty:
+                                                    <?php echo $det['quantity']; ?>)</div>
+                                            <?php endforeach; ?>
+                                        </td>
+                                        <td class="text-end text-danger fw-bold">
+                                            ₵<?php echo number_format($ret['total_deduction'], 2); ?></td>
+                                        <td><?= e($ret['returner_name']) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <!-- Footer -->
             <div class="text-center mt-5 text-muted no-print">
                 <?php if ($sale['total_amount'] - $sale['paid_amount'] > 0): ?>
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#payModal">₵ Record Payment</button>
+                    <?php if ($_SESSION['role'] === 'sales'): ?>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#payModal">
+                            <span class="material-symbols-outlined align-middle fs-5">send</span> Send Request to Cashier
+                        </button>
+                    <?php elseif (in_array($_SESSION['role'], ['admin', 'sales_cashier'])): ?>
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#payModal">
+                            ₵ Record Payment
+                        </button>
+                    <?php endif; ?>
                 <?php else: ?>
                     <p class="text-success fw-bold">Fully Paid</p>
                 <?php endif; ?>
             </div>
-        
+
             <div class="text-center mt-3 text-muted print-only">
                 <p>Thank you for your business!</p>
                 <span style="font-size: 12px;">Printed on: <?php echo date('M j, Y H:i'); ?></span>
                 <br>
-                <span style="font-size: 10px;">Mijma Inc. | POS System</span>
+                <span style="font-size: 10px;">Mijma Inc. | POS System (0553477150)</span>
             </div>
         </div>
     </div>
@@ -272,27 +364,50 @@ ob_start();
 <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Record Payment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div
+                class="modal-header <?= $_SESSION['role'] === 'sales' ? 'bg-primary text-white border-0' : 'bg-success text-white border-0' ?>">
+                <h5 class="modal-title">
+                    <?= $_SESSION['role'] === 'sales' ? 'Request Cashier to Receive Payment' : 'Record Payment' ?></h5>
+                <button type="button"
+                    class="btn-close <?= in_array($_SESSION['role'], ['sales', 'admin', 'sales_cashier']) ? 'btn-close-white' : '' ?>"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="<?= BASE_URL ?>/sales/pay" method="POST">
                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="sale_id" value="<?php echo $sale['id']; ?>">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Amount Received</label>
+                        <label
+                            class="form-label"><?= $_SESSION['role'] === 'sales' ? 'Amount Customer is Paying' : 'Amount Received' ?></label>
                         <div class="input-group">
                             <span class="input-group-text">₵</span>
-                            <input type="number" name="amount" id="payment-amount" step="0.01" class="form-control" max="<?php echo round($sale['total_amount'] - $sale['paid_amount'], 2); ?>" required>
-                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('payment-amount').value = '<?php echo round($sale['total_amount'] - $sale['paid_amount'], 2); ?>'">Pay All</button>
+                            <?php
+                            $balanceDue = round($sale['total_amount'] - $sale['paid_amount'], 2);
+                            $isWalkin = empty($sale['customer_id']);
+                            ?>
+                            <input type="number" name="amount" id="payment-amount" step="0.01" min="0"
+                                class="form-control<?= $isWalkin ? ' bg-light' : '' ?>" max="<?= $balanceDue ?>"
+                                value="<?= $isWalkin ? $balanceDue : '' ?>" <?= $isWalkin ? 'readonly' : '' ?> required>
+                            <?php if (!$isWalkin): ?>
+                                <button type="button" class="btn btn-outline-secondary"
+                                    onclick="document.getElementById('payment-amount').value = '<?= $balanceDue ?>'">Pay
+                                    All</button>
+                            <?php endif; ?>
                         </div>
-                        <div class="form-text">Max due: ₵<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></div>
+                        <?php if ($isWalkin): ?>
+                            <div class="form-text text-danger">
+                                <span class="material-symbols-outlined align-middle" style="font-size:13px;">info</span>
+                                Walk-in customers must pay the full amount.
+                            </div>
+                        <?php else: ?>
+                            <div class="form-text">Max due: ₵<?= number_format($balanceDue, 2) ?></div>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-success">Save Payment</button>
+                    <button type="submit"
+                        class="btn <?= $_SESSION['role'] === 'sales' ? 'btn-primary' : 'btn-success' ?>"><?= $_SESSION['role'] === 'sales' ? 'Send Request' : 'Save Payment' ?></button>
                 </div>
             </form>
         </div>
@@ -305,14 +420,16 @@ ob_start();
         <div class="modal-content border-danger">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title">Return Items from Invoice #<?= $sale['id'] ?></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form action="<?= BASE_URL ?>/sales/return" method="POST">
                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="sale_id" value="<?php echo $sale['id']; ?>">
                 <div class="modal-body">
-                    <p class="small text-muted mb-3">Note: Returning items will reduce the invoice total and balance due. Inventory quantities will be restored.</p>
-                    
+                    <p class="small text-muted mb-3">Note: Returning items will reduce the invoice total and balance
+                        due. Inventory quantities will be restored.</p>
+
                     <div class="table-responsive">
                         <table class="table table-sm align-middle">
                             <thead>
@@ -324,18 +441,20 @@ ob_start();
                             </thead>
                             <tbody>
                                 <?php foreach ($sale['items'] as $item): ?>
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold"><?= e($item['item_name']) ?></div>
-                                        <small class="text-muted">₵<?php echo number_format($item['price_at_sale'], 2); ?> each</small>
-                                    </td>
-                                    <td class="text-center"><?php echo $item['quantity']; ?></td>
-                                    <td>
-                                        <input type="number" name="returns[<?php echo $item['item_id']; ?>]" 
-                                               class="form-control form-control-sm text-center" 
-                                               min="0" max="<?php echo $item['quantity']; ?>" value="0">
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold"><?= e($item['item_name']) ?></div>
+                                            <small
+                                                class="text-muted">₵<?php echo number_format($item['price_at_sale'], 2); ?>
+                                                each</small>
+                                        </td>
+                                        <td class="text-center"><?php echo $item['quantity']; ?></td>
+                                        <td>
+                                            <input type="number" name="returns[<?php echo $item['item_id']; ?>]"
+                                                class="form-control form-control-sm text-center" min="0"
+                                                max="<?php echo $item['quantity']; ?>" value="0">
+                                        </td>
+                                    </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
@@ -354,7 +473,7 @@ ob_start();
 $content = ob_get_clean();
 ?>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const barcodeEl = document.getElementById('invoice-barcode');
         if (barcodeEl) {
             JsBarcode("#invoice-barcode", barcodeEl.getAttribute('data-value'), {
@@ -371,4 +490,3 @@ $content = ob_get_clean();
 <?php
 require __DIR__ . '/../layouts/main.php';
 ?>
-

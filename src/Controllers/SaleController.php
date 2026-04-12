@@ -73,12 +73,32 @@ class SaleController {
                     }
 
                     $saleModel = new Sale($pdo);
-                    $saleId = $saleModel->createSale(
-                        $input['customer_id'], 
-                        $_SESSION['user_id'], 
-                        $input['items'], 
-                        $input['payment_amount']
-                    );
+                    $intendedPayment = (float)($input['payment_amount'] ?? 0);
+                    
+                    // Logic: 
+                    // 1. If role is 'sales', they CANNOT endorse. So we save sale as 0-paid and send request.
+                    // 2. If role is 'admin' or 'sales_cashier', they CAN endorse. We save sale with the intended payment immediately.
+
+                    if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'sales_cashier') {
+                        $saleId = $saleModel->createSale(
+                            $input['customer_id'], 
+                            $_SESSION['user_id'], 
+                            $input['items'], 
+                            $intendedPayment
+                        );
+                    } else {
+                        // Pure Sales role
+                        $saleId = $saleModel->createSale(
+                            $input['customer_id'], 
+                            $_SESSION['user_id'], 
+                            $input['items'], 
+                            0 // Force 0 paid status for cashier endorsement later
+                        );
+
+                        // Create Payment Request if it's a salesperson
+                        $prModel = new \App\Models\PaymentRequest($pdo);
+                        $prModel->create('sale', $saleId, $intendedPayment, $_SESSION['user_id'], $input['customer_id']);
+                    }
 
                     // Store submission record
                     $_SESSION['last_sale_submission'] = [
@@ -154,10 +174,22 @@ class SaleController {
             $amount = $_POST['amount'];
             
             $pdo = Database::getInstance();
-            $paymentModel = new \App\Models\Payment($pdo);
-            $paymentModel->recordPayment($saleId, $amount, $_SESSION['user_id']);
+
+            if ($_SESSION['role'] === 'sales') {
+                // Queue the payment request for cashier
+                $prModel = new \App\Models\PaymentRequest($pdo);
+                $saleModel = new \App\Models\Sale($pdo);
+                $sale = $saleModel->getById($saleId);
+                
+                $prModel->create('debt_single', $saleId, $amount, $_SESSION['user_id'], $sale['customer_id'] ?? null);
+                $_SESSION['success'] = "Payment Request sent to Cashier for Invoice #$saleId. Customer must proceed to Cashier.";
+            } else {
+                // Native direct process (Admin or Sales+Cashier)
+                $paymentModel = new \App\Models\Payment($pdo);
+                $paymentModel->recordPayment($saleId, $amount, $_SESSION['user_id']);
+                $_SESSION['success'] = "Payment of ₵" . number_format($amount, 2) . " recorded for Invoice #$saleId.";
+            }
             
-            $_SESSION['success'] = "Payment of ₵" . number_format($amount, 2) . " recorded for Invoice #$saleId.";
             $returnUrl = $_SESSION['last_sales_url'] ?? (BASE_URL . '/sales');
             header('Location: ' . $returnUrl);
             exit;
