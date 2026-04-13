@@ -43,6 +43,8 @@ class AuthController {
                 
                 if ($_SESSION['role'] === 'cashier') {
                     header('Location: ' . BASE_URL . '/cashier');
+                } elseif ($_SESSION['role'] === 'admin') {
+                    header('Location: ' . BASE_URL . '/dashboard');
                 } else {
                     header('Location: ' . BASE_URL . '/sales/create');
                 }

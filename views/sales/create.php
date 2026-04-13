@@ -101,7 +101,7 @@ ob_start();
                             <div class="mb-3 <?php echo ($_SESSION['role'] === 'sales') ? 'd-none' : ''; ?>">
                                 <label class="form-label">Amount Paid</label>
                                 <div class="input-group">
-                                    <input type="number" id="payAmount" class="form-control" step="0.01" value="0.00">
+                                    <input type="number" id="payAmount" class="form-control" step="0.01" value="0.00" min="0">
                                     <button class="btn btn-outline-warning" type="button" id="btnPayLater" title="Mark as Credit / Pay Later">Pay Later</button>
                                 </div>
                             </div>
@@ -322,8 +322,20 @@ document.getElementById('btnCompleteSale').addEventListener('click', function() 
     const customerId = document.getElementById('customerSelect').value;
     const payAmount = parseFloat(document.getElementById('payAmount').value);
 
-    // If Pay Later (credit sale), enforce Customer selection
-     const total = parseFloat(document.getElementById('cartTotal').textContent.replace('₵', ''));
+    const total = parseFloat(document.getElementById('cartTotal').textContent.replace('₵', ''));
+    
+    // VALIDATION: Amount Paid cannot be negative
+    if (payAmount < 0) {
+        alert('Amount Paid cannot be less than zero.');
+        return;
+    }
+
+    // VALIDATION: Amount Paid cannot be more than total
+    if (payAmount > total + 0.01) { // Adding a small buffer for float precision
+        alert('Amount Paid (₵' + payAmount.toFixed(2) + ') cannot exceed the Total Order Amount (₵' + total.toFixed(2) + ').');
+        return;
+    }
+
     if (payAmount < total && !customerId) {
         alert('For Credit/Partial payments, you MUST select a Customer to record the debt.');
         return;

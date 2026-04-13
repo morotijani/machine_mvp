@@ -8,6 +8,12 @@ use App\Middleware\AuthMiddleware;
 class ExpenditureController {
     public function index() {
         AuthMiddleware::requireLogin();
+        
+        // Allowed: admin, cashier, sales_cashier. Forbidden: sales.
+        if ($_SESSION['role'] === 'sales') {
+            header('Location: ' . BASE_URL . '/sales/create?error=Unauthorized access');
+            exit;
+        }
         $pdo = Database::getInstance();
         $model = new Expenditure($pdo);
 
@@ -26,6 +32,10 @@ class ExpenditureController {
 
     public function create() {
         AuthMiddleware::requireLogin();
+        if ($_SESSION['role'] === 'sales') {
+            header('Location: ' . BASE_URL . '/sales/create?error=Unauthorized access');
+            exit;
+        }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = [
                 'category' => $_POST['category'],

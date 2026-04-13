@@ -74,6 +74,25 @@ class SaleController {
 
                     $saleModel = new Sale($pdo);
                     $intendedPayment = (float)($input['payment_amount'] ?? 0);
+
+                    // SERVER-SIDE VALIDATION
+                    if ($intendedPayment < 0) {
+                        throw new Exception("Amount paid cannot be negative.");
+                    }
+
+                    // Calculate actual total from items to verify payment amount
+                    $calculatedTotal = 0;
+                    $itemModel = new Item($pdo);
+                    foreach ($input['items'] as $item) {
+                        $dbItem = $itemModel->find($item['id']);
+                        if ($dbItem) {
+                            $calculatedTotal += $dbItem['price'] * $item['quantity'];
+                        }
+                    }
+
+                    if ($intendedPayment > $calculatedTotal + 0.01) {
+                         throw new Exception("Amount paid (₵" . number_format($intendedPayment, 2) . ") exceeds the total order amount (₵" . number_format($calculatedTotal, 2) . ").");
+                    }
                     
                     // Logic: 
                     // 1. If role is 'sales', they CANNOT endorse. So we save sale as 0-paid and send request.

@@ -11,19 +11,31 @@ class ReportController
     public function dashboard()
     {
         AuthMiddleware::requireLogin();
+        
+        // Allowed: admin, sales_cashier. 
+        // Redirect: sales to /sales/create, cashier to /cashier.
+        if ($_SESSION['role'] === 'sales') {
+            header('Location: ' . BASE_URL . '/sales/create');
+            exit;
+        }
+        if ($_SESSION['role'] === 'cashier') {
+            header('Location: ' . BASE_URL . '/cashier');
+            exit;
+        }
+
         $pdo = Database::getInstance();
         $isAdmin = ($_SESSION['role'] === 'admin');
+        $isLimitedView = ($_SESSION['role'] === 'sales_cashier');
 
         $today = date('Y-m-d');
         $month = date('m');
         $year = date('Y');
         $uid = $_SESSION['user_id'];
-        $isSales = ($_SESSION['role'] === 'sales');
-
+        
         // Helper for common filters
-        $userFilter = $isSales ? " AND user_id = :uid" : "";
-        $userFilterS = $isSales ? " AND s.user_id = :uid" : "";
-        $params = $isSales ? ['uid' => $uid] : [];
+        $userFilter = $isLimitedView ? " AND user_id = :uid" : "";
+        $userFilterS = $isLimitedView ? " AND s.user_id = :uid" : "";
+        $params = $isLimitedView ? ['uid' => $uid] : [];
 
         // 1. Daily Sales (Today)
         $sql = "SELECT SUM(total_amount) FROM sales WHERE DATE(created_at) = :today AND voided = 0" . $userFilter;
@@ -43,7 +55,7 @@ class ReportController
 
         // 2.a Realized Today (Collections & Refunds)
         // 1. Total Payments received TODAY (from any sale)
-        $sqlPayToday = "SELECT SUM(p.amount) FROM payments p WHERE DATE(p.payment_date) = :today" . ($isSales ? " AND p.recorded_by = :uid" : "");
+        $sqlPayToday = "SELECT SUM(p.amount) FROM payments p WHERE DATE(p.payment_date) = :today" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtPayToday = $pdo->prepare($sqlPayToday);
         $stmtPayToday->execute(array_merge(['today' => $today], $params));
         $totalPaymentsToday = $stmtPayToday->fetchColumn() ?: 0;
@@ -53,7 +65,7 @@ class ReportController
                FROM payments p 
                JOIN sales s ON p.sale_id = s.id 
                WHERE DATE(p.payment_date) = :today_pay 
-               AND DATE(s.created_at) < :today_sale" . ($isSales ? " AND p.recorded_by = :uid" : "");
+               AND DATE(s.created_at) < :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtDebtCol = $pdo->prepare($sqlDebtCol);
         $stmtDebtCol->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
         $todayDebtCollected = $stmtDebtCol->fetchColumn() ?: 0;
@@ -63,7 +75,7 @@ class ReportController
               FROM payments p 
               JOIN sales s ON p.sale_id = s.id 
               WHERE DATE(p.payment_date) = :today_pay 
-              AND DATE(s.created_at) = :today_sale" . ($isSales ? " AND p.recorded_by = :uid" : "");
+              AND DATE(s.created_at) = :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtNewPay = $pdo->prepare($sqlNewPay);
         $stmtNewPay->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
         $todayNewSalesGross = $stmtNewPay->fetchColumn() ?: 0;
@@ -74,18 +86,17 @@ class ReportController
                   FROM sale_returns r 
                   JOIN sales s ON r.sale_id = s.id 
                   WHERE DATE(r.created_at) = :today_ret 
-                  AND DATE(s.created_at) = :today_sale" . ($isSales ? " AND r.recorded_by = :uid" : "");
+                  AND DATE(s.created_at) = :today_sale" . ($isLimitedView ? " AND r.recorded_by = :uid" : "");
         $stmtNewReturns = $pdo->prepare($sqlNewReturns);
         $stmtNewReturns->execute(array_merge(['today_ret' => $today, 'today_sale' => $today], $params));
         $todayReturnsValueNew = $stmtNewReturns->fetchColumn() ?: 0;
 
         // 4b. Total Returns processed TODAY (Global/User-filtered)
-        $sqlTotalReturns = "SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :today_return" . ($isSales ? " AND recorded_by = :uid" : "");
+        $sqlTotalReturns = "SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :today_return" . ($isLimitedView ? " AND recorded_by = :uid" : "");
         $stmtTotalReturns = $pdo->prepare($sqlTotalReturns);
         $stmtTotalReturns->execute(array_merge(['today_return' => $today], $params));
         $totalReturnsToday = $stmtTotalReturns->fetchColumn() ?: 0;
 
-        // 5. Final Metrics for View
         // Net Cash from New Sales = Gross Payments for Today's Sales - Returns of Today's Sales
         $todayNewSalesCollected = $todayNewSalesGross - $todayReturnsValueNew;
 
@@ -106,7 +117,7 @@ class ReportController
     FROM payments p
     JOIN sales s ON p.sale_id = s.id
     WHERE DATE(p.payment_date) = :today AND s.voided = 0 AND s.total_amount > 0
-" . ($isSales ? " AND p.recorded_by = :uid" : "");
+" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtRealized = $pdo->prepare($sqlRealizedProfit);
         $stmtRealized->execute(array_merge(['today' => $today], $params));
         $todayRealizedProfit = $stmtRealized->fetchColumn() ?: 0;
@@ -185,7 +196,7 @@ class ReportController
             JOIN sale_returns r ON ri.return_id = r.id
             JOIN items i ON ri.item_id = i.id
             JOIN users u ON r.recorded_by = u.id
-            WHERE DATE(r.created_at) = :today" . ($isSales ? " AND r.recorded_by = :uid" : "") . "
+            WHERE DATE(r.created_at) = :today" . ($isLimitedView ? " AND r.recorded_by = :uid" : "") . "
             ORDER BY r.created_at DESC
         ";
         $stmtTodayReturns = $pdo->prepare($sqlTodayReturns);
