@@ -54,8 +54,11 @@ class ReportController
         $dailyProfit = $stmtProfit->fetchColumn() ?: 0;
 
         // 2.a Realized Today (Collections & Refunds)
-        // 1. Total Payments received TODAY (from any sale)
-        $sqlPayToday = "SELECT SUM(p.amount) FROM payments p WHERE DATE(p.payment_date) = :today" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+        // 1. Total Payments received TODAY (from any sale that is NOT currently voided)
+        $sqlPayToday = "SELECT SUM(p.amount) 
+                        FROM payments p 
+                        JOIN sales s ON p.sale_id = s.id
+                        WHERE DATE(p.payment_date) = :today AND s.voided = 0" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtPayToday = $pdo->prepare($sqlPayToday);
         $stmtPayToday->execute(array_merge(['today' => $today], $params));
         $totalPaymentsToday = $stmtPayToday->fetchColumn() ?: 0;
@@ -65,7 +68,8 @@ class ReportController
                FROM payments p 
                JOIN sales s ON p.sale_id = s.id 
                WHERE DATE(p.payment_date) = :today_pay 
-               AND DATE(s.created_at) < :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+               AND DATE(s.created_at) < :today_sale
+               AND s.voided = 0" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtDebtCol = $pdo->prepare($sqlDebtCol);
         $stmtDebtCol->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
         $todayDebtCollected = $stmtDebtCol->fetchColumn() ?: 0;
@@ -75,14 +79,15 @@ class ReportController
               FROM payments p 
               JOIN sales s ON p.sale_id = s.id 
               WHERE DATE(p.payment_date) = :today_pay 
-              AND DATE(s.created_at) = :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+              AND DATE(s.created_at) = :today_sale
+              AND s.voided = 0" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtNewPay = $pdo->prepare($sqlNewPay);
         $stmtNewPay->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
         $todayNewSalesGross = $stmtNewPay->fetchColumn() ?: 0;
 
         // 4. Returns Partitioning
-        // 4a. Returns of Today's Sales (New Business returns)
-        $sqlNewReturns = "SELECT SUM(r.total_deduction) 
+        // 4a. Returns of Today's Sales (New Business returns) - USE cash_refunded instead of total_deduction
+        $sqlNewReturns = "SELECT SUM(r.cash_refunded) 
                   FROM sale_returns r 
                   JOIN sales s ON r.sale_id = s.id 
                   WHERE DATE(r.created_at) = :today_ret 
@@ -91,17 +96,24 @@ class ReportController
         $stmtNewReturns->execute(array_merge(['today_ret' => $today, 'today_sale' => $today], $params));
         $todayReturnsValueNew = $stmtNewReturns->fetchColumn() ?: 0;
 
-        // 4b. Total Returns processed TODAY (Global/User-filtered)
-        $sqlTotalReturns = "SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :today_return" . ($isLimitedView ? " AND recorded_by = :uid" : "");
+        // 4b. Total Returns processed TODAY (Global/User-filtered) - USE cash_refunded for net collections
+        $sqlTotalReturns = "SELECT SUM(cash_refunded) FROM sale_returns WHERE DATE(created_at) = :today_return" . ($isLimitedView ? " AND recorded_by = :uid" : "");
         $stmtTotalReturns = $pdo->prepare($sqlTotalReturns);
         $stmtTotalReturns->execute(array_merge(['today_return' => $today], $params));
         $totalReturnsToday = $stmtTotalReturns->fetchColumn() ?: 0;
 
+        // 4c. Refunds from VOIDED sales today
+        // If a sale was voided today, we assume the physical cash was refunded today.
+        $sqlVoidedToday = "SELECT SUM(paid_amount) FROM sales WHERE voided = 1 AND DATE(voided_at) = :today" . $userFilter;
+        $stmtVoidedToday = $pdo->prepare($sqlVoidedToday);
+        $stmtVoidedToday->execute(array_merge(['today' => $today], $params));
+        $voidedRefundsToday = $stmtVoidedToday->fetchColumn() ?: 0;
+
         // Net Cash from New Sales = Gross Payments for Today's Sales - Returns of Today's Sales
         $todayNewSalesCollected = $todayNewSalesGross - $todayReturnsValueNew;
 
-        // Total Net Collections = All payments today - all returns today
-        $totalNetCollections = $totalPaymentsToday - $totalReturnsToday;
+        // Total Net Collections = All payments today - all returns today - all voided refunds today
+        $totalNetCollections = $totalPaymentsToday - $totalReturnsToday - $voidedRefundsToday;
 
         // 2.b Realized Gross Profit (Actual earned profit from collections)
         // Formula: SUM( (payment_amount / sale_total) * sale_potential_profit )
@@ -435,8 +447,13 @@ class ReportController
         $stmt->execute(['date' => $date]);
         $dailySales = $stmt->fetchColumn() ?: 0;
 
-        // b. Total Payments Received Today (Any sale)
-        $stmt = $pdo->prepare("SELECT SUM(amount) FROM payments WHERE DATE(payment_date) = :date");
+        // b. Total Payments Received Today (Any sale that is NOT currently voided)
+        $stmt = $pdo->prepare("
+            SELECT SUM(p.amount) 
+            FROM payments p 
+            JOIN sales s ON p.sale_id = s.id 
+            WHERE DATE(p.payment_date) = :date AND s.voided = 0
+        ");
         $stmt->execute(['date' => $date]);
         $totalPaymentsToday = $stmt->fetchColumn() ?: 0;
 
@@ -445,7 +462,7 @@ class ReportController
             SELECT SUM(p.amount) 
             FROM payments p 
             JOIN sales s ON p.sale_id = s.id 
-            WHERE DATE(p.payment_date) = :date AND DATE(s.created_at) < :date_ref
+            WHERE DATE(p.payment_date) = :date AND DATE(s.created_at) < :date_ref AND s.voided = 0
         ");
         $stmt->execute(['date' => $date, 'date_ref' => $date]);
         $debtRecoveredSales = $stmt->fetchColumn() ?: 0;
@@ -493,10 +510,15 @@ class ReportController
         $stmt->execute(['date' => $date]);
         $potentialProfit = $stmt->fetchColumn() ?: 0;
 
-        // i. Returns handled today
-        $stmt = $pdo->prepare("SELECT SUM(total_deduction) FROM sale_returns WHERE DATE(created_at) = :date");
+        // i. Returns handled today (Actual Cash Refunded)
+        $stmt = $pdo->prepare("SELECT SUM(cash_refunded) FROM sale_returns WHERE DATE(created_at) = :date");
         $stmt->execute(['date' => $date]);
         $todayReturns = $stmt->fetchColumn() ?: 0;
+
+        // j. Refunds from VOIDED sales on this date
+        $stmt = $pdo->prepare("SELECT SUM(paid_amount) FROM sales WHERE voided = 1 AND DATE(voided_at) = :date");
+        $stmt->execute(['date' => $date]);
+        $voidedRefunds = $stmt->fetchColumn() ?: 0;
 
         // 2. Collections (Breakdown)
         // Today's New Sales (Invoices created today)
@@ -518,7 +540,7 @@ class ReportController
             JOIN sales s ON p.sale_id = s.id
             LEFT JOIN customers c ON s.customer_id = c.id
             LEFT JOIN users u ON p.recorded_by = u.id
-            WHERE DATE(p.payment_date) = :date AND DATE(s.created_at) < :date_ref
+            WHERE DATE(p.payment_date) = :date AND DATE(s.created_at) < :date_ref AND s.voided = 0
         ");
         $stmt->execute(['date' => $date, 'date_ref' => $date]);
         $debtRecoveredList = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -575,7 +597,7 @@ class ReportController
         $expendituresList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Final Calculations
-        $totalNetCollection = $totalPaymentsToday + $standaloneRepayments - $todayReturns;
+        $totalNetCollection = $totalPaymentsToday + $standaloneRepayments - $todayReturns - $voidedRefunds;
         $realizedNetProfit = $realizedGrossProfit - $dailyExpenditure;
         $dailyNetProfit = $potentialProfit - $dailyExpenditure;
 

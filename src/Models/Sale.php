@@ -258,7 +258,7 @@ class Sale {
             }
 
             // 3. Mark as Approved and Voided
-            $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'approved', voided = 1 WHERE id = :id");
+            $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'approved', voided = 1, voided_at = CURRENT_TIMESTAMP WHERE id = :id");
             $stmt->execute(['id' => $id]);
 
             $this->pdo->commit();
@@ -363,8 +363,13 @@ class Sale {
             }
 
             // 4. Create sale_returns record
-            $stmt = $this->pdo->prepare("INSERT INTO sale_returns (sale_id, total_deduction, recorded_by) VALUES (:sid, :deduction, :uid)");
-            $stmt->execute(['sid' => $saleId, 'deduction' => $totalDeduction, 'uid' => $userId]);
+            $oldPaid = $sale['paid_amount'];
+            $newTotal = $sale['total_amount'] - $totalDeduction;
+            $newPaid = ($oldPaid > $newTotal) ? $newTotal : $oldPaid;
+            $cashRefunded = max(0, $oldPaid - $newPaid);
+
+            $stmt = $this->pdo->prepare("INSERT INTO sale_returns (sale_id, total_deduction, cash_refunded, recorded_by) VALUES (:sid, :deduction, :refund, :uid)");
+            $stmt->execute(['sid' => $saleId, 'deduction' => $totalDeduction, 'refund' => $cashRefunded, 'uid' => $userId]);
             $returnId = $this->pdo->lastInsertId();
 
             // 5. Create sale_return_items records
@@ -397,7 +402,7 @@ class Sale {
             }
 
             $stmt = $this->pdo->prepare("UPDATE sales SET total_amount = :total, paid_amount = :paid, payment_status = :status WHERE id = :id");
-            $stmt->execute(['total' => $newTotal, 'paid' => $paidAmount, 'status' => $status, 'id' => $saleId]);
+            $stmt->execute(['total' => $newTotal, 'paid' => $newPaid, 'status' => $status, 'id' => $saleId]);
 
             $this->pdo->commit();
             return true;
