@@ -23,10 +23,11 @@ ob_start();
         <nav id="docs-navbar" class="navbar sticky-top bg-white border-bottom mb-5 px-3 rounded shadow-sm">
             <ul class="nav nav-pills gap-2">
                 <li class="nav-item"><a class="nav-link active py-1 px-3" href="#about">About</a></li>
-                <li class="nav-item"><a class="nav-link py-1 px-3" href="#sales-role">Sales Guide</a></li>
+                <li class="nav-item"><a class="nav-link py-1 px-3" href="#roles">Roles</a></li>
+                <li class="nav-item"><a class="nav-link py-1 px-3" href="#sales-role">POS Guide</a></li>
+                <li class="nav-item"><a class="nav-link py-1 px-3" href="#cashier-role">Cashier Desk</a></li>
                 <li class="nav-item"><a class="nav-link py-1 px-3" href="#admin-role">Admin Guide</a></li>
                 <li class="nav-item"><a class="nav-link py-1 px-3" href="#finance">Financials</a></li>
-                <li class="nav-item"><a class="nav-link py-1 px-3" href="#advanced">Advanced</a></li>
             </ul>
         </nav>
 
@@ -67,6 +68,53 @@ ob_start();
 
         <hr class="my-5 opacity-25">
 
+        <section id="roles" class="mb-5 pt-3">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="bg-warning-subtle p-2 rounded-circle">
+                    <span class="material-symbols-outlined text-warning">group</span>
+                </div>
+                <h2 class="fw-bold mb-0">Role-Based Access</h2>
+            </div>
+            <div class="card border-0 shadow-sm p-4">
+                <p>The system now features a robust 4-role architecture designed to separate responsibilities and land users where they are most productive.</p>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mt-3">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Role</th>
+                                <th>Landing Page</th>
+                                <th>Primary Capability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-danger">Admin</span></td>
+                                <td><span class="text-primary fw-bold">Dashboard</span></td>
+                                <td>Full access to all settings, users, and global financials.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-primary">Sales</span></td>
+                                <td><span class="text-primary fw-bold">New Sale (POS)</span></td>
+                                <td>Focus solely on inventory search and creating sales requests.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">Cashier</span></td>
+                                <td><span class="text-primary fw-bold">Cashier Desk</span></td>
+                                <td>Endorse payments, manage own expenditures, and print receipts.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info text-dark">Sales & Cashier</span></td>
+                                <td><span class="text-primary fw-bold">Personal Dashboard</span></td>
+                                <td>A hybrid role that can both create sales and process payments.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-5 opacity-25">
+
         <section id="sales-role" class="mb-5 pt-3">
             <div class="d-flex align-items-center gap-3 mb-4">
                 <div class="bg-success-subtle p-2 rounded-circle">
@@ -80,10 +128,16 @@ ob_start();
                     <h5 class="fw-bold mb-3">1. Checkout Process (POS)</h5>
                     <ol class="text-muted lh-lg">
                         <li>Navigate to <span class="badge bg-light text-dark border">Point of Sale</span>.</li>
-                        <li>Search and select a customer (use <span class="text-primary fw-bold">+</span> to add new ones instantly).</li>
+                        <li>Search and select a customer (use <span class="text-primary fw-bold">+</span> to add new ones instantly, or proceed as <strong>Walk-in</strong>).</li>
                         <li>Add items to the cart. Stock levels are validated automatically.</li>
-                        <li>Enter the <span class="fw-bold">Amount Paid</span>. The system tracks remaining balance as <strong>Debt</strong>.</li>
-                        <li>Complete sale to generate an invoice.</li>
+                        <li>Enter the <span class="fw-bold">Amount Paid</span>. 
+                            <ul class="mb-2">
+                                <li><span class="text-danger small fw-bold">Warning:</span> Negative amounts are blocked.</li>
+                                <li><span class="text-danger small fw-bold">Warning:</span> Overpayments (exceeding total) are not allowed.</li>
+                                <li><strong>Credit Sales:</strong> If the customer is paying less than the total, you <strong>must</strong> select a Customer profile to record the debt.</li>
+                            </ul>
+                        </li>
+                        <li>Complete sale. Pure Sales users send a request to the Cashier;hybrid roles complete the sale immediately.</li>
                     </ol>
                     <div class="alert alert-info mt-3 small d-flex gap-2 align-items-center">
                         <span class="material-symbols-outlined">lightbulb</span>
@@ -115,6 +169,41 @@ ob_start();
                             </ul>
                         </div>
                     </div>
+                                <li>
+                                    <h6 class="fw-bold text-info"><span class="material-symbols-outlined align-middle fs-6">payments</span> Personal Expenditures</h6>
+                                    <p class="small text-muted"><strong>Cashiers</strong> and <strong>Sales/Cashiers</strong> can now record their own business-related expenses. These are subtracted from their net performance totals.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+        </section>
+
+        <hr class="my-5 opacity-25">
+
+        <section id="cashier-role" class="mb-5 pt-3">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="bg-info-subtle p-2 rounded-circle">
+                    <span class="material-symbols-outlined text-info">point_of_sale</span>
+                </div>
+                <h2 class="fw-bold mb-0">Cashier Desk Guide</h2>
+            </div>
+            
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Handling Payment Requests</h5>
+                    <p class="text-muted small">The Cashier Desk is the central hub for processing money coming from pure Sales staff.</p>
+                    <ul class="text-muted lh-lg small">
+                        <li><strong>Pending Queue:</strong> All sales initialized by sales staff appear here as "Pending Payments".</li>
+                        <li><strong>Processing:</strong> Click <span class="badge bg-primary">Endorse Payment</span> once you have received the cash from the customer.</li>
+                        <li><strong>Pay Later:</strong> For trusted customers, you can use the "Pay Later" button to endorse the order as a credit sale (0 payment) and move it to history.</li>
+                        <li><strong>Rejection:</strong> If a sale was created in error, you can <span class="text-danger fw-bold">Reject</span> it, which restores the stock to the items list immediately.</li>
+                    </ul>
+                    <div class="alert alert-warning mt-3 small d-flex gap-2 align-items-center">
+                        <span class="material-symbols-outlined">warning</span>
+                        <span>Always verify the physical cash matches the "Amount Customer is Paying" shown on the screen before clicking Endorse.</span>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <hr class="my-5 opacity-25">
@@ -138,7 +227,8 @@ ob_start();
                             <p class="small text-muted mb-3">Admins have full control over items. Beyond basic CRUD, you can now use:</p>
                             <ul class="small text-muted ps-3 mb-0">
                                 <li class="mb-2"><strong>Bundles & Membership:</strong> Group items sold together. The item detail page now shows all bundles an item belongs to.</li>
-                                <li class="mb-2"><strong>Item Activity Logs:</strong> Click "Activity Log" on any item to see a chronological history of changes, including price updates and stock adjustments, with "Before" and "After" values.</li>
+                                <li class="mb-2"><strong>Quick Role Management:</strong> You can now update any user's role directly from the Manage Users list using the new quick-change dropdown.</li>
+                                <li class="mb-2"><strong>Item Activity Logs:</strong> Click "Activity Log" on any item to see a chronological history of changes, including price updates and stock adjustments.</li>
                                 <li><strong>Low Stock Alerts:</strong> Threshold is set to 5 units. Check the dashboard for proactive restocking.</li>
                             </ul>
                         </div>
