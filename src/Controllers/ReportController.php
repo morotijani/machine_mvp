@@ -54,11 +54,11 @@ class ReportController
         $dailyProfit = $stmtProfit->fetchColumn() ?: 0;
 
         // 2.a Realized Today (Collections & Refunds)
-        // 1. Total Payments received TODAY (from any sale that is NOT currently voided)
+        // 1. Total Payments received TODAY
         $sqlPayToday = "SELECT SUM(p.amount) 
                         FROM payments p 
                         JOIN sales s ON p.sale_id = s.id
-                        WHERE DATE(p.payment_date) = :today AND s.voided = 0" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+                        WHERE DATE(p.payment_date) = :today" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtPayToday = $pdo->prepare($sqlPayToday);
         $stmtPayToday->execute(array_merge(['today' => $today], $params));
         $totalPaymentsToday = $stmtPayToday->fetchColumn() ?: 0;
@@ -68,8 +68,7 @@ class ReportController
                FROM payments p 
                JOIN sales s ON p.sale_id = s.id 
                WHERE DATE(p.payment_date) = :today_pay 
-               AND DATE(s.created_at) < :today_sale
-               AND s.voided = 0" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+               AND DATE(s.created_at) < :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtDebtCol = $pdo->prepare($sqlDebtCol);
         $stmtDebtCol->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
         $todayDebtCollected = $stmtDebtCol->fetchColumn() ?: 0;
@@ -79,8 +78,7 @@ class ReportController
               FROM payments p 
               JOIN sales s ON p.sale_id = s.id 
               WHERE DATE(p.payment_date) = :today_pay 
-              AND DATE(s.created_at) = :today_sale
-              AND s.voided = 0" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+              AND DATE(s.created_at) = :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtNewPay = $pdo->prepare($sqlNewPay);
         $stmtNewPay->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
         $todayNewSalesGross = $stmtNewPay->fetchColumn() ?: 0;
@@ -104,7 +102,7 @@ class ReportController
 
         // 4c. Refunds from VOIDED sales today
         // If a sale was voided today, we assume the physical cash was refunded today.
-        $sqlVoidedToday = "SELECT SUM(paid_amount) FROM sales WHERE voided = 1 AND DATE(voided_at) = :today" . $userFilter;
+        $sqlVoidedToday = "SELECT SUM(p.amount) FROM payments p JOIN sales s ON p.sale_id = s.id WHERE s.voided = 1 AND DATE(s.voided_at) = :today" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtVoidedToday = $pdo->prepare($sqlVoidedToday);
         $stmtVoidedToday->execute(array_merge(['today' => $today], $params));
         $voidedRefundsToday = $stmtVoidedToday->fetchColumn() ?: 0;
@@ -447,12 +445,12 @@ class ReportController
         $stmt->execute(['date' => $date]);
         $dailySales = $stmt->fetchColumn() ?: 0;
 
-        // b. Total Payments Received Today (Any sale that is NOT currently voided)
+        // b. Total Payments Received Today
         $stmt = $pdo->prepare("
             SELECT SUM(p.amount) 
             FROM payments p 
             JOIN sales s ON p.sale_id = s.id 
-            WHERE DATE(p.payment_date) = :date AND s.voided = 0
+            WHERE DATE(p.payment_date) = :date
         ");
         $stmt->execute(['date' => $date]);
         $totalPaymentsToday = $stmt->fetchColumn() ?: 0;
@@ -462,7 +460,7 @@ class ReportController
             SELECT SUM(p.amount) 
             FROM payments p 
             JOIN sales s ON p.sale_id = s.id 
-            WHERE DATE(p.payment_date) = :date AND DATE(s.created_at) < :date_ref AND s.voided = 0
+            WHERE DATE(p.payment_date) = :date AND DATE(s.created_at) < :date_ref
         ");
         $stmt->execute(['date' => $date, 'date_ref' => $date]);
         $debtRecoveredSales = $stmt->fetchColumn() ?: 0;
@@ -516,7 +514,7 @@ class ReportController
         $todayReturns = $stmt->fetchColumn() ?: 0;
 
         // j. Refunds from VOIDED sales on this date
-        $stmt = $pdo->prepare("SELECT SUM(paid_amount) FROM sales WHERE voided = 1 AND DATE(voided_at) = :date");
+        $stmt = $pdo->prepare("SELECT SUM(p.amount) FROM payments p JOIN sales s ON p.sale_id = s.id WHERE s.voided = 1 AND DATE(s.voided_at) = :date");
         $stmt->execute(['date' => $date]);
         $voidedRefunds = $stmt->fetchColumn() ?: 0;
 

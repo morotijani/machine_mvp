@@ -28,6 +28,16 @@ class Database {
 
         try {
             $this->pdo = new PDO($dsn, $user, $pass, $options);
+            
+            // Sync MySQL timezone with PHP timezone using offset
+            $now = new \DateTime();
+            $mins = $now->getOffset() / 60;
+            $sgn = ($mins < 0 ? -1 : 1);
+            $mins = abs($mins);
+            $hrs = floor($mins / 60);
+            $mins -= $hrs * 60;
+            $offset = sprintf('%+d:%02d', $hrs * $sgn, $mins);
+            $this->pdo->exec("SET time_zone = '{$offset}'");
         } catch (\PDOException $e) {
             throw new \PDOException($e->getMessage(), (int)$e->getCode());
         }

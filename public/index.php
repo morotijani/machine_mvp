@@ -1,5 +1,14 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
+
+// Load Environment Variables to configure Timezone
+$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->safeLoad();
+
+// Set Application Timezone
+$timezone = $_ENV['APP_TIMEZONE'] ?? 'Africa/Accra';
+date_default_timezone_set($timezone);
+
 require_once __DIR__ . '/../src/Config/Router.php';
 require_once __DIR__ . '/../src/Config/Security.php';
 
