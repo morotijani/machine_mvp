@@ -107,8 +107,8 @@ class ReportController
         $stmtVoidedToday->execute(array_merge(['today' => $today], $params));
         $voidedRefundsToday = $stmtVoidedToday->fetchColumn() ?: 0;
 
-        // Net Cash from New Sales = Gross Payments for Today's Sales - Returns of Today's Sales
-        $todayNewSalesCollected = $todayNewSalesGross - $todayReturnsValueNew;
+        // Net Cash from New Sales = Gross Payments for Today's Sales - ALL Returns Today - ALL Voided Refunds Today
+        $todayNewSalesCollected = $todayNewSalesGross - $totalReturnsToday - $voidedRefundsToday;
 
         // Total Net Collections = All payments today - all returns today - all voided refunds today
         $totalNetCollections = $totalPaymentsToday - $totalReturnsToday - $voidedRefundsToday;

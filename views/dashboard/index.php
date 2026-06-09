@@ -22,7 +22,7 @@
                 <div class="card p-3 h-100 bg-primary-subtle border-0 shadow-sm">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Cash Collected Today</h6>
                     <h2 class="text-primary mb-0">₵<?php echo number_format($todayNewSalesCollected, 2); ?></h2>
-                    <small class="text-muted">From today's invoices only</small>
+                    <small class="text-muted">Net of returns & deleted sales</small>
                 </div>
             </div>
             

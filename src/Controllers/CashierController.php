@@ -80,6 +80,18 @@ class CashierController {
 
                 try {
                     if ($request['type'] === 'sale' || $request['type'] === 'debt_single') {
+                        $saleModel = new Sale($pdo);
+                        $sale = $saleModel->getById($request['reference_id']);
+                        if ($sale) {
+                            $outstanding = (float)$sale['total_amount'] - (float)$sale['paid_amount'];
+                            // Allow a small epsilon for floating point errors
+                            if ((float)$amount > $outstanding + 0.01) {
+                                $_SESSION['error'] = "Processing Error: Cannot receive more than the current outstanding invoice total (₵" . number_format($outstanding, 2) . "). The invoice may have been modified or items returned.";
+                                header('Location: ' . BASE_URL . '/cashier');
+                                exit;
+                            }
+                        }
+
                         if ($amount > 0) {
                             $paymentModel = new Payment($pdo);
                             $success = $paymentModel->recordPayment($request['reference_id'], $amount, $_SESSION['user_id']);
