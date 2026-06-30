@@ -126,21 +126,26 @@ ob_start();
     <div class="card ticket-card shadow-sm mb-3">
         <div class="card-body">
             <div class="row align-items-center">
-                <div class="col-md-2">
+                <div class="col-md-2 mb-2 mb-md-0">
                     <span class="badge bg-light text-dark border t-type mb-1 d-inline-block">Type</span>
                     <h4 class="fw-bold text-primary mb-0 t-ref">#000</h4>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3 mb-2 mb-md-0">
                     <div class="text-muted small">Customer</div>
-                    <div class="fw-bold t-customer">Walk-in</div>
-                    <div class="small text-muted mt-1"><span class="material-symbols-outlined align-text-bottom" style="font-size: 14px;">person</span> <span class="t-creator">Salesperson</span></div>
+                    <div class="fw-bold t-customer text-truncate">Walk-in</div>
+                    <div class="small text-muted mt-1 text-truncate"><span class="material-symbols-outlined align-text-bottom" style="font-size: 14px;">person</span> <span class="t-creator">Salesperson</span></div>
                 </div>
-                <div class="col-md-3 text-end">
+                <div class="col-md-3 mb-2 mb-md-0">
+                    <div class="text-muted small"><span class="material-symbols-outlined align-text-bottom" style="font-size: 14px;">schedule</span> Received</div>
+                    <div class="fw-bold t-date-time text-truncate">Date Time</div>
+                    <div class="small text-danger mt-1 fw-bold t-time-ago">0 mins ago</div>
+                </div>
+                <div class="col-md-2 text-md-end mb-2 mb-md-0">
                     <div class="text-muted small">Amount Due</div>
-                    <h3 class="text-success fw-bold mb-0 t-amount">₵0.00</h3>
+                    <h4 class="text-success fw-bold mb-0 t-amount">₵0.00</h4>
                 </div>
-                <div class="col-md-3 text-end">
-                    <button class="btn btn-dark fw-bold px-4 btn-process" onclick="">Process</button>
+                <div class="col-md-2 text-md-end">
+                    <button class="btn btn-dark fw-bold w-100 btn-process" onclick="">Process</button>
                 </div>
             </div>
         </div>
@@ -149,6 +154,36 @@ ob_start();
 
 <script>
 let currentRequests = <?= json_encode($pendingRequests) ?>;
+
+function parseDbDate(dateString) {
+    if (!dateString) return new Date();
+    const t = dateString.split(/[- :]/);
+    return new Date(t[0], t[1]-1, t[2], t[3] || 0, t[4] || 0, t[5] || 0);
+}
+
+function timeAgo(dateString) {
+    const d = parseDbDate(dateString);
+    const now = new Date();
+    const seconds = Math.max(0, Math.floor((now - d) / 1000));
+    
+    if (seconds < 60) return "just now";
+    
+    let interval = seconds / 31536000;
+    if (interval >= 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval >= 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval >= 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval >= 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    return Math.floor(interval) + " mins ago";
+}
+
+function formatDateTime(dateString) {
+    const d = parseDbDate(dateString);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
 
 function renderQueue(requests) {
     const container = document.getElementById('queue-container');
@@ -169,8 +204,10 @@ function renderQueue(requests) {
         const clone = template.content.cloneNode(true);
         const card = clone.querySelector('.ticket-card');
         
+        card.setAttribute('data-created-at', req.created_at || '');
+        
         let typeStr = 'Sale Invoice';
-        if (req.type === 'debt_single') typeStr = 'Settle Invoice Dept';
+        if (req.type === 'debt_single') typeStr = 'Settle Invoice Debt';
         if (req.type === 'debt_bulk') typeStr = 'Bulk Debt Repayment';
         
         if (req.type.includes('debt')) {
@@ -185,6 +222,11 @@ function renderQueue(requests) {
         clone.querySelector('.t-creator').textContent = req.creator_name;
         clone.querySelector('.t-amount').textContent = '₵' + parseFloat(req.amount_due).toFixed(2);
         
+        if (req.created_at) {
+            clone.querySelector('.t-date-time').textContent = formatDateTime(req.created_at);
+            clone.querySelector('.t-time-ago').textContent = timeAgo(req.created_at);
+        }
+
         const btn = clone.querySelector('.btn-process');
         btn.onclick = () => openProcessModal(req);
 
@@ -230,6 +272,17 @@ function openProcessModal(req) {
 
 // Initial render
 renderQueue(currentRequests);
+
+// Live Time Updater
+setInterval(() => {
+    document.querySelectorAll('.ticket-card').forEach(card => {
+        const dateStr = card.getAttribute('data-created-at');
+        if (dateStr) {
+            const timeAgoEl = card.querySelector('.t-time-ago');
+            if (timeAgoEl) timeAgoEl.textContent = timeAgo(dateStr);
+        }
+    });
+}, 60000);
 
 // Live Polling
 setInterval(() => {

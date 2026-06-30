@@ -151,6 +151,79 @@ ob_start();
     </div>
 </div>
 
+<!-- Material Design Modal Styles -->
+<style>
+    .material-modal .modal-content {
+        border-radius: 28px;
+    }
+    .material-modal .modal-title-custom {
+        font-size: 24px;
+        color: #1f1f1f;
+        font-weight: 400;
+        margin-bottom: 16px;
+    }
+    .material-modal .modal-text {
+        font-size: 14px;
+        color: #444746;
+        line-height: 1.5;
+        margin-bottom: 32px;
+    }
+    .material-modal .btn-cancel {
+        color: #0b57d0;
+        font-weight: 500;
+        text-decoration: none;
+        padding: 10px 16px;
+        border-radius: 20px;
+    }
+    .material-modal .btn-cancel:hover {
+        background-color: #f6f8fb;
+    }
+    .material-modal .btn-ok {
+        background-color: #0b57d0;
+        color: #fff;
+        font-weight: 500;
+        border-radius: 20px;
+        padding: 10px 24px;
+        border: none;
+        transition: background-color 0.2s;
+    }
+    .material-modal .btn-ok:hover {
+        background-color: #0842a0;
+        color: #fff;
+    }
+</style>
+
+<!-- Out of Stock Modal -->
+<div class="modal fade material-modal" id="outOfStockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body p-4">
+                <h4 class="modal-title-custom">Out of stock</h4>
+                <p class="modal-text">This item currently has no available stock. Please choose another item.</p>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-ok" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Walk-in Confirm Modal -->
+<div class="modal fade material-modal" id="walkInConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body p-4">
+                <h4 class="modal-title-custom">Proceed as Walk-in?</h4>
+                <p class="modal-text">No customer is selected. Are you sure you want to proceed with this sale as a Walk-in customer?</p>
+                <div class="d-flex justify-content-end align-items-center gap-2">
+                    <button type="button" class="btn btn-link btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="confirmWalkInBtn" class="btn btn-ok">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const CSRF_TOKEN = '<?= csrf_token() ?>';
 const items = <?php echo json_encode($items); ?>;
@@ -228,7 +301,8 @@ function findAndAddItemBySku(sku) {
 
 function addItemToCart(id, name, price, stock) {
     if(stock <= 0) {
-        alert('Item is Out of Stock!');
+        const oosModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('outOfStockModal'));
+        oosModal.show();
         return;
     }
 
@@ -317,42 +391,11 @@ document.getElementById('btnPayLater').addEventListener('click', () => {
     document.getElementById('payAmount').value = 0;
 });
 
-document.getElementById('btnCompleteSale').addEventListener('click', function() {
-    const btn = this;
+function submitSalePayload() {
+    const btn = document.getElementById('btnCompleteSale');
     const customerId = document.getElementById('customerSelect').value;
     const payAmount = parseFloat(document.getElementById('payAmount').value);
-
-    const total = parseFloat(document.getElementById('cartTotal').textContent.replace('₵', ''));
     
-    // VALIDATION: Amount Paid cannot be negative
-    if (payAmount < 0) {
-        alert('Amount Paid cannot be less than zero.');
-        return;
-    }
-
-    // VALIDATION: Amount Paid cannot be more than total
-    if (payAmount > total + 0.01) { // Adding a small buffer for float precision
-        alert('Amount Paid (₵' + payAmount.toFixed(2) + ') cannot exceed the Total Order Amount (₵' + total.toFixed(2) + ').');
-        return;
-    }
-
-    if (payAmount < total && !customerId) {
-        alert('For Credit/Partial payments, you MUST select a Customer to record the debt.');
-        return;
-    }
-
-    if (cart.length === 0) {
-        alert('Cart is empty');
-        return;
-    }
-    
-    if (!customerId) {
-        // Confirmation for walk-in
-        if(!confirm('No customer selected. Proceed as Walk-in?')) {
-            return; 
-        }
-    }
-
     const payload = {
         customer_id: customerId || null,
         payment_amount: payAmount,
@@ -390,6 +433,48 @@ document.getElementById('btnCompleteSale').addEventListener('click', function() 
         btn.disabled = false;
         btn.innerHTML = originalText;
     });
+}
+
+document.getElementById('btnCompleteSale').addEventListener('click', function() {
+    const customerId = document.getElementById('customerSelect').value;
+    const payAmount = parseFloat(document.getElementById('payAmount').value);
+    const total = parseFloat(document.getElementById('cartTotal').textContent.replace('₵', ''));
+    
+    // VALIDATION: Amount Paid cannot be negative
+    if (payAmount < 0) {
+        alert('Amount Paid cannot be less than zero.');
+        return;
+    }
+
+    // VALIDATION: Amount Paid cannot be more than total
+    if (payAmount > total + 0.01) { // Adding a small buffer for float precision
+        alert('Amount Paid (₵' + payAmount.toFixed(2) + ') cannot exceed the Total Order Amount (₵' + total.toFixed(2) + ').');
+        return;
+    }
+
+    if (payAmount < total && !customerId) {
+        alert('For Credit/Partial payments, you MUST select a Customer to record the debt.');
+        return;
+    }
+
+    if (cart.length === 0) {
+        alert('Cart is empty');
+        return;
+    }
+    
+    if (!customerId) {
+        const walkInModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('walkInConfirmModal'));
+        walkInModal.show();
+        return;
+    }
+
+    submitSalePayload();
+});
+
+document.getElementById('confirmWalkInBtn').addEventListener('click', function() {
+    const walkInModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('walkInConfirmModal'));
+    walkInModal.hide();
+    submitSalePayload();
 });
 
 // Quick Add Customer Logic
