@@ -126,6 +126,9 @@ ob_start();
                                         <a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['sale_id'] ?>" class="text-decoration-none fw-bold">
                                             #<?= $sale['sale_id'] ?>
                                         </a>
+                                        <?php if (!empty($sale['bundle_name'])): ?>
+                                            <div class="mt-1"><span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;" title="Sold as part of bundle">via <?= e($sale['bundle_name']) ?></span></div>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if ($sale['customer_id']): ?>
@@ -139,13 +142,40 @@ ob_start();
                                     <td class="text-center">
                                         <span class="badge bg-light text-dark border"><?= $sale['quantity'] ?></span>
                                     </td>
-                                    <td class="text-end">₵<?= number_format($sale['price_at_sale'], 2) ?></td>
-                                    <td class="text-end pe-4 fw-bold text-primary">₵<?= number_format($sale['subtotal'], 2) ?></td>
+                                    <td class="text-end">
+                                        <?php if (!empty($sale['bundle_name'])): ?>
+                                            <span class="text-muted small">Included</span>
+                                        <?php else: ?>
+                                            ₵<?= number_format($sale['price_at_sale'], 2) ?>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end pe-4 fw-bold text-primary">
+                                        <?php if (!empty($sale['bundle_name'])): ?>
+                                            -
+                                        <?php else: ?>
+                                            ₵<?= number_format($sale['subtotal'], 2) ?>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
+                    <?php if ($totalSalesPages > 1): ?>
+                    <div class="card-footer bg-white py-3 border-top">
+                        <nav aria-label="Sales History Pagination">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <li class="page-item <?= ($salesPage <= 1) ? 'disabled' : '' ?>">
+                                    <a class="page-link" href="?id=<?= $item['id'] ?>&sales_page=<?= $salesPage - 1 ?>&logs_page=<?= $logsPage ?>">Previous</a>
+                                </li>
+                                <li class="page-item disabled"><span class="page-link">Page <?= $salesPage ?> of <?= $totalSalesPages ?></span></li>
+                                <li class="page-item <?= ($salesPage >= $totalSalesPages) ? 'disabled' : '' ?>">
+                                    <a class="page-link" href="?id=<?= $item['id'] ?>&sales_page=<?= $salesPage + 1 ?>&logs_page=<?= $logsPage ?>">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
@@ -247,6 +277,21 @@ ob_start();
                             </tbody>
                         </table>
                     </div>
+                    <?php if ($totalLogsPages > 1): ?>
+                    <div class="card-footer bg-white py-3 border-top">
+                        <nav aria-label="Activity Logs Pagination">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <li class="page-item <?= ($logsPage <= 1) ? 'disabled' : '' ?>">
+                                    <a class="page-link" href="?id=<?= $item['id'] ?>&sales_page=<?= $salesPage ?>&logs_page=<?= $logsPage - 1 ?>">Previous</a>
+                                </li>
+                                <li class="page-item disabled"><span class="page-link">Page <?= $logsPage ?> of <?= $totalLogsPages ?></span></li>
+                                <li class="page-item <?= ($logsPage >= $totalLogsPages) ? 'disabled' : '' ?>">
+                                    <a class="page-link" href="?id=<?= $item['id'] ?>&sales_page=<?= $salesPage ?>&logs_page=<?= $logsPage + 1 ?>">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>

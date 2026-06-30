@@ -175,6 +175,16 @@ class Item {
                 
                 // 2. Deduct Stock immediately
                 $this->adjustStock($comp['id'], -$needed);
+                
+                // Log allocation
+                $this->addLog([
+                    'item_id' => $comp['id'],
+                    'user_id' => $_SESSION['user_id'] ?? 1,
+                    'action' => 'bundle_allocation',
+                    'details' => "Allocated {$needed} units to bundle '{$data['name']}'",
+                    'old_quantity' => $item['quantity'],
+                    'new_quantity' => $item['quantity'] - $needed
+                ]);
             }
 
             // 3. Create Bundle Item
@@ -248,7 +258,21 @@ class Item {
             // 3. Restore Stock to Components
             foreach ($components as $comp) {
                 $restoreQty = $comp['quantity'] * $quantityToUngroup;
+                
+                $stmtQ = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id");
+                $stmtQ->execute(['id' => $comp['child_item_id']]);
+                $oldQty = $stmtQ->fetchColumn();
+
                 $this->adjustStock($comp['child_item_id'], $restoreQty);
+                
+                $this->addLog([
+                    'item_id' => $comp['child_item_id'],
+                    'user_id' => $_SESSION['user_id'] ?? 1,
+                    'action' => 'bundle_disassembly',
+                    'details' => "Restored {$restoreQty} units from disassembled bundle '{$bundle['name']}'",
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $oldQty + $restoreQty
+                ]);
             }
 
             // 4. Reduce Bundle Stock
@@ -319,12 +343,37 @@ class Item {
                     if ($childItem['quantity'] < $netChange) {
                         throw new \Exception("Insufficient stock for item ID: $childId. Need " . $netChange . " more.");
                     }
+                    $oldQty = $childItem['quantity'];
                     $this->adjustStock($childId, -$netChange);
+                    
+                    $this->addLog([
+                        'item_id' => $childId,
+                        'user_id' => $_SESSION['user_id'] ?? 1,
+                        'action' => 'bundle_allocation',
+                        'details' => "Allocated additional {$netChange} units to updated bundle",
+                        'old_quantity' => $oldQty,
+                        'new_quantity' => $oldQty - $netChange
+                    ]);
+
                     $newTotalCost += $childItem['cost_price'] * $newRecipeQty;
                 } elseif ($netChange < 0) {
                     // Returning stock.
                     // Note: abs($netChange) is the amount to add back.
+                    $stmtQ = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id");
+                    $stmtQ->execute(['id' => $childId]);
+                    $oldQty = $stmtQ->fetchColumn();
+
                     $this->adjustStock($childId, abs($netChange));
+                    
+                    $this->addLog([
+                        'item_id' => $childId,
+                        'user_id' => $_SESSION['user_id'] ?? 1,
+                        'action' => 'bundle_disassembly',
+                        'details' => "Restored " . abs($netChange) . " units from updated bundle",
+                        'old_quantity' => $oldQty,
+                        'new_quantity' => $oldQty + abs($netChange)
+                    ]);
+
                     // Cost calculation still based on new recipe
                     $stmt = $this->pdo->prepare("SELECT cost_price FROM items WHERE id = :id");
                     $stmt->execute(['id' => $childId]);
@@ -347,7 +396,21 @@ class Item {
                     // This item was removed from the bundle entirely.
                     // Return all used stock.
                     $oldTotalUsed = $currentBundleQty * $oldRecipeQty;
+                    
+                    $stmtQ = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id");
+                    $stmtQ->execute(['id' => $childId]);
+                    $oldQty = $stmtQ->fetchColumn();
+
                     $this->adjustStock($childId, $oldTotalUsed);
+                    
+                    $this->addLog([
+                        'item_id' => $childId,
+                        'user_id' => $_SESSION['user_id'] ?? 1,
+                        'action' => 'bundle_disassembly',
+                        'details' => "Restored {$oldTotalUsed} units (removed from updated bundle)",
+                        'old_quantity' => $oldQty,
+                        'new_quantity' => $oldQty + $oldTotalUsed
+                    ]);
                 }
             }
 
@@ -445,17 +508,75 @@ class Item {
         }
     }
 
-    public function getSalesHistory($itemId) {
-        $sql = "SELECT si.*, s.created_at, s.payment_status, c.name as customer_name, c.id as customer_id, u.username as seller_name
-                FROM sale_items si
+    public function getSalesHistoryCount($itemId) {
+        $sql = "
+            SELECT COUNT(*) FROM (
+                SELECT si.sale_id FROM sale_items si
                 JOIN sales s ON si.sale_id = s.id
-                LEFT JOIN customers c ON s.customer_id = c.id
-                LEFT JOIN users u ON s.user_id = u.id
                 WHERE si.item_id = :iid AND s.voided = 0
-                ORDER BY s.created_at DESC";
+                UNION ALL
+                SELECT si.sale_id FROM sale_items si
+                JOIN sales s ON si.sale_id = s.id
+                JOIN item_bundles ib ON si.item_id = ib.parent_item_id
+                WHERE ib.child_item_id = :ciid AND s.voided = 0
+            ) as combined
+        ";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['iid' => $itemId]);
-        return $stmt->fetchAll();
+        $stmt->execute(['iid' => $itemId, 'ciid' => $itemId]);
+        return $stmt->fetchColumn() ?: 0;
+    }
+
+    public function getSalesHistoryPaginated($itemId, $limit, $offset) {
+        $sql = "
+            SELECT 
+                si.sale_id,
+                si.quantity,
+                si.price_at_sale,
+                si.subtotal,
+                s.created_at, 
+                s.payment_status, 
+                c.name as customer_name, 
+                c.id as customer_id, 
+                u.username as seller_name,
+                NULL as bundle_name
+            FROM sale_items si
+            JOIN sales s ON si.sale_id = s.id
+            LEFT JOIN customers c ON s.customer_id = c.id
+            LEFT JOIN users u ON s.user_id = u.id
+            WHERE si.item_id = :iid AND s.voided = 0
+
+            UNION ALL
+
+            SELECT 
+                si.sale_id,
+                (si.quantity * ib.quantity) as quantity,
+                0 as price_at_sale,
+                0 as subtotal,
+                s.created_at, 
+                s.payment_status, 
+                c.name as customer_name, 
+                c.id as customer_id, 
+                u.username as seller_name,
+                i_bundle.name as bundle_name
+            FROM sale_items si
+            JOIN sales s ON si.sale_id = s.id
+            JOIN item_bundles ib ON si.item_id = ib.parent_item_id
+            JOIN items i_bundle ON ib.parent_item_id = i_bundle.id
+            LEFT JOIN customers c ON s.customer_id = c.id
+            LEFT JOIN users u ON s.user_id = u.id
+            WHERE ib.child_item_id = :ciid AND s.voided = 0
+
+            ORDER BY created_at DESC
+            LIMIT :limit OFFSET :offset
+        ";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':iid', $itemId, \PDO::PARAM_INT);
+        $stmt->bindValue(':ciid', $itemId, \PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public function addLog($data) {
@@ -472,15 +593,26 @@ class Item {
         ]);
     }
 
-    public function getLogs($itemId) {
+    public function getLogsCount($itemId) {
+        $sql = "SELECT COUNT(*) FROM item_logs WHERE item_id = :iid";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['iid' => $itemId]);
+        return $stmt->fetchColumn() ?: 0;
+    }
+
+    public function getLogsPaginated($itemId, $limit, $offset) {
         $sql = "SELECT l.*, u.username as operator_name 
                 FROM item_logs l 
                 LEFT JOIN users u ON l.user_id = u.id 
                 WHERE l.item_id = :iid 
-                ORDER BY l.created_at DESC";
+                ORDER BY l.created_at DESC
+                LIMIT :limit OFFSET :offset";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['iid' => $itemId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->bindValue(':iid', $itemId, \PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public function getParentBundles($childItemId) {

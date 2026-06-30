@@ -572,8 +572,25 @@ class ItemController
 
         $_SESSION['item_referer'] = 'detail';
 
-        $salesHistory = $itemModel->getSalesHistory($id);
-        $activityLogs = $itemModel->getLogs($id);
+        // Pagination for Sales History
+        $salesLimit = 10;
+        $salesPage = isset($_GET['sales_page']) ? (int)$_GET['sales_page'] : 1;
+        if ($salesPage < 1) $salesPage = 1;
+        $salesOffset = ($salesPage - 1) * $salesLimit;
+        
+        $totalSales = $itemModel->getSalesHistoryCount($id);
+        $totalSalesPages = ceil($totalSales / $salesLimit);
+        $salesHistory = $itemModel->getSalesHistoryPaginated($id, $salesLimit, $salesOffset);
+
+        // Pagination for Activity Logs
+        $logsLimit = 10;
+        $logsPage = isset($_GET['logs_page']) ? (int)$_GET['logs_page'] : 1;
+        if ($logsPage < 1) $logsPage = 1;
+        $logsOffset = ($logsPage - 1) * $logsLimit;
+
+        $totalLogs = $itemModel->getLogsCount($id);
+        $totalLogsPages = ceil($totalLogs / $logsLimit);
+        $activityLogs = $itemModel->getLogsPaginated($id, $logsLimit, $logsOffset);
         $parentBundles = $itemModel->getParentBundles($id);
 
         $components = [];
