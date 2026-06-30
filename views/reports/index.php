@@ -153,7 +153,9 @@ ob_start();
                                 <th>Month</th>
                                 <th class="text-end text-muted"><?php echo $lastYear; ?> Sales</th>
                                 <th class="text-end"><?php echo $selectedYear; ?> Sales</th>
-                                <th class="text-end">Profit (<?php echo $selectedYear; ?>)</th>
+                                <th class="text-end">Gross Profit</th>
+                                <th class="text-end text-danger">Expenses</th>
+                                <th class="text-end text-success">Net Profit</th>
                                 <th class="text-end">Difference</th>
                                 <th class="text-end">Growth / Margin</th>
                             </tr>
@@ -166,7 +168,9 @@ ob_start();
                                 <td><?= $data['month_name'] ?></td>
                                 <td class="text-end text-muted">₵<?= number_format($data['last_year'], 2) ?></td>
                                 <td class="text-end fw-bold">₵<?= number_format($data['current_year'], 2) ?></td>
-                                <td class="text-end text-success">₵<?= number_format($data['current_profit'], 2) ?></td>
+                                <td class="text-end">₵<?= number_format($data['current_profit'], 2) ?></td>
+                                <td class="text-end text-danger">₵<?= number_format($data['current_expenses'], 2) ?></td>
+                                <td class="text-end text-success fw-bold">₵<?= number_format($data['final_profit'], 2) ?></td>
                                 
                                 <?php if ($data['difference'] > 0): ?>
                                     <td class="text-end text-success">+₵<?= number_format($data['difference'], 2) ?></td>
@@ -194,7 +198,9 @@ ob_start();
                                 <td>Total</td>
                                 <td class="text-end text-muted">₵<?php echo number_format(array_sum(array_column($comparisonData, 'last_year')), 2); ?></td>
                                 <td class="text-end">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_year')), 2); ?></td>
-                                <td class="text-end text-success">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_profit')), 2); ?></td>
+                                <td class="text-end">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_profit')), 2); ?></td>
+                                <td class="text-end text-danger">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_expenses')), 2); ?></td>
+                                <td class="text-end text-success">₵<?php echo number_format(array_sum(array_column($comparisonData, 'final_profit')), 2); ?></td>
                                 <td></td>
                                 <td></td>
                             </tr>

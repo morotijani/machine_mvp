@@ -1,8 +1,8 @@
 <?php
-    $title = "Dashboard";
-    ob_start();
+$title = "Dashboard";
+ob_start();
 
-    $isAdmin = ($_SESSION['role'] === 'admin');
+$isAdmin = ($_SESSION['role'] === 'admin');
 ?>
 <div class="row justify-content-center">
     <div class="col-md-10">
@@ -17,15 +17,15 @@
                     <span class="material-symbols-outlined">today</span> Today's Performance (Actual Collections)
                 </h5>
             </div>
-            
+
             <div class="col-md-4 mb-4">
                 <div class="card p-3 h-100 bg-primary-subtle border-0 shadow-sm">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Cash Collected Today</h6>
                     <h2 class="text-primary mb-0">₵<?php echo number_format($todayNewSalesCollected, 2); ?></h2>
-                    <small class="text-muted">Net of returns & deleted sales</small>
+                    <small class="text-muted">From sales, net of returns & deleted sales</small>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-4">
                 <div class="card p-3 h-100 bg-success-subtle border-0 shadow-sm">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Debt Recovered</h6>
@@ -43,28 +43,28 @@
             </div>
 
             <?php if ($isAdmin): ?>
-            <div class="col-md-6 mb-4">
-                <div class="card p-3 h-100 bg-info-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Realized Gross Profit</h6>
-                    <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedProfit, 2); ?></h2>
-                    <small class="text-muted">Earned from total cash collected above</small>
+                <div class="col-md-6 mb-4">
+                    <div class="card p-3 h-100 bg-info-subtle border-0 shadow-sm">
+                        <h6 class="text-muted text-uppercase small fw-bold mb-2">Realized Gross Profit</h6>
+                        <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedProfit, 2); ?></h2>
+                        <small class="text-muted">Earned from total cash collected above</small>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                <div class="card p-3 h-100 bg-dark border-0 shadow-sm text-white">
-                    <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Realized Net Profit</h6>
-                    <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedNetProfit, 2); ?></h2>
-                    <small class="text-white-50" style="font-size: 10px;">Realized GP - Expenditures</small>
+                <div class="col-md-6 mb-4">
+                    <div class="card p-3 h-100 bg-dark border-0 shadow-sm text-white">
+                        <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Realized Net Profit</h6>
+                        <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedNetProfit, 2); ?></h2>
+                        <small class="text-white-50" style="font-size: 10px;">Realized GP - Expenditures</small>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
 
             <!-- INVOICED STATS (FOR REFERENCE) -->
             <div class="col-12 mb-2">
-                 <p class="text-muted small mb-1">
-                     <span class="material-symbols-outlined align-middle fs-6">info</span> 
-                     <strong>Invoiced Statistics:</strong> Totals based on today's invoices (Invoiced vs Expenses).
-                 </p>
+                <p class="text-muted small mb-1">
+                    <span class="material-symbols-outlined align-middle fs-6">info</span>
+                    <strong>Invoiced Statistics:</strong> Totals based on today's invoices (Invoiced vs Expenses).
+                </p>
             </div>
             <div class="col-md-3 mb-3">
                 <div class="card p-2 border shadow-sm bg-white">
@@ -75,14 +75,14 @@
                 </div>
             </div>
             <?php if ($isAdmin): ?>
-            <div class="col-md-3 mb-3">
-                <div class="card p-2 border shadow-sm bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted small fw-bold">Potential Profit</span>
-                        <span class="fw-bold text-success">₵<?php echo number_format($dailyProfit, 2); ?></span>
+                <div class="col-md-3 mb-3">
+                    <div class="card p-2 border shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small fw-bold">Potential Profit</span>
+                            <span class="fw-bold text-success">₵<?php echo number_format($dailyProfit, 2); ?></span>
+                        </div>
                     </div>
                 </div>
-            </div>
             <?php endif; ?>
             <div class="col-md-3 mb-3">
                 <div class="card p-2 border shadow-sm bg-white">
@@ -93,18 +93,18 @@
                 </div>
             </div>
             <?php if ($isAdmin): ?>
-            <div class="col-md-3 mb-3">
-                <div class="card p-2 border shadow-sm bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted small fw-bold">Daily Net Profit</span>
-                        <span class="fw-bold text-danger">₵<?php echo number_format($dailyNetProfit, 2); ?></span>
+                <div class="col-md-3 mb-3">
+                    <div class="card p-2 border shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small fw-bold">Daily Net Profit</span>
+                            <span class="fw-bold text-danger">₵<?php echo number_format($dailyNetProfit, 2); ?></span>
+                        </div>
                     </div>
                 </div>
-            </div>
             <?php endif; ?>
             <!-- Expanded Invoiced Section -->
             <?php if ($isAdmin): ?>
-            <!-- <div class="col-md-6 mb-4">
+                <!-- <div class="col-md-6 mb-4">
                 <div class="card p-2 border-start border-4 border-info shadow-sm bg-light">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -151,7 +151,8 @@
             <div class="col-md-3 mb-4">
                 <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #fff3e0;">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Balance Pending</h6>
-                    <h2 class="text-warning mb-0">₵<?php echo number_format($lifetimeStats['total'] - $lifetimeStats['collected'], 2); ?></h2>
+                    <h2 class="text-warning mb-0">
+                        ₵<?php echo number_format($lifetimeStats['total'] - $lifetimeStats['collected'], 2); ?></h2>
                     <small class="text-muted mt-1">Outstanding receivables</small>
                 </div>
             </div>
@@ -191,13 +192,15 @@
                 </div>
             </div>
             <?php if ($isAdmin): ?>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 border-0 shadow-sm bg-dark text-white">
-                    <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Inventory Net Worth</h6>
-                    <h3 class="mb-0">₵<?php echo number_format($inventoryWorth, 2); ?> <small class="fs-6 text-white-50">(Retail)</small></h3>
-                    <h5 class="mb-0 text-info">₵<?php echo number_format($inventoryCost, 2); ?> <small class="fs-6 text-info-emphasis">(Cost)</small></h5>
+                <div class="col-md-3 mb-4">
+                    <div class="card p-3 h-100 border-0 shadow-sm bg-dark text-white">
+                        <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Inventory Net Worth</h6>
+                        <h3 class="mb-0">₵<?php echo number_format($inventoryWorth, 2); ?> <small
+                                class="fs-6 text-white-50">(Retail)</small></h3>
+                        <h5 class="mb-0 text-info">₵<?php echo number_format($inventoryCost, 2); ?> <small
+                                class="fs-6 text-info-emphasis">(Cost)</small></h5>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
         </div>
 
@@ -212,7 +215,8 @@
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
                                 Monthly Sales Count
-                                <span class="badge bg-secondary rounded-pill"><?php echo $monthlyStats['count']; ?></span>
+                                <span
+                                    class="badge bg-secondary rounded-pill"><?php echo $monthlyStats['count']; ?></span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
                                 Monthly Revenue
@@ -220,11 +224,14 @@
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
                                 Monthly Cash Collected
-                                <span class="fw-bold text-success">₵<?php echo number_format($monthlyStats['collected'], 2); ?></span>
+                                <span
+                                    class="fw-bold text-success">₵<?php echo number_format($monthlyStats['collected'], 2); ?></span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
+                            <li
+                                class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
                                 Monthly Balance Pending
-                                <span class="fw-bold text-danger">₵<?php echo number_format($monthlyStats['total'] - $monthlyStats['collected'], 2); ?></span>
+                                <span
+                                    class="fw-bold text-danger">₵<?php echo number_format($monthlyStats['total'] - $monthlyStats['collected'], 2); ?></span>
                             </li>
                         </ul>
                     </div>
@@ -238,13 +245,16 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-3">
-                            <a href="<?= BASE_URL ?>/sales/create" class="btn btn-outline-primary btn-lg text-start d-flex align-items-center shadow-sm">
+                            <a href="<?= BASE_URL ?>/sales/create"
+                                class="btn btn-outline-primary btn-lg text-start d-flex align-items-center shadow-sm">
                                 <span class="material-symbols-outlined me-2">shopping_cart_checkout</span> New Sale
                             </a>
-                            <a href="<?= BASE_URL ?>/items/create" class="btn btn-outline-secondary btn-lg text-start d-flex align-items-center shadow-sm">
+                            <a href="<?= BASE_URL ?>/items/create"
+                                class="btn btn-outline-secondary btn-lg text-start d-flex align-items-center shadow-sm">
                                 <span class="material-symbols-outlined me-2">add_box</span> Add New Item
                             </a>
-                            <a href="<?= BASE_URL ?>/customers" class="btn btn-outline-success btn-lg text-start d-flex align-items-center shadow-sm">
+                            <a href="<?= BASE_URL ?>/customers"
+                                class="btn btn-outline-success btn-lg text-start d-flex align-items-center shadow-sm">
                                 <span class="material-symbols-outlined me-2">person_add</span> Manage Customers
                             </a>
                         </div>
@@ -257,12 +267,15 @@
         <div class="row mt-4 mb-5">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center border-0 pt-3">
+                    <div
+                        class="card-header bg-white fw-bold d-flex justify-content-between align-items-center border-0 pt-3">
                         <div class="d-flex align-items-center gap-2">
                             <span class="material-symbols-outlined text-danger">assignment_return</span>
                             Today's Returned Items
                         </div>
-                        <span class="badge bg-danger-subtle text-danger rounded-pill"><?php echo count($todayReturnedItemsList); ?> Items</span>
+                        <span
+                            class="badge bg-danger-subtle text-danger rounded-pill"><?php echo count($todayReturnedItemsList); ?>
+                            Items</span>
                     </div>
                     <div class="card-body">
                         <?php if (empty($todayReturnedItemsList)): ?>
@@ -280,7 +293,7 @@
                                             <th class="text-center">Qty</th>
                                             <th class="text-end">Deduction</th>
                                             <?php if ($isAdmin): ?>
-                                            <th>Sales Person</th>
+                                                <th>Sales Person</th>
                                             <?php endif; ?>
                                         </tr>
                                     </thead>
@@ -290,13 +303,16 @@
                                                 <td class="text-muted small"><?php echo $ret['return_time']; ?></td>
                                                 <td class="fw-bold"><?php echo htmlspecialchars($ret['item_name']); ?></td>
                                                 <td class="text-center">
-                                                    <span class="badge bg-light text-dark border"><?php echo $ret['quantity']; ?></span>
+                                                    <span
+                                                        class="badge bg-light text-dark border"><?php echo $ret['quantity']; ?></span>
                                                 </td>
-                                                <td class="text-end fw-bold text-danger">₵<?php echo number_format($ret['deduction'], 2); ?></td>
+                                                <td class="text-end fw-bold text-danger">
+                                                    ₵<?php echo number_format($ret['deduction'], 2); ?></td>
                                                 <?php if ($isAdmin): ?>
-                                                <td>
-                                                    <span class="badge bg-info-subtle text-info"><?php echo htmlspecialchars($ret['salesperson']); ?></span>
-                                                </td>
+                                                    <td>
+                                                        <span
+                                                            class="badge bg-info-subtle text-info"><?php echo htmlspecialchars($ret['salesperson']); ?></span>
+                                                    </td>
                                                 <?php endif; ?>
                                             </tr>
                                         <?php endforeach; ?>
@@ -311,6 +327,6 @@
     </div>
 </div>
 <?php
-    $content = ob_get_clean();
-    require __DIR__ . '/../layouts/main.php';
+$content = ob_get_clean();
+require __DIR__ . '/../layouts/main.php';
 ?>

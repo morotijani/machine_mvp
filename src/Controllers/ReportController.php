@@ -293,6 +293,20 @@ class ReportController
         $lastYear = $selectedYear - 1;
         $comparisonData = [];
 
+        // 3.a Monthly Expenses for Selected Year
+        $monthlyExpenses = array_fill(1, 12, 0);
+        $stmtExp = $pdo->prepare("
+            SELECT MONTH(date) as month, SUM(amount) as total_expenses
+            FROM expenditures
+            WHERE YEAR(date) = :year
+            GROUP BY MONTH(date)
+        ");
+        $stmtExp->execute(['year' => $selectedYear]);
+        $expResults = $stmtExp->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($expResults as $row) {
+            $monthlyExpenses[$row['month']] = $row['total_expenses'];
+        }
+
         $stmt = $pdo->prepare("
             SELECT MONTH(created_at) as month, SUM(total_amount) as total 
             FROM sales 
@@ -306,15 +320,19 @@ class ReportController
             $currentVal = $monthlySales[$m] ?? 0;
             $currentProfit = $monthlyProfits[$m] ?? 0;
             $lastVal = $lastYearResults[$m] ?? 0;
+            $currentExp = $monthlyExpenses[$m] ?? 0;
+            $finalProfit = $currentProfit - $currentExp;
 
             $comparisonData[$m] = [
                 'month_name' => date('F', mktime(0, 0, 0, $m, 1)),
                 'current_year' => $currentVal,
                 'current_profit' => $currentProfit,
+                'current_expenses' => $currentExp,
+                'final_profit' => $finalProfit,
                 'last_year' => $lastVal,
                 'difference' => $currentVal - $lastVal,
                 'growth' => ($lastVal > 0) ? (($currentVal - $lastVal) / $lastVal) * 100 : 0,
-                'profit_margin' => ($currentVal > 0) ? ($currentProfit / $currentVal) * 100 : 0
+                'profit_margin' => ($currentVal > 0) ? ($finalProfit / $currentVal) * 100 : 0
             ];
         }
 
