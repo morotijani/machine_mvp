@@ -12,9 +12,11 @@ class Customer {
 
     public function getAll($limit = null, $offset = 0, $search = null, $sort = 'total_debt', $order = 'DESC') {
         $sql = "SELECT c.*, 
+                u.username as created_by_name,
                 (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
                 MAX(s.created_at) as last_purchase
                 FROM customers c
+                LEFT JOIN users u ON c.created_by = u.id
                 LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0
                 WHERE c.is_deleted = 0";
         
@@ -90,10 +92,12 @@ class Customer {
     
     public function find($id) {
         $sql = "SELECT c.*, 
+                u.username as created_by_name,
                 (IFNULL(SUM(s.total_amount), 0) - IFNULL(SUM(s.paid_amount), 0)) as total_debt,
                 IFNULL(SUM(s.paid_amount), 0) as total_paid,
                 IFNULL(SUM(s.total_amount), 0) as total_sales_amount
                 FROM customers c
+                LEFT JOIN users u ON c.created_by = u.id
                 LEFT JOIN sales s ON c.id = s.customer_id AND s.voided = 0
                 WHERE c.id = :id
                 GROUP BY c.id";
@@ -120,9 +124,9 @@ class Customer {
         return $stmt->fetchAll();
     }
 
-    public function create($name, $phone, $address) {
-        $stmt = $this->pdo->prepare("INSERT INTO customers (name, phone, address) VALUES (:name, :phone, :address)");
-        $stmt->execute(['name' => $name, 'phone' => $phone, 'address' => $address]);
+    public function create($name, $phone, $address, $createdBy = null) {
+        $stmt = $this->pdo->prepare("INSERT INTO customers (name, phone, address, created_by) VALUES (:name, :phone, :address, :created_by)");
+        $stmt->execute(['name' => $name, 'phone' => $phone, 'address' => $address, 'created_by' => $createdBy]);
         return $this->pdo->lastInsertId();
     }
     public function update($id, $name, $phone, $address) {

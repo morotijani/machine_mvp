@@ -110,7 +110,8 @@ class CustomerController {
                 }
             }
 
-            $newId = $customerModel->create($name, $phone, $address);
+            $userId = $_SESSION['user_id'] ?? null;
+            $newId = $customerModel->create($name, $phone, $address, $userId);
             
             if ($isJson) {
                 header('Content-Type: application/json');

@@ -57,6 +57,7 @@ ob_start();
                                 <th>Name</th>
                                 <th>Phone</th>
                                 <th>Address</th>
+                                <th>Added By</th>
                                 <th class="text-end">Outstanding Debt</th>
                                 <th>Last Purchase</th>
                                 <th class="text-end">Actions</th>
@@ -72,6 +73,7 @@ ob_start();
                                 </td>
                                 <td><?= e($customer['phone']) ?></td>
                                 <td><?= e($customer['address']) ?></td>
+                                <td><span class="badge bg-light text-dark border"><i class="material-symbols-outlined align-middle" style="font-size: 14px;">person</i> <?= e($customer['created_by_name'] ?? 'System') ?></span></td>
                                 <td class="text-end">
                                     <?php if ($customer['total_debt'] > 0): ?>
                                         <span class="text-danger fw-bold">₵<?php echo number_format($customer['total_debt'], 2); ?></span>
@@ -107,7 +109,7 @@ ob_start();
                             
                             <?php if (empty($customers)): ?>
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">No customers found.</td>
+                                <td colspan="7" class="text-center py-4 text-muted">No customers found.</td>
                             </tr>
                             <?php endif; ?>
                         </tbody>

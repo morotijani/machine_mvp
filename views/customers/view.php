@@ -188,6 +188,10 @@ ob_start();
                                 <span class="material-symbols-outlined text-muted" style="font-size: 20px;">calendar_month</span>
                                 <div>Since: <?php echo !empty($customer['created_at']) ? date('M j, Y', strtotime($customer['created_at'])) : 'Unknown'; ?></div>
                             </li>
+                            <li class="d-flex align-items-start gap-2 mt-2">
+                                <span class="material-symbols-outlined text-muted" style="font-size: 20px;">person_add</span>
+                                <div>Added By: <span class="badge bg-light text-dark border"><?= e($customer['created_by_name'] ?? 'System') ?></span></div>
+                            </li>
                         </ul>
                     </div>
                 </div>
