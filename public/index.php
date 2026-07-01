@@ -35,6 +35,12 @@ if ($baseUrl === '/' || $baseUrl === '\\' || $baseUrl === '.') {
     $baseUrl = '';
 }
 $baseUrl = rtrim($baseUrl, '/');
+
+// If the base URL ends with /public, strip it out so links are clean
+if (substr($baseUrl, -7) === '/public') {
+    $baseUrl = substr($baseUrl, 0, -7);
+}
+
 define('BASE_URL', $baseUrl);
 
 // Routes
