@@ -3,26 +3,31 @@ $title = "Reports";
 ob_start();
 ?>
 <div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-            <h1 class="h2">Reports & Analytics</h1>
-            <div class="btn-toolbar mb-2 mb-md-0 gap-2">
-                <a href="<?= BASE_URL ?>/reports/daily" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span> Daily Activity Report
-                </a>
-                <a href="<?= BASE_URL ?>/reports/export?type=monthly_comparison&year=<?= $selectedYear ?>" class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined" style="font-size: 18px;">download</span> Export CSV
-                </a>
-                <form action="<?= BASE_URL ?>/reports" method="GET" class="d-flex align-items-center">
-                    <label class="me-2 fw-bold text-muted">Year:</label>
-                    <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <?php foreach ($availableYears as $year): ?>
-                            <option value="<?php echo $year; ?>" <?php echo ($selectedYear == $year) ? 'selected' : ''; ?>>
-                                <?php echo $year; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+    <div class="col-12 col-xxl-11">
+        <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 gap-2">
+            <h1 class="h2 mb-0">Reports & Analytics</h1>
+            <div class="d-flex flex-wrap gap-2 align-items-center justify-content-start justify-content-md-end flex-grow-1">
+                <form action="<?= BASE_URL ?>/reports" method="GET" class="d-flex align-items-center me-md-2">
+                    <div class="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border">
+                        <span class="input-group-text bg-white border-0 fw-bold text-muted px-3">Year:</span>
+                        <select name="year" class="form-select border-0 ps-0 pe-4 bg-white fw-medium" onchange="this.form.submit()" style="box-shadow: none;">
+                            <?php foreach ($availableYears as $year): ?>
+                                <option value="<?php echo $year; ?>" <?php echo ($selectedYear == $year) ? 'selected' : ''; ?>>
+                                    <?php echo $year; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </form>
+
+                <div class="d-flex flex-wrap gap-2 page-header-actions">
+                    <a href="<?= BASE_URL ?>/reports/export?type=monthly_comparison&year=<?= $selectedYear ?>" class="btn btn-sm btn-outline-success rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">download</span> Export CSV
+                    </a>
+                    <a href="<?= BASE_URL ?>/reports/daily" class="btn btn-sm btn-primary rounded-pill d-flex align-items-center gap-1 px-3 fw-medium shadow-sm">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span> Daily Activity
+                    </a>
+                </div>
             </div>
         </div>
 

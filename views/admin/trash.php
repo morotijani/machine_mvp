@@ -3,9 +3,9 @@ $title = "Recycle Bin";
 ob_start();
 ?>
 <div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-            <h1 class="h2">Recycle Bin</h1>
+    <div class="col-12 col-xxl-11">
+        <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 gap-2">
+            <h1 class="h2 mb-0">Recycle Bin</h1>
         </div>
 
         <?php if (isset($_GET['success'])): ?>
@@ -23,31 +23,31 @@ ob_start();
         <?php endif; ?>
 
         <div class="card shadow-sm border-0">
-            <div class="card-header bg-white border-0 pt-4">
-                <ul class="nav nav-pills" id="trashTabs" role="tablist">
+            <div class="card-header bg-white border-0 pt-4 pb-0">
+                <ul class="nav nav-pills gap-2 px-2" id="trashTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active d-flex align-items-center gap-2" id="items-tab" data-bs-toggle="tab" data-bs-target="#items" type="button" role="tab">
-                            <span class="material-symbols-outlined">inventory_2</span> Items
+                        <button class="nav-link active rounded-pill d-flex align-items-center gap-2 px-3 fw-medium" id="items-tab" data-bs-toggle="tab" data-bs-target="#items" type="button" role="tab">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span> Items
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link d-flex align-items-center gap-2" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
-                            <span class="material-symbols-outlined">group</span> Users
+                        <button class="nav-link rounded-pill d-flex align-items-center gap-2 px-3 fw-medium" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">group</span> Users
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link d-flex align-items-center gap-2" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales" type="button" role="tab">
-                            <span class="material-symbols-outlined">receipt_long</span> Sales
+                        <button class="nav-link rounded-pill d-flex align-items-center gap-2 px-3 fw-medium" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales" type="button" role="tab">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">receipt_long</span> Sales
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link d-flex align-items-center gap-2" id="expenditure-tab" data-bs-toggle="tab" data-bs-target="#expenditures" type="button" role="tab">
-                            <span class="material-symbols-outlined">payments</span> Expenditures
+                        <button class="nav-link rounded-pill d-flex align-items-center gap-2 px-3 fw-medium" id="expenditure-tab" data-bs-toggle="tab" data-bs-target="#expenditures" type="button" role="tab">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">payments</span> Expenditures
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link d-flex align-items-center gap-2" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">
-                            <span class="material-symbols-outlined">person_outline</span> Customers
+                        <button class="nav-link rounded-pill d-flex align-items-center gap-2 px-3 fw-medium" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">person_outline</span> Customers
                         </button>
                     </li>
                 </ul>

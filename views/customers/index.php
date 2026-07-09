@@ -3,47 +3,50 @@ $title = "Customers";
 ob_start();
 ?>
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-12 col-xxl-11">
         <?php if (isset($_GET['error']) && $_GET['error'] === 'phone_exists'): ?>
             <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
                 <strong>Error!</strong> A customer with that phone number already exists. Please check the number or use the existing customer.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-            <h1 class="h2">Customers</h1>
-            <div class="d-flex gap-3 align-items-center">
-                <form action="" method="GET" class="d-flex">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
-                            <span class="material-symbols-outlined text-muted" style="font-size: 20px;">search</span>
+        <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 gap-2">
+            <h1 class="h2 mb-0">Customers</h1>
+            <div class="d-flex flex-wrap gap-2 align-items-center justify-content-start justify-content-md-end flex-grow-1">
+                <form action="" method="GET" class="d-flex flex-grow-1 flex-md-grow-0" style="min-width: 280px;">
+                    <div class="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border">
+                        <span class="input-group-text bg-white border-0 pe-1">
+                            <span class="material-symbols-outlined text-muted" style="font-size: 18px;">search</span>
                         </span>
-                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search customers..." value="<?= e($search ?? '') ?>">
+                        <input type="text" name="search" class="form-control border-0 ps-1" placeholder="Search customers..." value="<?= e($search ?? '') ?>" style="box-shadow: none;">
                         
-                        <select name="sort" class="form-select border-start-0" onchange="this.form.submit()" style="max-width: 150px;">
+                        <div class="border-start my-1" style="width: 1px; background-color: #dee2e6;"></div>
+                        <select name="sort" class="form-select border-0 text-muted" onchange="this.form.submit()" style="max-width: 130px; min-width: 90px; box-shadow: none;">
                             <option value="name" <?= ($sort == 'name') ? 'selected' : '' ?>>Name</option>
                             <option value="total_debt" <?= ($sort == 'total_debt') ? 'selected' : '' ?>>Debt Amount</option>
                             <option value="last_purchase" <?= ($sort == 'last_purchase') ? 'selected' : '' ?>>Last Purchase</option>
                         </select>
 
-                        <select name="order" class="form-select border-start-0" onchange="this.form.submit()" style="max-width: 100px;">
+                        <div class="border-start my-1" style="width: 1px; background-color: #dee2e6;"></div>
+                        <select name="order" class="form-select border-0 text-muted" onchange="this.form.submit()" style="max-width: 90px; min-width: 70px; box-shadow: none;">
                             <option value="DESC" <?= ($order == 'DESC') ? 'selected' : '' ?>>DESC</option>
                             <option value="ASC" <?= ($order == 'ASC') ? 'selected' : '' ?>>ASC</option>
                         </select>
 
-                        <button type="submit" class="btn btn-primary">Search</button>
-                        <?php if (!empty($search) || $sort !== 'total_debt' || $order !== 'DESC'): ?>
-                            <a href="<?= BASE_URL ?>/customers" class="btn btn-outline-secondary ms-2">Clear</a>
-                        <?php endif; ?>
+                        <button type="submit" class="btn btn-primary px-3 fw-medium">Search</button>
                     </div>
                 </form>
+                <?php if (!empty($search) || $sort !== 'total_debt' || $order !== 'DESC'): ?>
+                    <a href="<?= BASE_URL ?>/customers" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Clear</a>
+                <?php endif; ?>
+                
                 <?php if ($_SESSION['role'] === 'admin'): ?>
-                <a href="<?= BASE_URL ?>/admin/trash" class="btn btn-outline-secondary d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined">delete</span> View Trash
+                <a href="<?= BASE_URL ?>/admin/trash" class="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-2 px-3">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">delete</span> Trash
                 </a>
                 <?php endif; ?>
-                <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                    <span class="material-symbols-outlined" style="font-size: 20px;">person_add</span> New Customer
+                <button type="button" class="btn btn-sm btn-primary rounded-pill d-flex align-items-center gap-2 px-3 fw-medium shadow-sm" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">person_add</span> New Customer
                 </button>
             </div>
         </div>

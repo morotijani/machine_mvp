@@ -3,12 +3,12 @@ $title = "Manage Users";
 ob_start();
 ?>
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-            <h1 class="h2">Manage Users</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
-                <a href="<?= BASE_URL ?>/users/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined" style="font-size: 20px;">add</span> New User
+    <div class="col-12 col-xxl-11">
+        <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 gap-2">
+            <h1 class="h2 mb-0">Manage Users</h1>
+            <div class="d-flex flex-wrap gap-2 page-header-actions">
+                <a href="<?= BASE_URL ?>/users/create" class="btn btn-sm btn-primary rounded-pill d-flex align-items-center gap-1 px-3 fw-medium shadow-sm">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">add</span> New User
                 </a>
             </div>
         </div>

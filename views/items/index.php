@@ -23,78 +23,74 @@ if (isset($isPrint) && $isPrint) {
 </style>
 
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                <h1 class="h2">Items & Machines</h1>
-                <div class="d-flex gap-3 align-items-center">
-                    <form action="" method="GET" class="d-flex gap-2">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0">
-                                <span class="material-symbols-outlined text-muted" style="font-size: 20px;">search</span>
+        <div class="col-12 col-xxl-11">
+            <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 gap-2">
+                <h1 class="h2 mb-0">Items & Machines</h1>
+                <div class="d-flex flex-wrap gap-2 align-items-center justify-content-start justify-content-md-end flex-grow-1">
+                    <form action="" method="GET" class="d-flex flex-grow-1 flex-md-grow-0 gap-2" style="min-width: 280px;">
+                        <div class="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border flex-grow-1">
+                            <span class="input-group-text bg-white border-0 pe-1">
+                                <span class="material-symbols-outlined text-muted" style="font-size: 18px;">search</span>
                             </span>
-                            <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search items..." value="<?= e($search ?? '') ?>">
-</div>
-                        
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0">
-                                <span class="material-symbols-outlined text-muted" style="font-size: 20px;">sort</span>
+                            <input type="text" name="search" class="form-control border-0 ps-1" placeholder="Search items..." value="<?= e($search ?? '') ?>" style="box-shadow: none;">
+                            
+                            <div class="border-start my-1" style="width: 1px; background-color: #dee2e6;"></div>
+                            <span class="input-group-text bg-white border-0 px-1 d-none d-sm-flex">
+                                <span class="material-symbols-outlined text-muted" style="font-size: 18px;">sort</span>
                             </span>
-                            <select name="sort" class="form-select border-start-0 ps-0" onchange="this.form.submit()">
+                            <select name="sort" class="form-select border-0 text-muted ps-0" onchange="this.form.submit()" style="max-width: 120px; min-width: 90px; box-shadow: none;">
                                 <option value="name" <?= ($sort == 'name') ? 'selected' : '' ?>>Name</option>
                                 <option value="price" <?= ($sort == 'price') ? 'selected' : '' ?>>Price</option>
                                 <option value="quantity" <?= ($sort == 'quantity') ? 'selected' : '' ?>>Stock Level</option>
                                 <option value="created_at" <?= ($sort == 'created_at') ? 'selected' : '' ?>>Date Added</option>
                             </select>
-                        </div>
 
-                        <div class="input-group">
-                            <select name="order" class="form-select" onchange="this.form.submit()">
+                            <div class="border-start my-1" style="width: 1px; background-color: #dee2e6;"></div>
+                            <select name="order" class="form-select border-0 text-muted" onchange="this.form.submit()" style="max-width: 110px; min-width: 95px; box-shadow: none;">
                                 <option value="ASC" <?= ($order == 'ASC') ? 'selected' : '' ?>>Ascending</option>
                                 <option value="DESC" <?= ($order == 'DESC') ? 'selected' : '' ?>>Descending</option>
                             </select>
+                            
+                            <button type="submit" class="btn btn-primary px-3 fw-medium">Filter</button>
                         </div>
                         
                         <div class="btn-group">
                             <input type="checkbox" name="low_stock" value="1" class="btn-check" id="lowStockCheck" <?= ($lowStock ?? false) ? 'checked' : '' ?> onchange="this.form.submit()">
-                            <label class="btn btn-outline-danger d-flex align-items-center gap-2" for="lowStockCheck">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">warning</span> Low Stock
+                            <label class="btn btn-sm <?= ($lowStock ?? false) ? 'btn-danger' : 'btn-outline-danger' ?> rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm" for="lowStockCheck">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">warning</span> <span class="d-none d-md-inline">Low Stock</span>
                             </label>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary d-none">Filter</button>
                         <?php if (!empty($search) || ($lowStock ?? false) || $sort !== 'created_at' || $order !== 'DESC'): ?>
-                            <a href="<?= BASE_URL ?>/items" class="btn btn-outline-secondary">Clear</a>
+                            <a href="<?= BASE_URL ?>/items" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm d-flex align-items-center">Clear</a>
                         <?php endif; ?>
                     </form>
 
-                    <div class="btn-toolbar mb-2 mb-md-0 gap-2 page-header-actions">
+                    <div class="d-flex flex-wrap gap-2 page-header-actions">
                         <?php 
                             // Preserve current search/sort params for print link
                             $printParams = $_GET;
                             $printParams['print'] = 1;
-                            // Reset page to 1 to get all from start
                             $printParams['page'] = 1;
                         ?>
-                        <div class="d-flex gap-2">
-                             <?php if (isset($isPrint) && $isPrint): ?>
-                                <a href="<?= BASE_URL ?>/items" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span> Back
-                                </a>
-                            <?php else: ?>
-                                <a href="?<?= http_build_query($printParams) ?>" class="btn btn-sm btn-outline-dark d-flex align-items-center gap-2" target="_blank">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">print</span> Print List
-                                </a>
-                            <?php endif; ?>
-                            
-                            <?php if ($_SESSION['role'] === 'admin' && (!isset($isPrint) || !$isPrint)): ?>
-                                <a href="<?= BASE_URL ?>/items/create-bundle" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span> New Bundle
-                                </a>
-                                <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                                    <span class="fs-5">+</span> New Item
-                                </a>
-                            <?php endif; ?>
-                        </div>
+                        <?php if (isset($isPrint) && $isPrint): ?>
+                            <a href="<?= BASE_URL ?>/items" class="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span> Back
+                            </a>
+                        <?php else: ?>
+                            <a href="?<?= http_build_query($printParams) ?>" class="btn btn-sm btn-outline-dark rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm" target="_blank">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">print</span> Print
+                            </a>
+                        <?php endif; ?>
+                        
+                        <?php if ($_SESSION['role'] === 'admin' && (!isset($isPrint) || !$isPrint)): ?>
+                            <a href="<?= BASE_URL ?>/items/create-bundle" class="btn btn-sm btn-outline-primary rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span> New Bundle
+                            </a>
+                            <a href="<?= BASE_URL ?>/items/create" class="btn btn-sm btn-primary rounded-pill d-flex align-items-center gap-1 px-3 fw-medium shadow-sm">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">add</span> New Item
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

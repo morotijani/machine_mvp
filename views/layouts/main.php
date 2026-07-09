@@ -21,43 +21,67 @@
     <link href="<?= BASE_URL ?>/assets/css/style.css?v=1.1" rel="stylesheet">
 </head>
 <body>
+    <style>
+        @media (max-width: 767px) {
+            body { padding-top: 110px !important; }
+            .sidebar { top: 110px !important; }
+        }
+    </style>
     <!-- Top Fixed Navbar -->
-    <header class="navbar navbar-top fixed-top flex-md-nowrap p-0 shadow-sm bg-white no-print">
-        <!-- Mobile Toggle (Left aligned) -->
-        <button class="navbar-toggler d-lg-none collapsed border-0" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation" style="margin-left: 10px;">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <header class="navbar navbar-top fixed-top p-0 shadow-sm bg-white no-print flex-wrap flex-md-nowrap align-items-center">
+        <!-- Top Row on Mobile: Toggler + Brand + Profile -->
+        <div class="d-flex w-100 w-md-auto align-items-center justify-content-between px-2 px-md-0 order-1">
+            <div class="d-flex align-items-center">
+                <!-- Mobile Toggle -->
+                <button class="navbar-toggler d-lg-none collapsed border-0 p-1 me-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-5 fw-bold d-flex align-items-center" href="<?= BASE_URL ?>/dashboard">
-            <span class="text-primary me-2">
-                <?php if (!empty($settings['company_logo'])): ?>
-                    <img src="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>" alt="Company Logo" class="img-fluid" style="max-height: 32px;">
-                <?php else: ?>
-                    <span class="material-symbols-outlined icon">dashboard</span>
-                    <?= e($settings['company_name'] ?? 'POS') ?>
-                <?php endif; ?>
-            </span>
-        </a>
+                <a class="navbar-brand me-0 px-md-3 fs-5 fw-bold d-flex align-items-center" href="<?= BASE_URL ?>/dashboard">
+                    <span class="text-primary me-2">
+                        <?php if (!empty($settings['company_logo'])): ?>
+                            <img src="<?= BASE_URL ?>/<?= htmlspecialchars($settings['company_logo']) ?>" alt="Company Logo" class="img-fluid" style="max-height: 32px;">
+                        <?php else: ?>
+                            <span class="material-symbols-outlined icon">dashboard</span>
+                            <?= e($settings['company_name'] ?? 'POS') ?>
+                        <?php endif; ?>
+                    </span>
+                </a>
+            </div>
+            
+            <!-- Mobile Profile -->
+            <div class="d-md-none d-flex align-items-center pe-2">
+                <a href="<?= BASE_URL ?>/profile" class="d-block link-dark text-decoration-none" title="My Profile">
+                     <?php if (!empty($_SESSION['profile_image'])): ?>
+                         <img src="<?= BASE_URL ?>/<?= htmlspecialchars($_SESSION['profile_image']) ?>" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                     <?php else: ?>
+                         <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-weight: bold;">
+                             <?= strtoupper(substr($_SESSION['username'] ?? 'U', 0, 1)) ?>
+                         </div>
+                     <?php endif; ?>
+                 </a>
+            </div>
+        </div>
         
         <!-- Search Bar -->
-        <div class="search-bar-container mx-2 flex-grow-1 d-flex align-items-center">
+        <div class="search-bar-container mx-2 mx-md-2 flex-grow-1 d-flex align-items-center w-100 w-md-auto mt-2 mt-md-0 mb-2 mb-md-0 order-3 order-md-2">
             <input class="form-control form-control-search w-100 me-2" type="text" placeholder="Search items in POS..." aria-label="Search" id="globalSearch">
             <div id="statusIndicators" class="d-flex gap-2">
                 <span id="internetStatus" class="badge rounded-pill bg-success d-flex align-items-center" title="Internet Status">
-                    <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">wifi</span>
+                    <span class="material-symbols-outlined me-0 me-lg-1" style="font-size: 14px;">wifi</span>
                     <span class="status-text d-none d-lg-inline">Online</span>
                 </span>
                 <span id="dbStatus" class="badge rounded-pill bg-success d-flex align-items-center" title="Database Status">
-                    <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">database</span>
+                    <span class="material-symbols-outlined me-0 me-lg-1" style="font-size: 14px;">database</span>
                     <span class="status-text d-none d-lg-inline">DB Connected</span>
                 </span>
             </div>
         </div>
 
-        <!-- Right Side: User Profile -->
-        <div class="navbar-nav flex-row align-items-center pe-3">
+        <!-- Right Side: User Profile (Desktop) -->
+        <div class="navbar-nav flex-row align-items-center pe-3 d-none d-md-flex order-2 order-md-3">
              <div class="nav-item text-nowrap d-flex align-items-center">
-                 <span class="d-none d-md-inline-block me-3 text-secondary"><?= e($_SESSION['username'] ?? 'User') ?></span>
+                 <span class="me-3 text-secondary"><?= e($_SESSION['username'] ?? 'User') ?></span>
                  <a href="<?= BASE_URL ?>/profile" class="d-block link-dark text-decoration-none" title="My Profile">
                      <?php if (!empty($_SESSION['profile_image'])): ?>
                          <img src="<?= BASE_URL ?>/<?= htmlspecialchars($_SESSION['profile_image']) ?>" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">

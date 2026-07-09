@@ -4,22 +4,22 @@ ob_start();
 ?>
 
 <div class="row justify-content-center">
-    <div class="col-md-11">
+    <div class="col-12 col-xxl-11">
         <!-- Back and Title -->
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 no-print">
+        <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 gap-2 no-print">
             <div class="d-flex align-items-center gap-2">
-                <a href="<?= $_SESSION['last_items_url'] ?? (BASE_URL . '/items') ?>" class="btn btn-outline-secondary btn-sm">
-                    <span class="material-symbols-outlined align-middle" style="font-size: 18px;">arrow_back</span>
+                <a href="<?= $_SESSION['last_items_url'] ?? (BASE_URL . '/items') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined align-middle" style="font-size: 18px;">arrow_back</span> Back
                 </a>
-                <h1 class="h2 mb-0">Item Detail</h1>
+                <h1 class="h2 mb-0 ms-2">Item Detail</h1>
             </div>
-            <div class="btn-toolbar mb-2 mb-md-0 gap-2">
-                <button onclick="window.print()" class="btn btn-sm btn-outline-dark d-flex align-items-center gap-1">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">print</span> Print Report
+            <div class="d-flex flex-wrap gap-2 page-header-actions">
+                <button onclick="window.print()" class="btn btn-sm btn-outline-dark rounded-pill px-3 shadow-sm d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">print</span> Print Report
                 </button>
                 <?php if ($_SESSION['role'] === 'admin'): ?>
-                <a href="<?= BASE_URL ?>/items/edit?id=<?= $item['id'] ?>" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit Item
+                <a href="<?= BASE_URL ?>/items/edit?id=<?= $item['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span> Edit Item
                 </a>
                 <?php endif; ?>
             </div>

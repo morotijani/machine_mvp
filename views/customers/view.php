@@ -97,21 +97,21 @@ ob_start();
     }
 </style>
 <div class="row justify-content-center">
-    <div class="col-md-10">
+    <div class="col-12 col-xxl-11">
         <!-- Back and Title -->
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 no-print">
+        <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 gap-2 no-print">
             <div class="d-flex align-items-center gap-2">
-                <a href="<?= $_SESSION['last_customers_url'] ?? BASE_URL . '/customers' ?>" class="btn btn-outline-secondary btn-sm">
-                    <span class="material-symbols-outlined align-middle" style="font-size: 18px;">arrow_back</span>
+                <a href="<?= $_SESSION['last_customers_url'] ?? BASE_URL . '/customers' ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center gap-1">
+                    <span class="material-symbols-outlined align-middle" style="font-size: 18px;">arrow_back</span> Back
                 </a>
-                <h1 class="h2 mb-0">Customer Profile</h1>
+                <h1 class="h2 mb-0 ms-2">Customer Profile</h1>
             </div>
-            <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+            <div class="d-flex flex-wrap gap-2 page-header-actions">
                 <div class="btn-group">
-                    <button onclick="printRecords('all')" class="btn btn-sm btn-outline-dark d-flex align-items-center gap-1">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">print</span> Print
+                    <button onclick="printRecords('all')" class="btn btn-sm btn-outline-dark rounded-start-pill px-3 shadow-sm d-flex align-items-center gap-1">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">print</span> Print
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-dark dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button type="button" class="btn btn-sm btn-outline-dark rounded-end-pill shadow-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="visually-hidden">Toggle Dropdown</span>
                     </button>
                     <ul class="dropdown-menu">
@@ -124,20 +124,20 @@ ob_start();
                     </ul>
                 </div>
                 <?php if ($customer['total_debt'] > 0): ?>
-                <button type="button" class="btn btn-sm btn-success d-flex align-items-center gap-1"
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm fw-medium d-flex align-items-center gap-1"
                         data-bs-toggle="modal" 
                         data-bs-target="#bulkRepayModal">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">payments</span> Bulk Repayment
+                    <span class="material-symbols-outlined" style="font-size: 18px;">payments</span> Bulk Repayment
                 </button>
                 <?php endif; ?>
-                <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm d-flex align-items-center gap-1"
                         data-bs-toggle="modal" 
                         data-bs-target="#editCustomerModal"
                         data-id="<?= $customer['id'] ?>"
                         data-name="<?= e($customer['name']) ?>"
                         data-phone="<?= e($customer['phone'] ?? '') ?>"
                         data-address="<?= e($customer['address'] ?? '') ?>">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
+                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span> Edit
                 </button>
             </div>
         </div>

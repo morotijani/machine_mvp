@@ -8,7 +8,8 @@ ob_start();
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
             <h1 class="h2">New Sale</h1>
             <div class="btn-toolbar mb-2 mb-md-0">
-                <a href="<?= BASE_URL ?>/sales" class="btn btn-sm btn-outline-secondary">History</a>
+                <a href="<?= BASE_URL ?>/sales" class="btn btn-sm btn-outline-secondary rounded-pill">Sales History
+                    >></a>
             </div>
         </div>
 
@@ -20,24 +21,27 @@ ob_start();
                     <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
                         <div class="list-group list-group-flush" id="itemList">
                             <?php foreach ($items as $item): ?>
-                            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center item-row" 
-                                data-id="<?= $item['id'] ?>" 
-                                data-name="<?= e($item['name']) ?>" 
-                                data-price="<?= $item['price'] ?>"
-                                data-stock="<?= $item['quantity'] ?>">
-                                <div class="d-flex align-items-center">
-                                    <?php if (!empty($item['image_path'])): ?>
-                                        <img src="<?= BASE_URL ?>/<?php echo $item['image_path']; ?>" alt="Item" class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
-                                    <?php else: ?>
-                                        <div class="rounded me-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary small" style="width: 40px; height: 40px;">Img</div>
-                                    <?php endif; ?>
-                                    <div>
-                                        <div class="fw-bold"><?= e($item['name']) ?></div>
-                                        <small class="text-muted"><?= e($item['sku']) ?> | Stock: <?= $item['quantity'] ?></small>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center item-row"
+                                    data-id="<?= $item['id'] ?>" data-name="<?= e($item['name']) ?>"
+                                    data-price="<?= $item['price'] ?>" data-stock="<?= $item['quantity'] ?>">
+                                    <div class="d-flex align-items-center">
+                                        <?php if (!empty($item['image_path'])): ?>
+                                            <img src="<?= BASE_URL ?>/<?php echo $item['image_path']; ?>" alt="Item"
+                                                class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <?php else: ?>
+                                            <div class="rounded me-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary small"
+                                                style="width: 40px; height: 40px;">Img</div>
+                                        <?php endif; ?>
+                                        <div>
+                                            <div class="fw-bold"><?= e($item['name']) ?></div>
+                                            <small class="text-muted"><?= e($item['sku']) ?> | Stock:
+                                                <?= $item['quantity'] ?></small>
+                                        </div>
                                     </div>
-                                </div>
-                                <span class="badge bg-primary rounded-pill">₵<?php echo number_format($item['price'], 2); ?></span>
-                            </button>
+                                    <span
+                                        class="badge bg-primary rounded-pill">₵<?php echo number_format($item['price'], 2); ?></span>
+                                </button>
                             <?php endforeach; ?>
                         </div>
                     </div>
@@ -46,70 +50,88 @@ ob_start();
 
             <!-- Right Column: Cart -->
             <div class="col-md-5">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Current Order</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label d-flex justify-content-between">
-                                Customer
-                                <span class="badge bg-info bg-opacity-10 text-info" style="font-size: 0.65rem;">OR SCAN BARCODE BELOW</span>
+                <div class="card border-0 shadow-sm" style="border-radius: 28px;">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4" style="font-size: 24px; color: #1f1f1f; font-weight: 400;">Current Order</h4>
+                        <div class="mb-4">
+                            <label
+                                class="form-label d-flex justify-content-between text-muted fw-bold small text-uppercase">
+                                Select Customer
+                                <span class="text-primary" style="font-size: 0.7rem;">(Optional for walk-in)</span>
                             </label>
-                            <div class="input-group">
-                                <select id="customerSelect" class="form-select">
-                                    <option value="">-- Select Customer --</option>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+                                <select id="customerSelect" class="form-select border-0 bg-light py-2 px-3"
+                                    style="box-shadow: none;">
+                                    <option value="">-- Walk-in Customer --</option>
                                     <?php foreach ($customers as $cx): ?>
-                                    <option value="<?= $cx['id'] ?>"><?= e($cx['name'] . ' (' . $cx['phone'] . ')') ?></option>
+                                        <option value="<?= $cx['id'] ?>"><?= e($cx['name'] . ' (' . $cx['phone'] . ')') ?>
+                                        </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#quickAddCustomerModal" title="Quick Add Customer">+</button>
+                                <button class="btn btn-primary px-3 fw-medium border-0" type="button"
+                                    data-bs-toggle="modal" data-bs-target="#quickAddCustomerModal"
+                                    title="Quick Add Customer">
+                                    <span class="material-symbols-outlined align-middle"
+                                        style="font-size: 18px;">person_add</span>
+                                </button>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="input-group">
-                                <span class="input-group-text bg-dark text-white">
-                                    <span class="material-symbols-outlined fs-5">barcode_scanner</span>
+                        <div class="mb-4">
+                            <div
+                                class="input-group shadow-sm rounded-pill overflow-hidden border border-primary border-2">
+                                <span class="input-group-text bg-primary text-white border-0 px-3">
+                                    <span class="material-symbols-outlined fs-5 align-middle">barcode_scanner</span>
                                 </span>
-                                <input type="text" id="barcodeInput" class="form-control form-control-lg border-dark" placeholder="SCAN BARCODE HERE..." autofocus>
+                                <input type="text" id="barcodeInput" class="form-control py-2 border-0 fw-medium"
+                                    placeholder="SCAN BARCODE HERE..." autofocus style="box-shadow: none;">
                             </div>
-                            <small class="text-muted" style="font-size: 0.65rem;">The scanner will automatically add the item to your cart.</small>
+                            <div class="text-center mt-2">
+                                <small class="text-muted" style="font-size: 0.75rem;">Scanner will auto-add item to
+                                    cart.</small>
+                            </div>
                         </div>
 
-                        <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;">
-                            <table class="table table-sm">
-                                <thead>
+                        <div class="table-responsive mb-4 rounded-3 border"
+                            style="max-height: 280px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light sticky-top">
                                     <tr>
-                                        <th>Item</th>
-                                        <th style="width: 70px;">Qty</th>
-                                        <th class="text-end">Total</th>
-                                        <th></th>
+                                        <th class="ps-3 border-bottom-0">Item</th>
+                                        <th style="width: 80px;" class="border-bottom-0">Qty</th>
+                                        <th class="text-end border-bottom-0">Total</th>
+                                        <th class="border-bottom-0"></th>
                                     </tr>
                                 </thead>
-                                <tbody id="cartTableBody">
+                                <tbody id="cartTableBody" class="border-top-0">
                                     <!-- JS will populate -->
                                 </tbody>
                             </table>
                         </div>
 
-                        <div class="border-top pt-2">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="fw-bold">Total:</span>
-                                <span class="fw-bold fs-5" id="cartTotal">₵0.00</span>
+                        <div class="p-3 bg-light rounded-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted fw-bold">Total Order:</span>
+                                <span class="fw-bold fs-3 text-primary" id="cartTotal">₵0.00</span>
                             </div>
-                            <div class="mb-3 <?php echo ($_SESSION['role'] === 'sales') ? 'd-none' : ''; ?>">
-                                <label class="form-label">Amount Paid</label>
-                                <div class="input-group">
-                                    <input type="number" id="payAmount" class="form-control" step="0.01" value="0.00" min="0">
-                                    <button class="btn btn-outline-warning" type="button" id="btnPayLater" title="Mark as Credit / Pay Later">Pay Later</button>
+                            <div class="<?php echo ($_SESSION['role'] === 'sales') ? 'd-none' : ''; ?>">
+                                <hr class="my-2 border-secondary border-opacity-25">
+                                <label class="form-label text-muted fw-bold small text-uppercase">Amount Paid</label>
+                                <div class="input-group shadow-sm rounded-pill overflow-hidden border border-success">
+                                    <span class="input-group-text bg-white border-0 fw-bold px-3">₵</span>
+                                    <input type="number" id="payAmount"
+                                        class="form-control border-0 py-2 fs-5 fw-bold text-success" step="0.01"
+                                        value="0.00" min="0" style="box-shadow: none;">
+                                    <button class="btn btn-warning px-3 fw-bold border-0 text-dark" type="button"
+                                        id="btnPayLater" title="Mark as Credit / Pay Later">Pay Later</button>
                                 </div>
                             </div>
-                            <div class="d-grid">
-                                <button id="btnCompleteSale" class="btn btn-success btn-lg">
-                                    <?php echo ($_SESSION['role'] === 'sales') ? 'Authorize Sale & Send to Cashier' : 'Complete Sale & Print'; ?>
-                                </button>
-                            </div>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button id="btnCompleteSale" class="btn btn-success btn-lg rounded-pill fw-medium"
+                                style="padding: 12px 24px;">
+                                <?php echo ($_SESSION['role'] === 'sales') ? 'Authorize Sale & Send to Cashier' : 'Complete Sale & Print'; ?>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -117,35 +139,36 @@ ob_start();
         </div>
     </div>
 </div>
+</div>
 
 
 <!-- Quick Add Customer Modal -->
-<div class="modal fade" id="quickAddCustomerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Quick Add Customer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
+<div class="modal fade material-modal" id="quickAddCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="modal-title-custom mb-0">Quick Add Customer</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
                 <form id="quickAddCustomerForm">
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" id="new_cx_name" class="form-control" required>
+                        <label class="form-label text-muted fw-bold small text-uppercase">Name</label>
+                        <input type="text" id="new_cx_name" class="form-control rounded-pill bg-light border-0 px-3 py-2" style="box-shadow: none;" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Phone</label>
-                        <input type="text" id="new_cx_phone" class="form-control">
+                        <label class="form-label text-muted fw-bold small text-uppercase">Phone</label>
+                        <input type="text" id="new_cx_phone" class="form-control rounded-pill bg-light border-0 px-3 py-2" style="box-shadow: none;">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea id="new_cx_address" class="form-control" rows="2"></textarea>
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-bold small text-uppercase">Address</label>
+                        <textarea id="new_cx_address" class="form-control rounded-4 bg-light border-0 px-3 py-2" rows="2" style="box-shadow: none;"></textarea>
                     </div>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="saveNewCustomerBtn" class="btn btn-primary">Add & Select</button>
+                <div class="d-flex justify-content-end align-items-center gap-2 mt-4">
+                    <button type="button" class="btn btn-link btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="saveNewCustomerBtn" class="btn btn-ok">Add & Select</button>
+                </div>
             </div>
         </div>
     </div>
@@ -156,18 +179,21 @@ ob_start();
     .material-modal .modal-content {
         border-radius: 28px;
     }
+
     .material-modal .modal-title-custom {
         font-size: 24px;
         color: #1f1f1f;
         font-weight: 400;
         margin-bottom: 16px;
     }
+
     .material-modal .modal-text {
         font-size: 14px;
         color: #444746;
         line-height: 1.5;
         margin-bottom: 32px;
     }
+
     .material-modal .btn-cancel {
         color: #0b57d0;
         font-weight: 500;
@@ -175,9 +201,11 @@ ob_start();
         padding: 10px 16px;
         border-radius: 20px;
     }
+
     .material-modal .btn-cancel:hover {
         background-color: #f6f8fb;
     }
+
     .material-modal .btn-ok {
         background-color: #0b57d0;
         color: #fff;
@@ -187,6 +215,7 @@ ob_start();
         border: none;
         transition: background-color 0.2s;
     }
+
     .material-modal .btn-ok:hover {
         background-color: #0842a0;
         color: #fff;
@@ -208,13 +237,29 @@ ob_start();
     </div>
 </div>
 
+<!-- Max Stock Modal -->
+<div class="modal fade material-modal" id="maxStockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body p-4">
+                <h4 class="modal-title-custom">Max stock reached</h4>
+                <p class="modal-text" id="maxStockModalText">You cannot add more of this item to the cart.</p>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-ok" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Walk-in Confirm Modal -->
 <div class="modal fade material-modal" id="walkInConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-body p-4">
                 <h4 class="modal-title-custom">Proceed as Walk-in?</h4>
-                <p class="modal-text">No customer is selected. Are you sure you want to proceed with this sale as a Walk-in customer?</p>
+                <p class="modal-text">No customer is selected. Are you sure you want to proceed with this sale as a
+                    Walk-in customer?</p>
                 <div class="d-flex justify-content-end align-items-center gap-2">
                     <button type="button" class="btn btn-link btn-cancel" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" id="confirmWalkInBtn" class="btn btn-ok">OK</button>
@@ -225,309 +270,313 @@ ob_start();
 </div>
 
 <script>
-const CSRF_TOKEN = '<?= csrf_token() ?>';
-const items = <?php echo json_encode($items); ?>;
-const cart = [];
+    const CSRF_TOKEN = '<?= csrf_token() ?>';
+    const items = <?php echo json_encode($items); ?>;
+    const cart = [];
 
-// GLOBAL SEARCH INTEGRATION
-const globalSearch = document.getElementById('globalSearch');
-if (globalSearch) {
-    globalSearch.focus(); // Focus on load
-    globalSearch.addEventListener('input', function(e) {
-        const term = e.target.value.toLowerCase();
-        const rows = document.querySelectorAll('.item-row');
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            if (text.includes(term)) {
-                row.classList.remove('d-none');
-                row.classList.add('d-flex');
-            } else {
-                row.classList.remove('d-flex');
-                row.classList.add('d-none');
+    // GLOBAL SEARCH INTEGRATION
+    const globalSearch = document.getElementById('globalSearch');
+    if (globalSearch) {
+        globalSearch.focus(); // Focus on load
+        globalSearch.addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.item-row');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                if (text.includes(term)) {
+                    row.classList.remove('d-none');
+                    row.classList.add('d-flex');
+                } else {
+                    row.classList.remove('d-flex');
+                    row.classList.add('d-none');
+                }
+            });
+        });
+    }
+    // End Global Search Integration
+
+    /* Old event listener was here */
+    /*
+    document.getElementById('itemSearch').addEventListener('input', function(e) {
+        ...
+    });
+    */
+
+    // Barcode Scanner Logic
+    const barcodeInput = document.getElementById('barcodeInput');
+    if (barcodeInput) {
+        barcodeInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const sku = e.target.value.trim();
+                if (sku) {
+                    findAndAddItemBySku(sku);
+                }
+                e.target.value = ''; // Clear for next scan
             }
         });
-    });
-}
-// End Global Search Integration
 
-/* Old event listener was here */
-/*
-document.getElementById('itemSearch').addEventListener('input', function(e) {
-    ...
-});
-*/
-
-// Barcode Scanner Logic
-const barcodeInput = document.getElementById('barcodeInput');
-if (barcodeInput) {
-    barcodeInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const sku = e.target.value.trim();
-            if (sku) {
-                findAndAddItemBySku(sku);
+        // Auto-focus barcode input when clicking anywhere outside of other inputs
+        document.addEventListener('click', function (e) {
+            if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) {
+                barcodeInput.focus();
             }
-            e.target.value = ''; // Clear for next scan
-        }
-    });
-
-    // Auto-focus barcode input when clicking anywhere outside of other inputs
-    document.addEventListener('click', function(e) {
-        if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) {
-            barcodeInput.focus();
-        }
-    });
-}
-
-function findAndAddItemBySku(sku) {
-    // Show a small loader or feedback if needed
-    fetch('<?= BASE_URL ?>/api/items/find-by-sku?sku=' + encodeURIComponent(sku))
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                const item = data.item;
-                addItemToCart(item.id, item.name, parseFloat(item.price), parseFloat(item.quantity));
-                
-                // Optional: Play a "beep" sound or show success toast
-                console.log('Added via barcode:', item.name);
-            } else {
-                alert('Item not found for SKU: ' + sku);
-            }
-        })
-        .catch(err => {
-            console.error('Barcode error:', err);
-            alert('Error scanning barcode');
         });
-}
-
-function addItemToCart(id, name, price, stock) {
-    if(stock <= 0) {
-        const oosModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('outOfStockModal'));
-        oosModal.show();
-        return;
     }
 
-    const existing = cart.find(i => i.id == id); // Loose equal for ID types
-    if (existing) {
-        if (existing.quantity >= stock) {
-            alert('Max stock reached (' + stock + ')');
+    function findAndAddItemBySku(sku) {
+        // Show a small loader or feedback if needed
+        fetch('<?= BASE_URL ?>/api/items/find-by-sku?sku=' + encodeURIComponent(sku))
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const item = data.item;
+                    addItemToCart(item.id, item.name, parseFloat(item.price), parseFloat(item.quantity));
+
+                    // Optional: Play a "beep" sound or show success toast
+                    console.log('Added via barcode:', item.name);
+                } else {
+                    alert('Item not found for SKU: ' + sku);
+                }
+            })
+            .catch(err => {
+                console.error('Barcode error:', err);
+                alert('Error scanning barcode');
+            });
+    }
+
+    function addItemToCart(id, name, price, stock) {
+        if (stock <= 0) {
+            const oosModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('outOfStockModal'));
+            oosModal.show();
             return;
         }
-        existing.quantity++;
-    } else {
-        cart.push({ id, name, price, quantity: 1, max: stock });
+
+        const existing = cart.find(i => i.id == id); // Loose equal for ID types
+        if (existing) {
+            if (existing.quantity >= stock) {
+                document.getElementById('maxStockModalText').textContent = 'You have reached the maximum available stock (' + stock + ') for this item.';
+                const msModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('maxStockModal'));
+                msModal.show();
+                return;
+            }
+            existing.quantity++;
+        } else {
+            cart.push({ id, name, price, quantity: 1, max: stock });
+        }
+        renderCart();
     }
-    renderCart();
-}
 
-// Refactor list click to use the same addItemToCart function
-document.getElementById('itemList').addEventListener('click', function(e) {
-    const btn = e.target.closest('.item-row');
-    if (!btn) return;
+    // Refactor list click to use the same addItemToCart function
+    document.getElementById('itemList').addEventListener('click', function (e) {
+        const btn = e.target.closest('.item-row');
+        if (!btn) return;
 
-    addItemToCart(
-        btn.dataset.id, 
-        btn.dataset.name, 
-        parseFloat(btn.dataset.price), 
-        parseFloat(btn.dataset.stock)
-    );
-});
+        addItemToCart(
+            btn.dataset.id,
+            btn.dataset.name,
+            parseFloat(btn.dataset.price),
+            parseFloat(btn.dataset.stock)
+        );
+    });
 
-function renderCart() {
-    const tbody = document.getElementById('cartTableBody');
-    tbody.innerHTML = '';
-    let total = 0;
+    function renderCart() {
+        const tbody = document.getElementById('cartTableBody');
+        tbody.innerHTML = '';
+        let total = 0;
 
-    cart.forEach((item, index) => {
-        const lineTotal = item.price * item.quantity;
-        total += lineTotal;
+        cart.forEach((item, index) => {
+            const lineTotal = item.price * item.quantity;
+            total += lineTotal;
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
             <td><small>${item.name}</small></td>
             <td><input type="number" class="form-control form-control-sm qty-input" min="1" max="${item.max}" value="${item.quantity}" data-index="${index}"></td>
             <td class="text-end">₵${lineTotal.toFixed(2)}</td>
             <td class="text-end"><button class="btn btn-sm btn-link text-danger remove-btn" data-index="${index}">&times;</button></td>
         `;
-        tbody.appendChild(tr);
-    });
+            tbody.appendChild(tr);
+        });
 
-    document.getElementById('cartTotal').textContent = '₵' + total.toFixed(2);
-    
-    // Only auto-fill pay amount if the user is ALLOWED to edit it (not pure sales)
-    const payInput = document.getElementById('payAmount');
-    if (payInput && !payInput.parentElement.parentElement.classList.contains('d-none')) {
-        payInput.value = total.toFixed(2);
-    } else {
-        // For pure sales, payAmount is effectively total internally to the request logic
-        payInput.value = total.toFixed(2);
-    }
-}
+        document.getElementById('cartTotal').textContent = '₵' + total.toFixed(2);
 
-document.getElementById('cartTableBody').addEventListener('change', (e) => {
-    if (e.target.classList.contains('qty-input')) {
-        const idx = e.target.dataset.index;
-        let val = parseInt(e.target.value);
-        if (val < 1) val = 1;
-        if (val > cart[idx].max) {
-             val = cart[idx].max;
-             alert('Max stock is ' + cart[idx].max);
-        }
-        cart[idx].quantity = val;
-        renderCart();
-    }
-});
-
-document.getElementById('cartTableBody').addEventListener('click', (e) => {
-    if (e.target.classList.contains('remove-btn')) {
-        const idx = e.target.dataset.index;
-        cart.splice(idx, 1);
-        renderCart();
-    }
-});
-
-
-
-document.getElementById('btnPayLater').addEventListener('click', () => {
-    document.getElementById('payAmount').value = 0;
-});
-
-function submitSalePayload() {
-    const btn = document.getElementById('btnCompleteSale');
-    const customerId = document.getElementById('customerSelect').value;
-    const payAmount = parseFloat(document.getElementById('payAmount').value);
-    
-    const payload = {
-        customer_id: customerId || null,
-        payment_amount: payAmount,
-        items: cart.map(i => ({ id: i.id, quantity: i.quantity }))
-    };
-
-    // Disable button to prevent duplicate clicks
-    btn.disabled = true;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-
-    fetch('<?= BASE_URL ?>/sales/create', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': CSRF_TOKEN
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = '<?= BASE_URL ?>/sales/view?id=' + data.sale_id;
+        // Only auto-fill pay amount if the user is ALLOWED to edit it (not pure sales)
+        const payInput = document.getElementById('payAmount');
+        if (payInput && !payInput.parentElement.parentElement.classList.contains('d-none')) {
+            payInput.value = total.toFixed(2);
         } else {
-            alert('Error: ' + data.message);
-            // Re-enable button on error
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+            // For pure sales, payAmount is effectively total internally to the request logic
+            payInput.value = total.toFixed(2);
         }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('Communication error');
-        // Re-enable button on error
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+    }
+
+    document.getElementById('cartTableBody').addEventListener('change', (e) => {
+        if (e.target.classList.contains('qty-input')) {
+            const idx = e.target.dataset.index;
+            let val = parseInt(e.target.value);
+            if (val < 1) val = 1;
+            if (val > cart[idx].max) {
+                val = cart[idx].max;
+                document.getElementById('maxStockModalText').textContent = 'You have reached the maximum available stock (' + cart[idx].max + ') for this item.';
+                const msModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('maxStockModal'));
+                msModal.show();
+            }
+            cart[idx].quantity = val;
+            renderCart();
+        }
     });
-}
 
-document.getElementById('btnCompleteSale').addEventListener('click', function() {
-    const customerId = document.getElementById('customerSelect').value;
-    const payAmount = parseFloat(document.getElementById('payAmount').value);
-    const total = parseFloat(document.getElementById('cartTotal').textContent.replace('₵', ''));
-    
-    // VALIDATION: Amount Paid cannot be negative
-    if (payAmount < 0) {
-        alert('Amount Paid cannot be less than zero.');
-        return;
+    document.getElementById('cartTableBody').addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-btn')) {
+            const idx = e.target.dataset.index;
+            cart.splice(idx, 1);
+            renderCart();
+        }
+    });
+
+
+
+    document.getElementById('btnPayLater').addEventListener('click', () => {
+        document.getElementById('payAmount').value = 0;
+    });
+
+    function submitSalePayload() {
+        const btn = document.getElementById('btnCompleteSale');
+        const customerId = document.getElementById('customerSelect').value;
+        const payAmount = parseFloat(document.getElementById('payAmount').value);
+
+        const payload = {
+            customer_id: customerId || null,
+            payment_amount: payAmount,
+            items: cart.map(i => ({ id: i.id, quantity: i.quantity }))
+        };
+
+        // Disable button to prevent duplicate clicks
+        btn.disabled = true;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+        fetch('<?= BASE_URL ?>/sales/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            body: JSON.stringify(payload)
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '<?= BASE_URL ?>/sales/view?id=' + data.sale_id;
+                } else {
+                    alert('Error: ' + data.message);
+                    // Re-enable button on error
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Communication error');
+                // Re-enable button on error
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
     }
 
-    // VALIDATION: Amount Paid cannot be more than total
-    if (payAmount > total + 0.01) { // Adding a small buffer for float precision
-        alert('Amount Paid (₵' + payAmount.toFixed(2) + ') cannot exceed the Total Order Amount (₵' + total.toFixed(2) + ').');
-        return;
-    }
+    document.getElementById('btnCompleteSale').addEventListener('click', function () {
+        const customerId = document.getElementById('customerSelect').value;
+        const payAmount = parseFloat(document.getElementById('payAmount').value);
+        const total = parseFloat(document.getElementById('cartTotal').textContent.replace('₵', ''));
 
-    if (payAmount < total && !customerId) {
-        alert('For Credit/Partial payments, you MUST select a Customer to record the debt.');
-        return;
-    }
+        // VALIDATION: Amount Paid cannot be negative
+        if (payAmount < 0) {
+            alert('Amount Paid cannot be less than zero.');
+            return;
+        }
 
-    if (cart.length === 0) {
-        alert('Cart is empty');
-        return;
-    }
-    
-    if (!customerId) {
+        // VALIDATION: Amount Paid cannot be more than total
+        if (payAmount > total + 0.01) { // Adding a small buffer for float precision
+            alert('Amount Paid (₵' + payAmount.toFixed(2) + ') cannot exceed the Total Order Amount (₵' + total.toFixed(2) + ').');
+            return;
+        }
+
+        if (payAmount < total && !customerId) {
+            alert('For Credit/Partial payments, you MUST select a Customer to record the debt.');
+            return;
+        }
+
+        if (cart.length === 0) {
+            alert('Cart is empty');
+            return;
+        }
+
+        if (!customerId) {
+            const walkInModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('walkInConfirmModal'));
+            walkInModal.show();
+            return;
+        }
+
+        submitSalePayload();
+    });
+
+    document.getElementById('confirmWalkInBtn').addEventListener('click', function () {
         const walkInModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('walkInConfirmModal'));
-        walkInModal.show();
-        return;
-    }
-
-    submitSalePayload();
-});
-
-document.getElementById('confirmWalkInBtn').addEventListener('click', function() {
-    const walkInModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('walkInConfirmModal'));
-    walkInModal.hide();
-    submitSalePayload();
-});
-
-// Quick Add Customer Logic
-document.getElementById('saveNewCustomerBtn').addEventListener('click', function() {
-    const name = document.getElementById('new_cx_name').value;
-    const phone = document.getElementById('new_cx_phone').value;
-    const address = document.getElementById('new_cx_address').value;
-
-    if (!name.trim()) {
-        alert('Customer Name is required');
-        return;
-    }
-
-    fetch('<?= BASE_URL ?>/customers/create', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': CSRF_TOKEN
-        },
-        body: JSON.stringify({ name, phone, address })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            // Add to dropdown
-            const select = document.getElementById('customerSelect');
-            const option = document.createElement('option');
-            option.value = data.customer.id;
-            option.text = data.customer.name + ' (' + data.customer.phone + ')';
-            select.add(option);
-            
-            // Select it
-            select.value = data.customer.id;
-
-            // Close modal & Reset form
-            document.getElementById('quickAddCustomerForm').reset();
-            const modalEl = document.getElementById('quickAddCustomerModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            modal.hide();
-
-            // Notify
-            // alert('Customer added and selected!');
-            // Notify
-            // alert('Customer added and selected!');
-        } else {
-            alert(data.message || 'Error adding customer');
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('Error communicating with server');
+        walkInModal.hide();
+        submitSalePayload();
     });
-});
+
+    // Quick Add Customer Logic
+    document.getElementById('saveNewCustomerBtn').addEventListener('click', function () {
+        const name = document.getElementById('new_cx_name').value;
+        const phone = document.getElementById('new_cx_phone').value;
+        const address = document.getElementById('new_cx_address').value;
+
+        if (!name.trim()) {
+            alert('Customer Name is required');
+            return;
+        }
+
+        fetch('<?= BASE_URL ?>/customers/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            body: JSON.stringify({ name, phone, address })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Add to dropdown
+                    const select = document.getElementById('customerSelect');
+                    const option = document.createElement('option');
+                    option.value = data.customer.id;
+                    option.text = data.customer.name + ' (' + data.customer.phone + ')';
+                    select.add(option);
+
+                    // Select it
+                    select.value = data.customer.id;
+
+                    // Close modal & Reset form
+                    document.getElementById('quickAddCustomerForm').reset();
+                    const modalEl = document.getElementById('quickAddCustomerModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+
+                    // Notify
+                    // alert('Customer added and selected!');
+                    // Notify
+                    // alert('Customer added and selected!');
+                } else {
+                    alert(data.message || 'Error adding customer');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error communicating with server');
+            });
+    });
 </script>
 
 <?php

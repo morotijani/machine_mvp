@@ -53,8 +53,24 @@ class FinanceController {
     public function withdraw() {
         AuthMiddleware::requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $amount = $_POST['amount'] ?? 0;
-            $purpose = $_POST['purpose'] ?? '';
+            $withdrawal_type = $_POST['withdrawal_type'] ?? 'normal';
+            
+            if ($withdrawal_type === 'goods') {
+                $goods_amount = floatval($_POST['goods_amount'] ?? 0);
+                $transport_amount = floatval($_POST['transport_amount'] ?? 0);
+                $amount = $goods_amount + $transport_amount;
+                $description = trim($_POST['purpose'] ?? '');
+                
+                $purpose = json_encode([
+                    'is_goods' => true,
+                    'goods_amount' => $goods_amount,
+                    'transport_amount' => $transport_amount,
+                    'description' => $description
+                ]);
+            } else {
+                $amount = floatval($_POST['amount'] ?? 0);
+                $purpose = trim($_POST['purpose'] ?? '');
+            }
             
             if ($amount <= 0 || empty($purpose)) {
                 header('Location: ' . BASE_URL . '/admin/finance?error=Invalid amount or purpose');
