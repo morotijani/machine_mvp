@@ -19,6 +19,13 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= BASE_URL ?>/assets/css/style.css?v=1.1" rel="stylesheet">
+    <style>
+        @media (min-width: 768px) {
+            .nav-side-left, .nav-side-right {
+                flex: 1 1 0% !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <style>
@@ -30,7 +37,7 @@
     <!-- Top Fixed Navbar -->
     <header class="navbar navbar-top fixed-top p-0 shadow-sm bg-white no-print flex-wrap flex-md-nowrap align-items-center">
         <!-- Top Row on Mobile: Toggler + Brand + Profile -->
-        <div class="d-flex w-100 w-md-auto align-items-center justify-content-between px-2 px-md-0 order-1">
+        <div class="d-flex nav-side-left w-100 w-md-auto align-items-center justify-content-between px-2 px-md-0 order-1">
             <div class="d-flex align-items-center">
                 <!-- Mobile Toggle -->
                 <button class="navbar-toggler d-lg-none collapsed border-0 p-1 me-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,7 +71,7 @@
         </div>
         
         <!-- Search Bar -->
-        <div class="search-bar-container mx-2 mx-md-2 flex-grow-1 d-flex align-items-center w-100 w-md-auto mt-2 mt-md-0 mb-2 mb-md-0 order-3 order-md-2">
+        <div class="search-bar-container mx-2 mx-md-auto d-flex justify-content-center align-items-center w-100 mt-2 mt-md-0 mb-2 mb-md-0 order-3 order-md-2" style="max-width: 720px;">
             <input class="form-control form-control-search w-100 me-2" type="text" placeholder="Search items in POS..." aria-label="Search" id="globalSearch">
             <div id="statusIndicators" class="d-flex gap-2">
                 <span id="internetStatus" class="badge rounded-pill bg-success d-flex align-items-center" title="Internet Status">
@@ -79,7 +86,7 @@
         </div>
 
         <!-- Right Side: User Profile (Desktop) -->
-        <div class="navbar-nav flex-row align-items-center pe-3 d-none d-md-flex order-2 order-md-3">
+        <div class="navbar-nav nav-side-right flex-row align-items-center justify-content-end pe-3 d-none d-md-flex order-2 order-md-3">
              <div class="nav-item text-nowrap d-flex align-items-center">
                  <span class="me-3 text-secondary"><?= e($_SESSION['username'] ?? 'User') ?></span>
                  <a href="<?= BASE_URL ?>/profile" class="d-block link-dark text-decoration-none" title="My Profile">
