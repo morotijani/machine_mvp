@@ -11,9 +11,13 @@ class FinanceController {
         AuthMiddleware::requireAdmin();
         $pdo = Database::getInstance();
         
-        // 1. Total Revenue (All-time paid amount)
-        $stmt = $pdo->query("SELECT SUM(paid_amount) FROM sales WHERE voided = 0");
+        // 1. Total System Revenue (All-time total sales amount, including unpaid/debt)
+        $stmt = $pdo->query("SELECT SUM(total_amount) FROM sales WHERE voided = 0");
         $totalRevenue = $stmt->fetchColumn() ?: 0;
+
+        // 1b. Cash Collected (All-time paid amount)
+        $stmt = $pdo->query("SELECT SUM(paid_amount) FROM sales WHERE voided = 0");
+        $cashCollected = $stmt->fetchColumn() ?: 0;
 
         // 2. Total Profit (Realized)
         // Realized Profit = Sum over all items: (PaidAmount / TotalAmount) * Qty * (PriceAtSale - ItemCostPrice)
@@ -38,7 +42,7 @@ class FinanceController {
         $totalDeposits = $cofferStats['total_deposits'] ?: 0;
 
         // 5. Coffer Balance = (Total Paid - Total Expenses - Total Withdrawals + Total Deposits)
-        $cofferBalance = $totalRevenue - $totalExpenses - $totalWithdrawals + $totalDeposits;
+        $cofferBalance = $cashCollected - $totalExpenses - $totalWithdrawals + $totalDeposits;
 
         // 6. Recent Coffer Transactions
         $stmt = $pdo->query("SELECT ct.*, u.username as recorder_name 

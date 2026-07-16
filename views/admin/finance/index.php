@@ -32,19 +32,30 @@ ob_start();
 
 <div class="row g-4 mb-4">
     <!-- Revenue Card -->
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 border-start border-primary border-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
             <div class="card-body">
                 <h6 class="text-muted text-uppercase small mb-2">Total System Revenue</h6>
                 <div class="h3 mb-0 text-primary">₵<?= number_format($totalRevenue, 2) ?></div>
+                <div class="text-muted small mt-2">All-time sales generated (includes debt/unpaid)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash Collected Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small mb-2">Cash Collected</h6>
+                <div class="h3 mb-0 text-info">₵<?= number_format($cashCollected, 2) ?></div>
                 <div class="text-muted small mt-2">All-time realized cash (Paid Amount)</div>
             </div>
         </div>
     </div>
     
     <!-- Profit Card -->
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 border-start border-success border-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
             <div class="card-body">
                 <h6 class="text-muted text-uppercase small mb-2">Total Estimated Profit</h6>
                 <div class="h3 mb-0 text-success">₵<?= number_format($totalRealizedProfit, 2) ?></div>
@@ -54,8 +65,8 @@ ob_start();
     </div>
 
     <!-- Coffers Balance Card -->
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 border-start border-warning border-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
             <div class="card-body">
                 <h6 class="text-muted text-uppercase small mb-2">System Coffers Balance</h6>
                 <div class="h3 mb-0 text-warning">₵<?= number_format($cofferBalance, 2) ?></div>
