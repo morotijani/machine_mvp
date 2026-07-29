@@ -27,13 +27,15 @@ class Setting {
                 company_name = :company_name,
                 company_address = :company_address,
                 company_phone = :company_phone,
-                company_email = :company_email";
+                company_email = :company_email,
+                receipt_type = :receipt_type";
         
         $params = [
             'company_name' => $data['company_name'],
             'company_address' => $data['company_address'],
             'company_phone' => $data['company_phone'],
-            'company_email' => $data['company_email']
+            'company_email' => $data['company_email'],
+            'receipt_type' => $data['receipt_type'] ?? 'a4'
         ];
 
         if (isset($data['company_logo'])) {

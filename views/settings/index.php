@@ -54,6 +54,18 @@ ob_start();
                         <textarea name="company_address" class="form-control" rows="3"><?= e($settings['company_address'] ?? '') ?></textarea>
                     </div>
 
+                    <div class="mb-4">
+                        <label class="form-label d-block fw-bold">Receipt Print Format</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="receipt_type" id="receipt_a4" value="a4" <?= (!isset($settings['receipt_type']) || $settings['receipt_type'] === 'a4') ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="receipt_a4">Standard A4</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="receipt_type" id="receipt_thermal" value="thermal" <?= (isset($settings['receipt_type']) && $settings['receipt_type'] === 'thermal') ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="receipt_thermal">Thermal POS Receipt (80mm)</label>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary px-4">Save Settings</button>
                     </div>

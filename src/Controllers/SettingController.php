@@ -32,7 +32,8 @@ class SettingController {
                 'company_name' => $_POST['company_name'],
                 'company_address' => $_POST['company_address'],
                 'company_phone' => $_POST['company_phone'],
-                'company_email' => $_POST['company_email']
+                'company_email' => $_POST['company_email'],
+                'receipt_type' => $_POST['receipt_type'] ?? 'a4'
             ];
 
             // Handle Logo Upload

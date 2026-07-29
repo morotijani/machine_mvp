@@ -76,3 +76,15 @@ CREATE TABLE IF NOT EXISTS inventory_logs (
 -- Default Admin User (Password: admin123) - You should change this immediately
 INSERT INTO users (username, password, role) VALUES 
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+
+CREATE TABLE IF NOT EXISTS settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_name VARCHAR(255) NOT NULL,
+    company_address TEXT,
+    company_phone VARCHAR(50),
+    company_email VARCHAR(100),
+    company_logo VARCHAR(255),
+    receipt_type ENUM('a4', 'thermal') DEFAULT 'a4',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

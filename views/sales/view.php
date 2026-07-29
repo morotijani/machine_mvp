@@ -3,6 +3,10 @@ $title = "Invoice #" . str_pad($sale['id'], 6, '0', STR_PAD_LEFT);
 ob_start();
 ?>
 
+<?php
+$receiptFormat = $settings['receipt_type'] ?? 'a4';
+?>
+
 <style>
     @media print {
         .no-print {
@@ -19,13 +23,20 @@ ob_start();
             padding: 0;
         }
 
+        <?php if ($receiptFormat === 'thermal'): ?>
+        .invoice-card {
+            display: none !important;
+        }
+        <?php else: ?>
         .invoice-card {
             box-shadow: none !important;
             border: none !important;
             margin: 0 !important;
             padding: 0 !important;
             max-width: 100% !important;
+            display: block !important;
         }
+        <?php endif; ?>
 
         .modal-backdrop,
         .modal,
@@ -359,6 +370,10 @@ ob_start();
         </div>
     </div>
 </div>
+
+<?php if ($receiptFormat === 'thermal'): ?>
+    <?php require __DIR__ . '/receipt_thermal.php'; ?>
+<?php endif; ?>
 
 <!-- Pay Modal -->
 <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
