@@ -21,7 +21,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
             <div class="col-md-4 mb-4">
                 <div class="card p-3 h-100 bg-primary-subtle border-0 shadow-sm">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Cash Collected Today</h6>
-                    <h2 class="text-primary mb-0">₵<?php echo number_format($todayNewSalesCollected, 2); ?></h2>
+                    <h2 class="text-primary mb-0">₵<?php echo format_large_number($todayNewSalesCollected); ?></h2>
                     <small class="text-muted">From sales, net of returns & deleted sales</small>
                 </div>
             </div>
@@ -29,7 +29,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
             <div class="col-md-4 mb-4">
                 <div class="card p-3 h-100 bg-success-subtle border-0 shadow-sm">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Debt Recovered</h6>
-                    <h2 class="text-success mb-0">₵<?php echo number_format($todayDebtCollected, 2); ?></h2>
+                    <h2 class="text-success mb-0">₵<?php echo format_large_number($todayDebtCollected); ?></h2>
                     <small class="text-muted">From past invoices</small>
                 </div>
             </div>
@@ -37,7 +37,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
             <div class="col-md-4 mb-4">
                 <div class="card p-3 h-100 bg-warning-subtle border-0 shadow-sm">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Total Net Collections</h6>
-                    <h2 class="text-warning-emphasis mb-0">₵<?php echo number_format($totalNetCollections, 2); ?></h2>
+                    <h2 class="text-warning-emphasis mb-0">₵<?php echo format_large_number($totalNetCollections); ?></h2>
                     <small class="text-muted">New + Old - Refunds</small>
                 </div>
             </div>
@@ -46,14 +46,14 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                 <div class="col-md-6 mb-4">
                     <div class="card p-3 h-100 bg-info-subtle border-0 shadow-sm">
                         <h6 class="text-muted text-uppercase small fw-bold mb-2">Realized Gross Profit</h6>
-                        <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedProfit, 2); ?></h2>
+                        <h2 class="text-info mb-0">₵<?php echo format_large_number($todayRealizedProfit); ?></h2>
                         <small class="text-muted">Earned from total cash collected above</small>
                     </div>
                 </div>
                 <div class="col-md-6 mb-4">
                     <div class="card p-3 h-100 bg-dark border-0 shadow-sm text-white">
                         <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Realized Net Profit</h6>
-                        <h2 class="text-info mb-0">₵<?php echo number_format($todayRealizedNetProfit, 2); ?></h2>
+                        <h2 class="text-info mb-0">₵<?php echo format_large_number($todayRealizedNetProfit); ?></h2>
                         <small class="text-white-50" style="font-size: 10px;">Realized GP - Expenditures</small>
                     </div>
                 </div>
@@ -70,7 +70,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                 <div class="card p-2 border shadow-sm bg-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="text-muted small fw-bold">Daily Sales (Invoiced)</span>
-                        <span class="fw-bold">₵<?php echo number_format($dailySales, 2); ?></span>
+                        <span class="fw-bold">₵<?php echo format_large_number($dailySales); ?></span>
                     </div>
                 </div>
             </div>
@@ -79,7 +79,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                     <div class="card p-2 border shadow-sm bg-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small fw-bold">Potential Profit</span>
-                            <span class="fw-bold text-success">₵<?php echo number_format($dailyProfit, 2); ?></span>
+                            <span class="fw-bold text-success">₵<?php echo format_large_number($dailyProfit); ?></span>
                         </div>
                     </div>
                 </div>
@@ -88,7 +88,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                 <div class="card p-2 border shadow-sm bg-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="text-muted small fw-bold">Expenditure</span>
-                        <span class="fw-bold text-danger">₵<?php echo number_format($dailyExpenditures, 2); ?></span>
+                        <span class="fw-bold text-danger">₵<?php echo format_large_number($dailyExpenditures); ?></span>
                     </div>
                 </div>
             </div>
@@ -97,7 +97,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                     <div class="card p-2 border shadow-sm bg-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small fw-bold">Daily Net Profit</span>
-                            <span class="fw-bold text-danger">₵<?php echo number_format($dailyNetProfit, 2); ?></span>
+                            <span class="fw-bold text-danger">₵<?php echo format_large_number($dailyNetProfit); ?></span>
                         </div>
                     </div>
                 </div>
@@ -137,14 +137,14 @@ $isAdmin = ($_SESSION['role'] === 'admin');
             <div class="col-md-3 mb-4">
                 <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #e3f2fd;">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Total Lifetime Sales</h6>
-                    <h2 class="text-primary mb-0">₵<?php echo number_format($lifetimeStats['total'], 2); ?></h2>
+                    <h2 class="text-primary mb-0">₵<?php echo format_large_number($lifetimeStats['total']); ?></h2>
                     <small class="text-muted mt-1">Total Revenue Generated</small>
                 </div>
             </div>
             <div class="col-md-3 mb-4">
                 <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #e8f5e9;">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Cash Collected</h6>
-                    <h2 class="text-success mb-0">₵<?php echo number_format($lifetimeStats['collected'], 2); ?></h2>
+                    <h2 class="text-success mb-0">₵<?php echo format_large_number($lifetimeStats['collected']); ?></h2>
                     <small class="text-muted mt-1">Total payments received</small>
                 </div>
             </div>
@@ -152,14 +152,14 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                 <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #fff3e0;">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Balance Pending</h6>
                     <h2 class="text-warning mb-0">
-                        ₵<?php echo number_format($lifetimeStats['total'] - $lifetimeStats['collected'], 2); ?></h2>
+                        ₵<?php echo format_large_number($lifetimeStats['total'] - $lifetimeStats['collected']); ?></h2>
                     <small class="text-muted mt-1">Outstanding receivables</small>
                 </div>
             </div>
             <div class="col-md-3 mb-4">
                 <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #ffebee;">
                     <h6 class="text-muted text-uppercase small fw-bold mb-2">Total Outstanding Debt</h6>
-                    <h2 class="text-danger mb-0">₵<?php echo number_format($totalDebt, 2); ?></h2>
+                    <h2 class="text-danger mb-0">₵<?php echo format_large_number($totalDebt); ?></h2>
                     <small class="text-muted mt-1">Sales + Standalone Debt</small>
                 </div>
             </div>
@@ -187,7 +187,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
             <div class="col-md-3 mb-4">
                 <div class="card p-3 h-100 border-0 shadow-sm bg-light text-danger">
                     <h6 class="text-danger-emphasis text-uppercase small fw-bold mb-2">Monthly Expenditure</h6>
-                    <h2 class="mb-0">₵<?php echo number_format($monthlyExpenditures, 2); ?></h2>
+                    <h2 class="mb-0">₵<?php echo format_large_number($monthlyExpenditures); ?></h2>
                     <small class="text-muted mt-1"><?php echo date('F'); ?> expenses</small>
                 </div>
             </div>
@@ -195,9 +195,9 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                 <div class="col-md-3 mb-4">
                     <div class="card p-3 h-100 border-0 shadow-sm bg-dark text-white">
                         <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Inventory Net Worth</h6>
-                        <h3 class="mb-0">₵<?php echo number_format($inventoryWorth, 2); ?> <small
+                        <h3 class="mb-0">₵<?php echo format_large_number($inventoryWorth); ?> <small
                                 class="fs-6 text-white-50">(Retail)</small></h3>
-                        <h5 class="mb-0 text-info">₵<?php echo number_format($inventoryCost, 2); ?> <small
+                        <h5 class="mb-0 text-info">₵<?php echo format_large_number($inventoryCost); ?> <small
                                 class="fs-6 text-info-emphasis">(Cost)</small></h5>
                     </div>
                 </div>
@@ -220,18 +220,18 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
                                 Monthly Revenue
-                                <span class="fw-bold">₵<?php echo number_format($monthlyStats['total'], 2); ?></span>
+                                <span class="fw-bold">₵<?php echo format_large_number($monthlyStats['total']); ?></span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
                                 Monthly Cash Collected
                                 <span
-                                    class="fw-bold text-success">₵<?php echo number_format($monthlyStats['collected'], 2); ?></span>
+                                    class="fw-bold text-success">₵<?php echo format_large_number($monthlyStats['collected']); ?></span>
                             </li>
                             <li
                                 class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
                                 Monthly Balance Pending
                                 <span
-                                    class="fw-bold text-danger">₵<?php echo number_format($monthlyStats['total'] - $monthlyStats['collected'], 2); ?></span>
+                                    class="fw-bold text-danger">₵<?php echo format_large_number($monthlyStats['total'] - $monthlyStats['collected']); ?></span>
                             </li>
                         </ul>
                     </div>

@@ -31,12 +31,12 @@ ob_start();
                 <div class="row g-0">
                     <div class="col-md-8 p-4">
                         <div class="d-flex align-items-start gap-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-4 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-4 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 64px; height: 64px;">
                                 <span class="material-symbols-outlined fs-1"><?= $item['type'] === 'bundle' ? 'inventory_2' : 'package_2' ?></span>
                             </div>
                             <div>
-                                <h3 class="fw-bold mb-1"><?= e($item['name']) ?></h3>
-                                <div class="d-flex align-items-center gap-3">
+                                <h3 class="fw-bold mb-2"><?= e($item['name']) ?></h3>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
                                     <span class="badge bg-light text-dark border shadow-sm">SKU: <?= e($item['sku']) ?></span>
                                     <span class="badge bg-primary bg-opacity-10 text-primary border-primary border-opacity-25"><?= e($item['category']) ?></span>
                                     <?php if ($item['type'] === 'bundle'): ?>
@@ -46,8 +46,8 @@ ob_start();
                             </div>
                         </div>
                         
-                        <div class="row mt-4 pt-3 border-top">
-                            <div class="col-4">
+                        <div class="row mt-4 pt-3 border-top g-3">
+                            <div class="col-12 col-sm-4">
                                 <label class="text-muted small d-block text-uppercase fw-bold mb-1">Current Stock</label>
                                 <div class="h5 mb-0 d-flex align-items-center gap-2">
                                     <span class="badge <?= $item['quantity'] <= 5 ? 'bg-danger' : 'bg-success' ?> rounded-pill px-3">
@@ -55,11 +55,11 @@ ob_start();
                                     </span>
                                 </div>
                             </div>
-                            <div class="col-4 border-start border-end">
+                            <div class="col-12 col-sm-4 border-sm-start border-sm-end">
                                 <label class="text-muted small d-block text-uppercase fw-bold mb-1">Selling Price</label>
                                 <div class="h4 mb-0 fw-bold text-primary">₵<?= number_format($item['price'], 2) ?></div>
                             </div>
-                            <div class="col-4">
+                            <div class="col-12 col-sm-4">
                                 <label class="text-muted small d-block text-uppercase fw-bold mb-1">Location</label>
                                 <div class="h6 mb-0 text-dark"><?= e($item['location'] ?: 'N/A') ?></div>
                             </div>

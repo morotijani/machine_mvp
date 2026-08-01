@@ -11,6 +11,7 @@ date_default_timezone_set($timezone);
 
 require_once __DIR__ . '/../src/Config/Router.php';
 require_once __DIR__ . '/../src/Config/Security.php';
+require_once __DIR__ . '/../src/Config/Helpers.php';
 
 use App\Controllers\AuthController;
 use App\Controllers\ItemController;
@@ -157,6 +158,14 @@ $router->post('/sales/process-delete', [$saleController, 'processDeleteRequest']
 $router->get('/sales/view', [$saleController, 'view']);
 $router->post('/sales/pay', [$saleController, 'pay']);
 $router->post('/sales/return', [$saleController, 'returns']);
+
+// Pro Formas
+$proformaController = new \App\Controllers\ProformaController();
+$router->get('/proformas', [$proformaController, 'index']);
+$router->get('/proformas/create', [$proformaController, 'create']);
+$router->post('/proformas/store', [$proformaController, 'store']);
+$router->get('/proformas/preview', [$proformaController, 'preview']);
+$router->post('/proformas/delete', [$proformaController, 'delete']);
 
 // Cashier
 $cashierController = new \App\Controllers\CashierController();

@@ -467,6 +467,9 @@ class ItemController
         }
         unset($comp);
 
+        $settingModel = new \App\Models\Setting($pdo);
+        $settings = $settingModel->get();
+
         require __DIR__ . '/../../views/items/preview.php';
     }
 
