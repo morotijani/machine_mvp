@@ -126,7 +126,7 @@ class CustomerController {
                 exit;
             }
 
-            header('Location: ' . BASE_URL . '/customers');
+            header('Location: ' . BASE_URL . '/customers?success=Customer added successfully');
             exit;
         }
     }
@@ -184,7 +184,7 @@ class CustomerController {
             // "on adding new customer make sure...". "and also when updating... make sure this validation also is applied".
             // I will stick to validation only to avoid scope creep, but I will send back to customers list consistent with previous behavior.
             
-            header('Location: ' . BASE_URL . '/customers');
+            header('Location: ' . BASE_URL . '/customers?success=Customer updated successfully');
             exit;
         }
         header('Location: ' . BASE_URL . '/customers');

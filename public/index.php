@@ -45,7 +45,7 @@ if (substr($baseUrl, -7) === '/public') {
 define('BASE_URL', $baseUrl);
 
 // Routes
-$router->get('/', function() {
+$router->get('/', function () {
     if (AuthMiddleware::isAuthenticated()) {
         if ($_SESSION['role'] === 'admin') {
             header('Location: ' . BASE_URL . '/dashboard');
@@ -57,6 +57,44 @@ $router->get('/', function() {
     } else {
         header('Location: ' . BASE_URL . '/login');
     }
+    exit;
+});
+
+// PWA Manifest
+$router->get('/manifest.json', function () {
+    $pdo = \App\Config\Database::getInstance();
+    $settingModel = new \App\Models\Setting($pdo);
+    $settings = $settingModel->get();
+
+    $manifest = [
+        "name" => $settings['company_name'] ?? "POS Lite",
+        "short_name" => "POS Lite",
+        "start_url" => ".",
+        "display" => "standalone",
+        "background_color" => "#f8f9fa",
+        "theme_color" => "#0d6efd",
+        "description" => "A comprehensive Point of Sale and Inventory Management System",
+        "icons" => []
+    ];
+
+    if (!empty($settings['company_logo'])) {
+        $manifest['icons'][] = [
+            "src" => $settings['company_logo'],
+            "sizes" => "192x192 512x512",
+            "type" => "image/png",
+            "purpose" => "any maskable"
+        ];
+    } else {
+        $manifest['icons'][] = [
+            "src" => "assets/icon.svg",
+            "sizes" => "192x192 512x512",
+            "type" => "image/svg+xml",
+            "purpose" => "any maskable"
+        ];
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($manifest, JSON_UNESCAPED_SLASHES);
     exit;
 });
 
@@ -183,16 +221,26 @@ $router->post('/expenditures/edit', [$expenditureController, 'edit']);
 $router->post('/expenditures/delete', [$expenditureController, 'delete']);
 
 // Debtors
-$debtorController = new \App\Controllers\DebtorController();
-$router->get('/debtors', [$debtorController, 'index']);
-$router->get('/debtors/create', [$debtorController, 'create']);
-$router->post('/debtors/create', [$debtorController, 'create']);
-$router->get('/debtors/payment', [$debtorController, 'recordPayment']);
-$router->post('/debtors/payment', [$debtorController, 'recordPayment']);
-$router->get('/debtors/history', [$debtorController, 'history']);
-$router->get('/debtors/increase', [$debtorController, 'increaseDebt']);
-$router->post('/debtors/increase', [$debtorController, 'increaseDebt']);
-$router->post('/debtors/delete', [$debtorController, 'delete']);
+$pdoIndex = \App\Config\Database::getInstance();
+$settingModelIndex = new \App\Models\Setting($pdoIndex);
+$settingsIndex = $settingModelIndex->get();
+
+if (!isset($settingsIndex['enable_debt_module']) || $settingsIndex['enable_debt_module'] == 1) {
+    $debtorController = new \App\Controllers\DebtorController();
+    $router->get('/debtors', [$debtorController, 'index']);
+    $router->get('/debtors/create', [$debtorController, 'create']);
+    $router->post('/debtors/create', [$debtorController, 'create']);
+    $router->get('/debtors/payment', [$debtorController, 'recordPayment']);
+    $router->post('/debtors/payment', [$debtorController, 'recordPayment']);
+    $router->get('/debtors/history', [$debtorController, 'history']);
+    $router->get('/debtors/increase', [$debtorController, 'increaseDebt']);
+    $router->post('/debtors/increase', [$debtorController, 'increaseDebt']);
+    $router->post('/debtors/delete', [$debtorController, 'delete']);
+} else {
+    // Redirect all /debtors routes to dashboard if module is disabled
+    $router->get('/debtors', function() { header('Location: ' . BASE_URL . '/dashboard'); exit; });
+}
+
 
 // API Status
 $router->get('/api/status', [new \App\Controllers\StatusController(), 'check']);

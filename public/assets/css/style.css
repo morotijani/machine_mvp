@@ -230,6 +230,11 @@
     overflow-x: hidden;
     overflow-y: auto;
     /* Scrollable contents if viewport is shorter than content. */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .sidebar-sticky::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
   }
 
   /* Sidebar Links */

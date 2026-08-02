@@ -33,7 +33,8 @@ class SettingController {
                 'company_address' => $_POST['company_address'],
                 'company_phone' => $_POST['company_phone'],
                 'company_email' => $_POST['company_email'],
-                'receipt_type' => $_POST['receipt_type'] ?? 'a4'
+                'receipt_type' => $_POST['receipt_type'] ?? 'a4',
+                'enable_debt_module' => isset($_POST['enable_debt_module']) ? 1 : 0
             ];
 
             // Handle Logo Upload
@@ -41,13 +42,13 @@ class SettingController {
                 
                 // Delete old logo
                 if (!empty($currentSettings['company_logo'])) {
-                    $oldPath = __DIR__ . '/../../public/' . $currentSettings['company_logo'];
+                    $oldPath = dirname(__DIR__, 2) . '/public/' . ltrim($currentSettings['company_logo'], '/');
                     if (file_exists($oldPath)) {
-                        unlink($oldPath);
+                        @unlink($oldPath);
                     }
                 }
 
-                $uploadDir = __DIR__ . '/../../public/uploads/settings/';
+                $uploadDir = dirname(__DIR__, 2) . '/public/uploads/settings/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }

@@ -20,10 +20,15 @@ class DebtorController {
     public function create() {
         AuthMiddleware::requireLogin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $amount = (float)$_POST['total_amount'];
+            if ($amount < 0) {
+                $amount = 0;
+            }
+
             $data = [
                 'name' => $_POST['name'],
                 'phone' => $_POST['phone'],
-                'total_amount' => $_POST['total_amount'],
+                'total_amount' => $amount,
                 'description' => $_POST['description']
             ];
 

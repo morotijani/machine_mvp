@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="110" fill="#0d6efd"/>
+    <text x="256" y="270" fill="white" font-family="system-ui, -apple-system, sans-serif" text-anchor="middle" dominant-baseline="central">
+        <tspan font-size="95" font-weight="900">POSLITE</tspan>
+        <tspan font-size="32" font-weight="700" dy="-40" dx="5">MIJMA</tspan>
+    </text>
+</svg>

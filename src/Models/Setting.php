@@ -28,14 +28,16 @@ class Setting {
                 company_address = :company_address,
                 company_phone = :company_phone,
                 company_email = :company_email,
-                receipt_type = :receipt_type";
+                receipt_type = :receipt_type,
+                enable_debt_module = :enable_debt_module";
         
         $params = [
             'company_name' => $data['company_name'],
             'company_address' => $data['company_address'],
             'company_phone' => $data['company_phone'],
             'company_email' => $data['company_email'],
-            'receipt_type' => $data['receipt_type'] ?? 'a4'
+            'receipt_type' => $data['receipt_type'] ?? 'a4',
+            'enable_debt_module' => $data['enable_debt_module'] ?? 1
         ];
 
         if (isset($data['company_logo'])) {

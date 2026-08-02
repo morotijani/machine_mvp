@@ -24,6 +24,9 @@ class ReportController
         }
 
         $pdo = Database::getInstance();
+        $settingModel = new \App\Models\Setting($pdo);
+        $settings = $settingModel->get();
+
         $isAdmin = ($_SESSION['role'] === 'admin');
         $isLimitedView = ($_SESSION['role'] === 'sales_cashier');
 
@@ -142,8 +145,11 @@ class ReportController
         // Debtors are usually global, but if we want "what he/she has done so far", 
         // we might filter by who recorded it. However, Debtor model doesn't have recorded_by for the debtor itself, only repayments.
         // Let's keep it global for now as per previous logic, but sum it with sales debt if needed.
-        $debtorModel = new \App\Models\Debtor($pdo);
-        $totalStandaloneDebt = $debtorModel->getTotalOutstanding();
+        $totalStandaloneDebt = 0;
+        if (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1) {
+            $debtorModel = new \App\Models\Debtor($pdo);
+            $totalStandaloneDebt = $debtorModel->getTotalOutstanding();
+        }
 
         $totalDebt = $salesDebt + $totalStandaloneDebt;
 
@@ -455,6 +461,8 @@ class ReportController
     {
         AuthMiddleware::requireAdmin();
         $pdo = Database::getInstance();
+        $settingModel = new \App\Models\Setting($pdo);
+        $settings = $settingModel->get();
         $date = $_GET['date'] ?? date('Y-m-d');
 
         // 1. Financial Summary for the Date
@@ -484,14 +492,18 @@ class ReportController
         $debtRecoveredSales = $stmt->fetchColumn() ?: 0;
 
         // d. Standalone Debt Activity (New debt created today)
-        $stmt = $pdo->prepare("SELECT SUM(total_amount) FROM standalone_debtors WHERE DATE(created_at) = :date AND is_deleted = 0");
-        $stmt->execute(['date' => $date]);
-        $newStandaloneDebt = $stmt->fetchColumn() ?: 0;
+        $newStandaloneDebt = 0;
+        $standaloneRepayments = 0;
+        if (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1) {
+            $stmt = $pdo->prepare("SELECT SUM(total_amount) FROM standalone_debtors WHERE DATE(created_at) = :date AND is_deleted = 0");
+            $stmt->execute(['date' => $date]);
+            $newStandaloneDebt = $stmt->fetchColumn() ?: 0;
 
-        // e. Standalone Debt Repayments (Cash collected today for standalone debt)
-        $stmt = $pdo->prepare("SELECT SUM(amount) FROM debt_repayments WHERE DATE(payment_date) = :date");
-        $stmt->execute(['date' => $date]);
-        $standaloneRepayments = $stmt->fetchColumn() ?: 0;
+            // e. Standalone Debt Repayments (Cash collected today for standalone debt)
+            $stmt = $pdo->prepare("SELECT SUM(amount) FROM debt_repayments WHERE DATE(payment_date) = :date");
+            $stmt->execute(['date' => $date]);
+            $standaloneRepayments = $stmt->fetchColumn() ?: 0;
+        }
 
         // f. Total Expenditure
         $stmt = $pdo->prepare("SELECT SUM(amount) FROM expenditures WHERE date = :date AND is_deleted = 0");
@@ -562,20 +574,24 @@ class ReportController
         $debtRecoveredList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // 3. New Standalone Debtors created this day
-        $stmt = $pdo->prepare("SELECT * FROM standalone_debtors WHERE DATE(created_at) = :date AND is_deleted = 0");
-        $stmt->execute(['date' => $date]);
-        $newDebtorsList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $newDebtorsList = [];
+        $standaloneRepaymentsList = [];
+        if (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1) {
+            $stmt = $pdo->prepare("SELECT * FROM standalone_debtors WHERE DATE(created_at) = :date AND is_deleted = 0");
+            $stmt->execute(['date' => $date]);
+            $newDebtorsList = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 4. Standalone Repayments list
-        $stmt = $pdo->prepare("
-            SELECT dr.*, d.name as debtor_name, u.username as recorder
-            FROM debt_repayments dr
-            JOIN standalone_debtors d ON dr.debtor_id = d.id
-            LEFT JOIN users u ON dr.recorded_by = u.id
-            WHERE DATE(dr.payment_date) = :date
-        ");
-        $stmt->execute(['date' => $date]);
-        $standaloneRepaymentsList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // 4. Standalone Repayments list
+            $stmt = $pdo->prepare("
+                SELECT dr.*, d.name as debtor_name, u.username as recorder
+                FROM debt_repayments dr
+                JOIN standalone_debtors d ON dr.debtor_id = d.id
+                LEFT JOIN users u ON dr.recorded_by = u.id
+                WHERE DATE(dr.payment_date) = :date
+            ");
+            $stmt->execute(['date' => $date]);
+            $standaloneRepaymentsList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         // 5. Returned Items List
         $stmt = $pdo->prepare("

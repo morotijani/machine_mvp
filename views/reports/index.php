@@ -2,29 +2,184 @@
 $title = "Reports";
 ob_start();
 ?>
+<style>
+    .google-btn {
+        border-radius: 24px;
+        padding: 8px 24px;
+        font-weight: 500;
+        border: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .google-btn-primary {
+        background-color: #0b57d0;
+        color: #fff;
+    }
+    .google-btn-primary:hover {
+        background-color: #0842a0;
+        color: #fff;
+    }
+    .google-btn-outline {
+        background-color: transparent;
+        color: #0b57d0;
+        border: 1px solid #c7d0dd;
+    }
+    .google-btn-outline:hover {
+        background-color: #f6f8fb;
+    }
+    .google-table-card {
+        background: #fff;
+        border-radius: 24px;
+        overflow: hidden;
+        border: none;
+        box-shadow: none;
+        margin-bottom: 24px;
+    }
+    .google-table-card .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid #e3e3e3;
+        padding: 24px 32px;
+    }
+    .google-table-card .card-header h5 {
+        color: #1f1f1f;
+        font-weight: 400;
+        margin: 0;
+    }
+    .google-table-card .card-body {
+        padding: 0;
+    }
+    .google-table-card table {
+        margin-bottom: 0;
+        width: 100%;
+    }
+    .google-table-card thead th {
+        border-bottom: 1px solid #e3e3e3;
+        background-color: #fff;
+        color: #5f6368;
+        font-weight: 500;
+        padding: 16px 32px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .google-table-card tbody td {
+        padding: 16px 32px;
+        border-bottom: 1px solid #e3e3e3;
+        color: #1f1f1f;
+        vertical-align: middle;
+    }
+    .google-table-card tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .google-table-card tbody tr {
+        transition: background-color 0.2s;
+    }
+    .google-table-card tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .google-table-card tfoot td {
+        background-color: #f8f9fa;
+        padding: 16px 32px;
+        color: #1f1f1f;
+        border-top: 1px solid #e3e3e3;
+        border-bottom: none;
+    }
+    .google-stat-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 24px 32px;
+        border: none;
+        box-shadow: none;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .google-stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .google-stat-icon .material-symbols-outlined {
+        font-size: 28px;
+    }
+    .google-select-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+    .google-select {
+        appearance: none;
+        background-color: #f8f9fa;
+        border: 1px solid transparent;
+        border-radius: 24px;
+        padding: 8px 40px 8px 20px;
+        font-size: 14px;
+        color: #1f1f1f;
+        font-weight: 500;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .google-select:hover {
+        background-color: #f1f3f4;
+    }
+    .google-select:focus {
+        border-color: #0b57d0;
+        background-color: #fff;
+    }
+    .google-select-wrap .material-symbols-outlined {
+        position: absolute;
+        right: 12px;
+        pointer-events: none;
+        color: #444746;
+        font-size: 20px;
+    }
+    .google-pill {
+        border-radius: 16px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+    .google-pill-info {
+        background-color: #e8f0fe;
+        color: #0b57d0;
+    }
+</style>
+
 <div class="row justify-content-center">
     <div class="col-12 col-xxl-11">
-        <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 gap-2">
-            <h1 class="h2 mb-0">Reports & Analytics</h1>
-            <div class="d-flex flex-wrap gap-2 align-items-center justify-content-start justify-content-md-end flex-grow-1">
-                <form action="<?= BASE_URL ?>/reports" method="GET" class="d-flex align-items-center me-md-2">
-                    <div class="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border">
-                        <span class="input-group-text bg-white border-0 fw-bold text-muted px-3">Year:</span>
-                        <select name="year" class="form-select border-0 ps-0 pe-4 bg-white fw-medium" onchange="this.form.submit()" style="box-shadow: none;">
+        <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-4 gap-2">
+            <h1 class="h3 mb-0" style="color: #1f1f1f; font-weight: 400;">Reports & Analytics</h1>
+            <div class="d-flex flex-wrap gap-3 align-items-center justify-content-start justify-content-md-end flex-grow-1">
+                
+                <form action="<?= BASE_URL ?>/reports" method="GET" class="m-0">
+                    <div class="google-select-wrap">
+                        <select name="year" class="google-select" onchange="this.form.submit()">
                             <?php foreach ($availableYears as $year): ?>
                                 <option value="<?php echo $year; ?>" <?php echo ($selectedYear == $year) ? 'selected' : ''; ?>>
                                     <?php echo $year; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <span class="material-symbols-outlined">arrow_drop_down</span>
                     </div>
                 </form>
 
-                <div class="d-flex flex-wrap gap-2 page-header-actions">
-                    <a href="<?= BASE_URL ?>/reports/export?type=monthly_comparison&year=<?= $selectedYear ?>" class="btn btn-sm btn-outline-success rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="<?= BASE_URL ?>/reports/export?type=monthly_comparison&year=<?= $selectedYear ?>" class="google-btn google-btn-outline">
                         <span class="material-symbols-outlined" style="font-size: 18px;">download</span> Export CSV
                     </a>
-                    <a href="<?= BASE_URL ?>/reports/daily" class="btn btn-sm btn-primary rounded-pill d-flex align-items-center gap-1 px-3 fw-medium shadow-sm">
+                    <a href="<?= BASE_URL ?>/reports/daily" class="google-btn google-btn-primary">
                         <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span> Daily Activity
                     </a>
                 </div>
@@ -32,47 +187,39 @@ ob_start();
         </div>
 
         <!-- Chart Section -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div class="google-table-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Monthly Sales Overview (<?php echo $selectedYear; ?>)</h5>
-                <span class="badge bg-info bg-opacity-10 text-info">Excludes Voided Sales</span>
+                <span class="google-pill google-pill-info">Excludes Voided</span>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <canvas id="salesChart" width="400" height="150"></canvas>
             </div>
         </div>
 
         <!-- Advanced KPIs Row -->
         <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card shadow-sm border-start border-primary border-4 h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-muted mb-1 text-uppercase small fw-bold">Customer Retention Rate</h6>
-                                <h3 class="mb-0 fw-bold"><?= number_format($retentionRate, 1) ?>%</h3>
-                                <p class="text-muted small mb-0 mt-2">Percentage of customers with >1 purchase.</p>
-                            </div>
-                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
-                                <span class="material-symbols-outlined fs-1">group_add</span>
-                            </div>
-                        </div>
+            <div class="col-md-6 mb-3 mb-md-0">
+                <div class="google-stat-card border-start border-4" style="border-color: #0b57d0 !important;">
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small" style="letter-spacing: 0.5px; font-weight: 500;">Customer Retention Rate</h6>
+                        <h3 class="mb-0 fw-normal" style="color: #1f1f1f; font-size: 28px;"><?= number_format($retentionRate, 1) ?>%</h3>
+                        <p class="text-muted small mb-0 mt-2">Percentage of customers with >1 purchase.</p>
+                    </div>
+                    <div class="google-stat-icon" style="background-color: #e8f0fe; color: #0b57d0;">
+                        <span class="material-symbols-outlined">group_add</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card shadow-sm border-start border-success border-4 h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-muted mb-1 text-uppercase small fw-bold">Inventory Turnover Ratio</h6>
-                                <h3 class="mb-0 fw-bold"><?= number_format($inventoryTurnover, 2) ?>x</h3>
-                                <p class="text-muted small mb-0 mt-2">Frequency of inventory stock replacement.</p>
-                            </div>
-                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
-                                <span class="material-symbols-outlined fs-1">inventory_2</span>
-                            </div>
-                        </div>
+                <div class="google-stat-card border-start border-4" style="border-color: #188038 !important;">
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small" style="letter-spacing: 0.5px; font-weight: 500;">Inventory Turnover Ratio</h6>
+                        <h3 class="mb-0 fw-normal" style="color: #1f1f1f; font-size: 28px;"><?= number_format($inventoryTurnover, 2) ?>x</h3>
+                        <p class="text-muted small mb-0 mt-2">Frequency of inventory stock replacement.</p>
+                    </div>
+                    <div class="google-stat-icon" style="background-color: #e6f4ea; color: #188038;">
+                        <span class="material-symbols-outlined">inventory_2</span>
                     </div>
                 </div>
             </div>
@@ -80,16 +227,16 @@ ob_start();
 
         <!-- Top Selling Items Row -->
         <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-white">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <div class="google-table-card h-100 mb-0">
+                    <div class="card-header">
                         <h5 class="mb-0">Top 5 Items (By Volume)</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle">
+                            <table class="table table-borderless align-middle mb-0">
                                 <thead>
-                                    <tr class="text-muted">
+                                    <tr>
                                         <th>Item</th>
                                         <th class="text-center">Qty Sold</th>
                                         <th class="text-end">Revenue</th>
@@ -99,11 +246,11 @@ ob_start();
                                     <?php foreach ($topSellingItems as $top): ?>
                                     <tr>
                                         <td>
-                                            <div class="fw-bold"><?= e($top['name']) ?></div>
+                                            <div style="font-weight: 500; color: #1f1f1f;"><?= e($top['name']) ?></div>
                                             <small class="text-muted"><?= e($top['sku']) ?></small>
                                         </td>
-                                        <td class="text-center"><span class="badge bg-info bg-opacity-10 text-info"><?= number_format($top['total_qty']) ?></span></td>
-                                        <td class="text-end fw-bold">₵<?= number_format($top['total_revenue'], 2) ?></td>
+                                        <td class="text-center"><span class="google-pill google-pill-info"><?= number_format($top['total_qty']) ?></span></td>
+                                        <td class="text-end fw-medium" style="color: #1f1f1f;">₵<?= format_large_number($top['total_revenue']) ?></td>
                                     </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -113,15 +260,15 @@ ob_start();
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-white">
+                <div class="google-table-card h-100 mb-0">
+                    <div class="card-header">
                         <h5 class="mb-0">Top 5 Items (By Revenue)</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle">
+                            <table class="table table-borderless align-middle mb-0">
                                 <thead>
-                                    <tr class="text-muted">
+                                    <tr>
                                         <th>Item</th>
                                         <th class="text-end">Total Revenue</th>
                                     </tr>
@@ -130,10 +277,10 @@ ob_start();
                                     <?php foreach ($topRevenueItems as $top): ?>
                                     <tr>
                                         <td>
-                                            <div class="fw-bold"><?= e($top['name']) ?></div>
+                                            <div style="font-weight: 500; color: #1f1f1f;"><?= e($top['name']) ?></div>
                                             <small class="text-muted"><?= e($top['sku']) ?></small>
                                         </td>
-                                        <td class="text-end fw-bold text-success">₵<?= number_format($top['total_revenue'], 2) ?></td>
+                                        <td class="text-end fw-medium" style="color: #188038;">₵<?= format_large_number($top['total_revenue']) ?></td>
                                     </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -145,22 +292,22 @@ ob_start();
         </div>
 
         <!-- Comparison Table -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div class="google-table-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Yearly Comparison (<?php echo $selectedYear; ?> vs <?php echo $lastYear; ?>)</h5>
-                <span class="badge bg-info bg-opacity-10 text-info">Excludes Voided Sales</span>
+                <span class="google-pill google-pill-info">Excludes Voided</span>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
+                    <table class="table table-borderless align-middle mb-0">
+                        <thead>
                             <tr>
                                 <th>Month</th>
-                                <th class="text-end text-muted"><?php echo $lastYear; ?> Sales</th>
+                                <th class="text-end"><?php echo $lastYear; ?> Sales</th>
                                 <th class="text-end"><?php echo $selectedYear; ?> Sales</th>
                                 <th class="text-end">Gross Profit</th>
-                                <th class="text-end text-danger">Expenses</th>
-                                <th class="text-end text-success">Net Profit</th>
+                                <th class="text-end">Expenses</th>
+                                <th class="text-end">Net Profit</th>
                                 <th class="text-end">Difference</th>
                                 <th class="text-end">Growth / Margin</th>
                             </tr>
@@ -169,24 +316,24 @@ ob_start();
                             <?php foreach ($comparisonData as $monthNum => $data): 
                                 $isCurrentMonth = ($selectedYear == date('Y') && $monthNum == date('n'));
                             ?>
-                            <tr class="<?= $isCurrentMonth ? 'table-info fw-bold' : '' ?>">
-                                <td><?= $data['month_name'] ?></td>
-                                <td class="text-end text-muted">₵<?= number_format($data['last_year'], 2) ?></td>
-                                <td class="text-end fw-bold">₵<?= number_format($data['current_year'], 2) ?></td>
-                                <td class="text-end">₵<?= number_format($data['current_profit'], 2) ?></td>
-                                <td class="text-end text-danger">₵<?= number_format($data['current_expenses'], 2) ?></td>
-                                <td class="text-end text-success fw-bold">₵<?= number_format($data['final_profit'], 2) ?></td>
+                            <tr style="<?= $isCurrentMonth ? 'background-color: #f4f7fe;' : '' ?>">
+                                <td style="<?= $isCurrentMonth ? 'font-weight: 500;' : '' ?>"><?= $data['month_name'] ?></td>
+                                <td class="text-end text-muted">₵<?= format_large_number($data['last_year']) ?></td>
+                                <td class="text-end" style="color: #1f1f1f; font-weight: 500;">₵<?= format_large_number($data['current_year']) ?></td>
+                                <td class="text-end text-muted">₵<?= format_large_number($data['current_profit']) ?></td>
+                                <td class="text-end" style="color: #d93025;">₵<?= format_large_number($data['current_expenses']) ?></td>
+                                <td class="text-end" style="color: #188038; font-weight: 500;">₵<?= format_large_number($data['final_profit']) ?></td>
                                 
                                 <?php if ($data['difference'] > 0): ?>
-                                    <td class="text-end text-success">+₵<?= number_format($data['difference'], 2) ?></td>
-                                    <td class="text-end text-success">
-                                        <div class="small"><span class="material-symbols-outlined align-middle fs-6">trending_up</span> <?= number_format($data['growth'], 1) ?>% Growth</div>
+                                    <td class="text-end" style="color: #188038;">+₵<?= format_large_number($data['difference']) ?></td>
+                                    <td class="text-end">
+                                        <div class="small" style="color: #188038;"><span class="material-symbols-outlined align-middle" style="font-size: 16px;">trending_up</span> <?= number_format($data['growth'], 1) ?>% Growth</div>
                                         <div class="small text-muted"><?= number_format($data['profit_margin'], 1) ?>% Margin</div>
                                     </td>
                                 <?php elseif ($data['difference'] < 0): ?>
-                                    <td class="text-end text-danger">-₵<?= number_format(abs($data['difference']), 2) ?></td>
-                                    <td class="text-end text-danger">
-                                        <div class="small"><span class="material-symbols-outlined align-middle fs-6">trending_down</span> <?= number_format($data['growth'], 1) ?>% Growth</div>
+                                    <td class="text-end" style="color: #d93025;">-₵<?= format_large_number(abs($data['difference'])) ?></td>
+                                    <td class="text-end">
+                                        <div class="small" style="color: #d93025;"><span class="material-symbols-outlined align-middle" style="font-size: 16px;">trending_down</span> <?= number_format($data['growth'], 1) ?>% Growth</div>
                                         <div class="small text-muted"><?= number_format($data['profit_margin'], 1) ?>% Margin</div>
                                     </td>
                                 <?php else: ?>
@@ -198,14 +345,14 @@ ob_start();
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
-                        <tfoot class="table-light fw-bold">
+                        <tfoot>
                             <tr>
-                                <td>Total</td>
-                                <td class="text-end text-muted">₵<?php echo number_format(array_sum(array_column($comparisonData, 'last_year')), 2); ?></td>
-                                <td class="text-end">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_year')), 2); ?></td>
-                                <td class="text-end">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_profit')), 2); ?></td>
-                                <td class="text-end text-danger">₵<?php echo number_format(array_sum(array_column($comparisonData, 'current_expenses')), 2); ?></td>
-                                <td class="text-end text-success">₵<?php echo number_format(array_sum(array_column($comparisonData, 'final_profit')), 2); ?></td>
+                                <td style="font-weight: 500;">Total</td>
+                                <td class="text-end text-muted">₵<?php echo format_large_number(array_sum(array_column($comparisonData, 'last_year'))); ?></td>
+                                <td class="text-end" style="color: #1f1f1f; font-weight: 500;">₵<?php echo format_large_number(array_sum(array_column($comparisonData, 'current_year'))); ?></td>
+                                <td class="text-end text-muted">₵<?php echo format_large_number(array_sum(array_column($comparisonData, 'current_profit'))); ?></td>
+                                <td class="text-end" style="color: #d93025;">₵<?php echo format_large_number(array_sum(array_column($comparisonData, 'current_expenses'))); ?></td>
+                                <td class="text-end" style="color: #188038; font-weight: 500;">₵<?php echo format_large_number(array_sum(array_column($comparisonData, 'final_profit'))); ?></td>
                                 <td></td>
                                 <td></td>
                             </tr>
@@ -216,14 +363,14 @@ ob_start();
         </div>
 
         <!-- Daily Sales (Legacy) -->
-        <div class="card shadow-sm mb-4 collapsed-card"> <!-- Optional: Make this collapsible or just standard -->
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div class="google-table-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Recent Daily Sales Log</h5>
-                <small class="text-muted">Last 30 Days</small>
+                <span class="text-muted" style="font-size: 13px;">Last 30 Days</span>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-sm">
+                    <table class="table table-borderless align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -241,25 +388,28 @@ ob_start();
                                 $netDaily = $report['profit'] - ($report['total_expenditure'] ?? 0);
                             ?>
                             <tr>
-                                <td><?php echo date('M j, Y', strtotime($report['sale_date'])); ?></td>
-                                <td class="text-center"><?php echo $report['count']; ?></td>
-                                <td class="text-end fw-bold">₵<?php echo number_format($report['total'], 2); ?></td>
-                                <td class="text-end fw-bold text-primary">₵<?php echo number_format($report['remaining_inventory_value'] ?? 0, 2); ?></td>
-                                <td class="text-end text-success <?php echo $netDaily < 0 ? 'text-danger' : ''; ?>">
-                                    ₵<?php echo number_format($report['profit'], 2); ?>
+                                <td style="color: #1f1f1f;"><?php echo date('M j, Y', strtotime($report['sale_date'])); ?></td>
+                                <td class="text-center"><span class="google-pill" style="background: #f1f3f4; color: #444746;"><?php echo $report['count']; ?></span></td>
+                                <td class="text-end" style="color: #1f1f1f; font-weight: 500;">₵<?php echo format_large_number($report['total']); ?></td>
+                                <td class="text-end" style="color: #0b57d0; font-weight: 500;">₵<?php echo format_large_number($report['remaining_inventory_value'] ?? 0); ?></td>
+                                <td class="text-end" style="color: <?php echo $netDaily < 0 ? '#d93025' : '#188038'; ?>">
+                                    ₵<?php echo format_large_number($report['profit']); ?>
                                     <?php if ($report['total_expenditure'] > 0): ?>
-                                        <div class="small text-muted" style="font-size: 0.7rem;">Net: ₵<?= number_format($netDaily, 2) ?></div>
+                                        <div class="small text-muted" style="font-size: 12px; margin-top: 2px;">Net: ₵<?= format_large_number($netDaily) ?></div>
                                     <?php endif; ?>
                                 </td>
-                                <td class="text-end text-danger">
+                                <td class="text-end" style="color: #d93025;">
                                     <?php if ($report['total_expenditure'] > 0): ?>
-                                        -₵<?php echo number_format($report['total_expenditure'], 2); ?>
+                                        -₵<?php echo format_large_number($report['total_expenditure']); ?>
                                     <?php else: ?>
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-end">
-                                    <span class="badge <?php echo $margin > 20 ? 'bg-success' : ($margin > 10 ? 'bg-warning' : 'bg-danger'); ?> bg-opacity-10 <?php echo $margin > 20 ? 'text-success' : ($margin > 10 ? 'text-warning' : 'text-danger'); ?>">
+                                    <span class="google-pill" style="<?php 
+                                        echo $margin > 20 ? 'background-color: #e6f4ea; color: #188038;' : 
+                                            ($margin > 10 ? 'background-color: #fef7e0; color: #e37400;' : 'background-color: #fce8e6; color: #d93025;'); 
+                                    ?>">
                                         <?php echo number_format($margin, 1); ?>%
                                     </span>
                                 </td>
@@ -290,9 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Sales Revenue (₵) - <?php echo $selectedYear; ?>',
                 data: monthlyData,
-                backgroundColor: 'rgba(26, 115, 232, 0.7)', // Google Blue
-                borderColor: 'rgba(26, 115, 232, 1)',
-                borderWidth: 1,
+                backgroundColor: '#0b57d0', // Google Blue
                 borderRadius: 4,
                 barPercentage: 0.6
             }]
@@ -320,9 +468,26 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     display: true,
-                    position: 'top'
+                    position: 'top',
+                    labels: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 13
+                        }
+                    }
                 },
                 tooltip: {
+                    backgroundColor: '#1f1f1f',
+                    padding: 12,
+                    titleFont: {
+                        family: "'Inter', sans-serif",
+                        size: 13
+                    },
+                    bodyFont: {
+                        family: "'Inter', sans-serif",
+                        size: 14,
+                        weight: 'bold'
+                    },
                     callbacks: {
                         label: function(context) {
                             let label = context.dataset.label || '';
@@ -338,6 +503,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
+    });
+    
+    // Enable tooltips everywhere (for format_large_number)
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
 </script>

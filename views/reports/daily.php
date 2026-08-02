@@ -189,6 +189,7 @@ $displayDate = date('M j, Y', strtotime($date));
             </div>
         </div>
 
+        <?php if (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1): ?>
         <!-- Standalone Debt Activity -->
         <div class="row g-4 mb-4">
             <div class="col-md-6">
@@ -260,6 +261,7 @@ $displayDate = date('M j, Y', strtotime($date));
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Returns Breakdown -->
         <div class="card shadow-sm border-0 mb-4">

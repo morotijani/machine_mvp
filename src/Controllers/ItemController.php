@@ -104,6 +104,7 @@ class ItemController
                 ]);
 
                 $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
+                $returnUrl .= (strpos($returnUrl, '?') !== false ? '&' : '?') . 'success=' . urlencode('Item successfully added.');
                 header('Location: ' . $returnUrl);
                 exit;
 
@@ -234,6 +235,7 @@ class ItemController
                         ]);
                     }
 
+                    $backUrl .= (strpos($backUrl, '?') !== false ? '&' : '?') . 'success=' . urlencode('Bundle successfully updated.');
                     header('Location: ' . $backUrl);
                     exit;
 
@@ -339,6 +341,7 @@ class ItemController
                 }
 
                 $itemModel->updateParentBundlePrices($id);
+                $backUrl .= (strpos($backUrl, '?') !== false ? '&' : '?') . 'success=' . urlencode('Item successfully updated.');
                 header('Location: ' . $backUrl);
                 exit;
 

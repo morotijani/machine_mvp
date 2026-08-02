@@ -20,47 +20,162 @@ $netContribution = $totalProfit - $totalExpenses;
         .col-md-3 { width: 25%; }
         .col-md-4 { width: 33.333%; }
         .col-md-8 { width: 66.666%; }
-        .card { border: 1px solid #ddd !important; box-shadow: none !important; margin-bottom: 20px !important; }
+        .card, .google-table-card, .google-stat-card { border: 1px solid #ddd !important; box-shadow: none !important; margin-bottom: 20px !important; }
         .bg-primary, .bg-dark, .bg-success, .bg-info { background-color: #fff !important; color: #000 !important; border: 1px solid #000 !important; }
         .text-white, .text-white-50 { color: #000 !important; }
-        .badge { border: 1px solid #000 !important; color: #000 !important; background: #fff !important; }
+        .badge, .google-pill { border: 1px solid #000 !important; color: #000 !important; background: #fff !important; }
     }
     .print-only { display: none; }
+    
+    .google-btn {
+        border-radius: 24px;
+        padding: 8px 24px;
+        font-weight: 500;
+        border: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .google-btn-primary {
+        background-color: #0b57d0;
+        color: #fff;
+    }
+    .google-btn-primary:hover {
+        background-color: #0842a0;
+        color: #fff;
+    }
+    .google-btn-outline {
+        background-color: transparent;
+        color: #0b57d0;
+        border: 1px solid #c7d0dd;
+    }
+    .google-btn-outline:hover {
+        background-color: #f6f8fb;
+    }
+    .google-btn-sm {
+        padding: 6px 16px;
+        font-size: 13px;
+    }
+    
+    .google-table-card {
+        background: #fff;
+        border-radius: 24px;
+        overflow: hidden;
+        border: none;
+        box-shadow: none;
+        margin-bottom: 24px;
+    }
+    .google-table-card .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid #e3e3e3;
+        padding: 24px 32px;
+    }
+    .google-table-card .card-header h5 {
+        color: #1f1f1f;
+        font-weight: 400;
+        margin: 0;
+    }
+    .google-table-card .card-body {
+        padding: 0;
+    }
+    .google-table-card table {
+        margin-bottom: 0;
+        width: 100%;
+    }
+    .google-table-card thead th {
+        border-bottom: 1px solid #e3e3e3;
+        background-color: #fff;
+        color: #5f6368;
+        font-weight: 500;
+        padding: 16px 32px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .google-table-card tbody td {
+        padding: 16px 32px;
+        border-bottom: 1px solid #e3e3e3;
+        color: #1f1f1f;
+        vertical-align: middle;
+    }
+    .google-table-card tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .google-table-card tbody tr {
+        transition: background-color 0.2s;
+    }
+    .google-table-card tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .google-stat-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 24px 32px;
+        border: none;
+        box-shadow: none;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .google-stat-card.small-padding {
+        padding: 24px 24px;
+    }
+    .google-pill {
+        border-radius: 16px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        text-transform: uppercase;
+    }
+    .google-pill-info { background-color: #e8f0fe; color: #0b57d0; }
+    .google-pill-success { background-color: #e6f4ea; color: #188038; }
+    .google-pill-warning { background-color: #fef7e0; color: #e37400; }
+    .google-pill-danger { background-color: #fce8e6; color: #d93025; }
+    .google-pill-light { background-color: #f1f3f4; color: #1f1f1f; }
 </style>
 
 <div class="row justify-content-center">
-    <div class="col-md-11">
+    <div class="col-12 col-xxl-11">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
+        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom pb-4">
             <div class="d-flex align-items-center gap-3">
-                <a href="<?= BASE_URL ?>/admin/staff" class="btn btn-outline-secondary btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                <a href="<?= BASE_URL ?>/admin/staff" class="google-btn google-btn-outline" style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; border: none; background: #f1f3f4;">
                     <span class="material-symbols-outlined">arrow_back</span>
                 </a>
                 <?php 
-                    $roleClass = 'primary';
+                    $roleClass = 'info';
                     $roleLabel = ucfirst($user['role']);
                     switch($user['role']) {
-                        case 'admin': $roleClass = 'danger'; break;
-                        case 'sales': $roleClass = 'primary'; break;
+                        case 'admin': $roleClass = 'light'; break;
+                        case 'sales': $roleClass = 'info'; break;
                         case 'cashier': $roleClass = 'success'; break;
                         case 'sales_cashier': 
-                            $roleClass = 'info'; 
+                            $roleClass = 'warning'; 
                             $roleLabel = 'Sales & Cashier';
                             break;
                     }
                 ?>
                 <?php if ($user['profile_image']): ?>
-                    <img src="<?= BASE_URL ?>/<?= $user['profile_image'] ?>" class="rounded-circle shadow-sm" style="width: 45px; height: 45px; object-fit: cover;">
+                    <img src="<?= BASE_URL ?>/<?= $user['profile_image'] ?>" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
                 <?php else: ?>
-                    <div class="avatar-circle bg-<?= $roleClass ?> text-white d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px; border-radius: 50%;">
+                    <div class="text-white d-flex align-items-center justify-content-center fw-medium" style="width: 48px; height: 48px; border-radius: 50%; background-color: <?= $user['role'] === 'admin' ? '#1f1f1f' : '#0b57d0' ?>;">
                         <?= strtoupper(substr($user['fullname'], 0, 1)) ?>
                     </div>
                 <?php endif; ?>
-                <h1 class="h2 mb-0"><?= e($user['fullname']) ?> <span class="badge bg-<?= $roleClass ?> fs-6 align-middle ms-2"><?= e($roleLabel) ?></span></h1>
+                <h1 class="h3 mb-0 fw-normal" style="color: #1f1f1f;"><?= e($user['fullname']) ?> 
+                    <span class="google-pill google-pill-<?= $roleClass ?> ms-2"><?= e($roleLabel) ?></span>
+                </h1>
             </div>
-            <div class="d-flex align-items-center gap-2 no-print">
-                <button onclick="window.print()" class="btn btn-primary d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined">print</span> Print Report
+            <div class="d-flex align-items-center gap-3 no-print">
+                <button onclick="window.print()" class="google-btn google-btn-primary">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">print</span> Print Report
                 </button>
                 <div class="text-muted small border-start ps-3">
                     Member since <?= date('F d, Y', strtotime($user['created_at'])) ?>
@@ -72,98 +187,98 @@ $netContribution = $totalProfit - $totalExpenses;
         </div>
 
         <!-- Today's Summary -->
-        <div class="mb-4">
-            <h6 class="text-muted text-uppercase small fw-bold mb-3 d-flex align-items-center gap-2">
+        <div class="mb-5">
+            <h6 class="text-muted text-uppercase small mb-3 d-flex align-items-center gap-2" style="letter-spacing: 0.5px; font-weight: 500;">
                 <span class="material-symbols-outlined fs-5">calendar_today</span> Today's Performance
-                <span class="badge bg-danger rounded-pill smaller px-2">LIVE</span>
+                <span class="google-pill google-pill-danger" style="padding: 2px 8px; font-size: 10px;">LIVE</span>
             </h6>
             <!-- Row 1: Volume & Cash Flow -->
-            <div class="row g-2 mb-2">
+            <div class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Sales Count</small>
-                        <h4 class="mb-0 text-dark"><?= number_format($todayStats['count']) ?></h4>
+                    <div class="google-stat-card small-padding">
+                        <small class="text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 500;">Sales Count</small>
+                        <h3 class="mb-0 fw-normal mt-1" style="color: #1f1f1f;"><?= format_large_number($todayStats['count']) ?></h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Revenue</small>
-                        <h4 class="mb-0 text-primary">₵<?= number_format($todayStats['revenue'], 2) ?></h4>
+                    <div class="google-stat-card small-padding border-start border-4" style="border-color: #0b57d0 !important;">
+                        <small class="text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 500;">Revenue</small>
+                        <h3 class="mb-0 fw-normal mt-1" style="color: #0b57d0;">₵<?= format_large_number($todayStats['revenue']) ?></h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">In Hand (New Sales)</small>
-                        <h4 class="mb-0 text-success">₵<?= number_format($todayStats['collected'], 2) ?></h4>
+                    <div class="google-stat-card small-padding border-start border-4" style="border-color: #188038 !important;">
+                        <small class="text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 500;">In Hand (New Sales)</small>
+                        <h3 class="mb-0 fw-normal mt-1" style="color: #188038;">₵<?= format_large_number($todayStats['collected']) ?></h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Debt Recovered</small>
-                        <h4 class="mb-0 text-success">₵<?= number_format($todayStats['debt_collected'], 2) ?></h4>
-                        <div class="mt-1" style="font-size: 0.6rem; color: #999;">From Past Invoices</div>
+                    <div class="google-stat-card small-padding border-start border-4" style="border-color: #188038 !important;">
+                        <small class="text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 500;">Debt Recovered</small>
+                        <h3 class="mb-0 fw-normal mt-1" style="color: #188038;">₵<?= format_large_number($todayStats['debt_collected']) ?></h3>
+                        <div class="mt-2 text-muted" style="font-size: 12px;">From Past Invoices</div>
                     </div>
                 </div>
             </div>
             
             <!-- Row 2: Profitability -->
-            <div class="row g-2">
+            <div class="row g-3">
                 <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Gross Profit</small>
-                        <h4 class="mb-0 text-info">₵<?= number_format($todayStats['profit'], 2) ?></h4>
-                        <div class="mt-1" style="font-size: 0.6rem; color: #999;">Revenue - Cost Price</div>
+                    <div class="google-stat-card small-padding border-start border-4" style="border-color: #1a73e8 !important;">
+                        <small class="text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 500;">Gross Profit</small>
+                        <h3 class="mb-0 fw-normal mt-1" style="color: #1f1f1f;">₵<?= format_large_number($todayStats['profit']) ?></h3>
+                        <div class="mt-2 text-muted" style="font-size: 12px;">Revenue - Cost Price</div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-3 bg-white h-100">
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Expenses</small>
-                        <h4 class="mb-0 text-danger">₵<?= number_format($todayStats['expenses'], 2) ?></h4>
+                    <div class="google-stat-card small-padding border-start border-4" style="border-color: #d93025 !important;">
+                        <small class="text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 500;">Expenses</small>
+                        <h3 class="mb-0 fw-normal mt-1" style="color: #d93025;">₵<?= format_large_number($todayStats['expenses']) ?></h3>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-3 bg-dark text-white h-100">
-                        <small class="text-white-50 text-uppercase fw-bold" style="font-size: 0.65rem;">Net Today</small>
-                        <h4 class="mb-0 <?= $todayStats['net'] < 0 ? 'text-danger' : 'text-info' ?>">₵<?= number_format($todayStats['net'], 2) ?></h4>
-                        <div class="mt-1" style="font-size: 0.6rem; color: #aaa;">Gross Profit - Expenses</div>
+                    <div class="google-stat-card small-padding border-start border-4" style="border-color: #1f1f1f !important;">
+                        <small class="text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 500;">Net Today</small>
+                        <h3 class="mb-0 fw-normal mt-1 <?= $todayStats['net'] < 0 ? 'text-danger' : 'text-success' ?>">₵<?= format_large_number($todayStats['net']) ?></h3>
+                        <div class="mt-2 text-muted" style="font-size: 12px;">Gross Profit - Expenses</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h6 class="text-muted text-uppercase small fw-bold mb-3 d-flex align-items-center gap-2">
+        <h6 class="text-muted text-uppercase small mb-3 d-flex align-items-center gap-2" style="letter-spacing: 0.5px; font-weight: 500;">
             <span class="material-symbols-outlined fs-5">monitoring</span> Account Lifetime stats
         </h6>
         <!-- KPI Cards -->
-        <div class="row mb-4">
+        <div class="row g-3 mb-5">
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-primary text-white p-3">
-                    <h6 class="text-white-50 text-uppercase small fw-bold">Lifetime Revenue</h6>
-                    <h3 class="mb-0">₵<?= number_format($totalRevenue, 2) ?></h3>
-                    <div class="mt-2 small text-white-50">Total Invoices Generated</div>
-                    <div class="small text-white-50" style="font-size: 0.7rem;"><?= $stats['count'] ?> Completed Sales</div>
+                <div class="google-stat-card" style="background-color: #f1f3f4;">
+                    <h6 class="text-muted text-uppercase small" style="letter-spacing: 0.5px; font-weight: 500;">Lifetime Revenue</h6>
+                    <h3 class="mb-0 fw-normal mt-1" style="color: #1f1f1f;">₵<?= format_large_number($totalRevenue) ?></h3>
+                    <div class="mt-2 text-muted" style="font-size: 12px;">Total Invoices Generated</div>
+                    <div class="text-muted mt-1" style="font-size: 12px;"><?= format_large_number($stats['count']) ?> Completed Sales</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-success text-white p-3">
-                    <h6 class="text-white-50 text-uppercase small fw-bold">Actual Collected</h6>
-                    <h3 class="mb-0">₵<?= number_format($totalCollected, 2) ?></h3>
-                    <div class="mt-2 small text-white-50"><?= $totalRevenue > 0 ? number_format(($totalCollected/$totalRevenue)*100, 1) : 0 ?>% Collection Rate</div>
+                <div class="google-stat-card" style="background-color: #e6f4ea;">
+                    <h6 class="text-muted text-uppercase small" style="color: #188038 !important; letter-spacing: 0.5px; font-weight: 500;">Actual Collected</h6>
+                    <h3 class="mb-0 fw-normal mt-1" style="color: #188038;">₵<?= format_large_number($totalCollected) ?></h3>
+                    <div class="mt-2" style="font-size: 12px; color: #188038;"><?= $totalRevenue > 0 ? number_format(($totalCollected/$totalRevenue)*100, 1) : 0 ?>% Collection Rate</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-info text-white p-3">
-                    <h6 class="text-white-50 text-uppercase small fw-bold">Total Gross Profit</h6>
-                    <h3 class="mb-0">₵<?= number_format($totalProfit, 2) ?></h3>
-                    <div class="mt-1 small text-white-50">Revenue - Cost Price</div>
-                    <div class="mt-1 small text-white-50"><?= $totalRevenue > 0 ? number_format(($totalProfit/$totalRevenue)*100, 1) : 0 ?>% Gross Margin</div>
+                <div class="google-stat-card" style="background-color: #e8f0fe;">
+                    <h6 class="text-muted text-uppercase small" style="color: #0b57d0 !important; letter-spacing: 0.5px; font-weight: 500;">Total Gross Profit</h6>
+                    <h3 class="mb-0 fw-normal mt-1" style="color: #0b57d0;">₵<?= format_large_number($totalProfit) ?></h3>
+                    <div class="mt-2" style="font-size: 12px; color: #0b57d0;">Revenue - Cost Price</div>
+                    <div class="mt-1" style="font-size: 12px; color: #0b57d0;"><?= $totalRevenue > 0 ? number_format(($totalProfit/$totalRevenue)*100, 1) : 0 ?>% Gross Margin</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-dark text-white p-3">
-                    <h6 class="text-white-50 text-uppercase small fw-bold">Net Contribution</h6>
-                    <h3 class="mb-0 <?= $netContribution < 0 ? 'text-danger' : 'text-info' ?>">₵<?= number_format($netContribution, 2) ?></h3>
-                    <div class="mt-2 small text-white-50">Profit minus Expenses</div>
+                <div class="google-stat-card" style="background-color: #f1f3f4;">
+                    <h6 class="text-muted text-uppercase small" style="letter-spacing: 0.5px; font-weight: 500;">Net Contribution</h6>
+                    <h3 class="mb-0 fw-normal mt-1" style="color: <?= $netContribution < 0 ? '#d93025' : '#1f1f1f' ?>;">₵<?= format_large_number($netContribution) ?></h3>
+                    <div class="mt-2 text-muted" style="font-size: 12px;">Profit minus Expenses</div>
                 </div>
             </div>
         </div>
@@ -172,45 +287,50 @@ $netContribution = $totalProfit - $totalExpenses;
             <!-- Left Column: Sales and Expenses -->
             <div class="col-lg-8">
                 <!-- Recent Sales -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0 fw-bold"><span class="material-symbols-outlined align-middle me-1">shopping_cart</span> Recent Sales Activity</h6>
+                <div class="google-table-card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-muted">shopping_cart</span> Recent Sales Activity
+                        </h5>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
+                            <table class="table table-borderless align-middle mb-0">
+                                <thead>
                                     <tr>
-                                        <th class="ps-3">Date</th>
+                                        <th>Date</th>
                                         <th>Status</th>
                                         <th class="text-end">Amount</th>
-                                        <th class="text-end pe-3 no-print">Action</th>
+                                        <th class="text-end no-print">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($recentSales as $sale): 
                                         $isToday = date('Y-m-d', strtotime($sale['created_at'])) === date('Y-m-d');
                                     ?>
-                                    <tr class="<?= $isToday ? 'table-warning bg-opacity-10' : '' ?>" <?= $isToday ? 'title="Transaction from Today"' : '' ?>>
-                                        <td class="ps-3">
+                                    <tr style="<?= $isToday ? 'background-color: #fef7e0;' : '' ?>">
+                                        <td style="color: #1f1f1f;">
                                             <?= date('M j, Y H:i', strtotime($sale['created_at'])) ?>
                                             <?php if ($isToday): ?>
-                                                <span class="badge bg-danger rounded-pill ms-1" style="font-size: 0.6rem;">TODAY</span>
+                                                <span class="google-pill google-pill-warning ms-2" style="font-size: 10px; padding: 2px 6px;">TODAY</span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <span class="badge rounded-pill bg-<?= $sale['payment_status'] === 'paid' ? 'success' : ($sale['payment_status'] === 'partial' ? 'warning' : 'danger') ?> bg-opacity-10 text-<?= $sale['payment_status'] === 'paid' ? 'success' : ($sale['payment_status'] === 'partial' ? 'warning' : 'danger') ?>">
+                                            <?php 
+                                            $pillClass = $sale['payment_status'] === 'paid' ? 'success' : ($sale['payment_status'] === 'partial' ? 'warning' : 'danger'); 
+                                            ?>
+                                            <span class="google-pill google-pill-<?= $pillClass ?>">
                                                 <?= ucfirst($sale['payment_status']) ?>
                                             </span>
                                         </td>
-                                        <td class="text-end fw-bold">₵<?= number_format($sale['total_amount'], 2) ?></td>
-                                        <td class="text-end pe-3 no-print">
-                                            <a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" class="btn btn-sm btn-outline-secondary">View Invoice</a>
+                                        <td class="text-end fw-medium" style="color: #1f1f1f;">₵<?= format_large_number($sale['total_amount']) ?></td>
+                                        <td class="text-end no-print">
+                                            <a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" class="google-btn google-btn-outline google-btn-sm">View Invoice</a>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
                                     <?php if (empty($recentSales)): ?>
-                                    <tr><td colspan="4" class="text-center py-4 text-muted small">No recent sales found</td></tr>
+                                    <tr><td colspan="4" class="text-center py-5 text-muted">No recent sales found</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -219,19 +339,21 @@ $netContribution = $totalProfit - $totalExpenses;
                 </div>
 
                 <!-- Expenses -->
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="mb-0 fw-bold"><span class="material-symbols-outlined align-middle me-1">payments</span> Recorded Expenses</h6>
+                <div class="google-table-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-muted">payments</span> Recorded Expenses
+                        </h5>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
+                            <table class="table table-borderless align-middle mb-0">
+                                <thead>
                                     <tr>
-                                        <th class="ps-3">Date</th>
+                                        <th>Date</th>
                                         <th>Category</th>
                                         <th>Description</th>
-                                        <th class="text-end pe-3">Amount</th>
+                                        <th class="text-end">Amount</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -241,14 +363,14 @@ $netContribution = $totalProfit - $totalExpenses;
                                     $recentExpenses = $stmt->fetchAll();
                                     foreach ($recentExpenses as $exp): ?>
                                     <tr>
-                                        <td class="ps-3"><?= date('M j, Y', strtotime($exp['date'])) ?></td>
-                                        <td><span class="badge bg-light text-dark border"><?= e($exp['category']) ?></span></td>
-                                        <td class="small"><?= e($exp['description']) ?></td>
-                                        <td class="text-end text-danger fw-bold pe-3">₵<?= number_format($exp['amount'], 2) ?></td>
+                                        <td style="color: #1f1f1f;"><?= date('M j, Y', strtotime($exp['date'])) ?></td>
+                                        <td><span class="google-pill google-pill-light"><?= e($exp['category']) ?></span></td>
+                                        <td class="text-muted"><?= e($exp['description']) ?></td>
+                                        <td class="text-end" style="color: #d93025; font-weight: 500;">₵<?= format_large_number($exp['amount']) ?></td>
                                     </tr>
                                     <?php endforeach; ?>
                                     <?php if (empty($recentExpenses)): ?>
-                                    <tr><td colspan="4" class="text-center py-4 text-muted small">No expenses recorded</td></tr>
+                                    <tr><td colspan="4" class="text-center py-5 text-muted">No expenses recorded</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -259,60 +381,60 @@ $netContribution = $totalProfit - $totalExpenses;
 
             <!-- Right Column: Login History and Info -->
             <div class="col-lg-4">
-                <div class="card shadow-sm border-0 mb-4 no-print">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="mb-0 fw-bold"><span class="material-symbols-outlined align-middle me-1">login</span> Login History</h6>
+                <div class="google-table-card mb-4 no-print">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-muted">login</span> Login History
+                        </h5>
                     </div>
                     <div class="card-body p-0">
-                        <div class="list-group list-group-flush">
+                        <div class="list-group list-group-flush border-0">
                             <?php foreach ($loginHistory as $log): ?>
-                            <div class="list-group-item">
+                            <div class="list-group-item border-bottom py-3" style="border-color: #e3e3e3 !important;">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="small fw-bold"><?= date('M j, Y', strtotime($log['login_at'])) ?></span>
-                                    <span class="text-muted" style="font-size: 0.75rem;"><?= date('H:i', strtotime($log['login_at'])) ?></span>
+                                    <span style="font-weight: 500; color: #1f1f1f; font-size: 14px;"><?= date('M j, Y', strtotime($log['login_at'])) ?></span>
+                                    <span class="text-muted" style="font-size: 13px;"><?= date('H:i', strtotime($log['login_at'])) ?></span>
                                 </div>
-                                <div class="small text-muted mb-1 d-flex align-items-center gap-1">
-                                    <span class="material-symbols-outlined fs-6" style="font-size: 14px;">language</span>
+                                <div class="text-muted mb-1 d-flex align-items-center gap-1" style="font-size: 13px;">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">language</span>
                                     IP: <?= e($log['ip_address']) ?>
                                 </div>
-                                <div class="small text-muted text-truncate" style="font-size: 0.7rem;" title="<?= e($log['user_agent']) ?>">
+                                <div class="text-muted text-truncate" style="font-size: 12px;" title="<?= e($log['user_agent']) ?>">
                                     <?= e(substr($log['user_agent'], 0, 50)) ?>...
                                 </div>
                             </div>
                             <?php endforeach; ?>
                             <?php if (empty($loginHistory)): ?>
-                            <div class="list-group-item text-center py-4 text-muted small">No login history recorded</div>
+                            <div class="list-group-item text-center py-5 text-muted border-0">No login history recorded</div>
                             <?php endif; ?>
                         </div>
                     </div>
-                    <div class="card-footer bg-light border-0 py-2 text-center">
-                        <a href="#" class="small text-decoration-none">View All History</a>
+                    <div class="card-footer bg-white border-top py-3 text-center" style="border-color: #e3e3e3 !important;">
+                        <a href="#" class="text-decoration-none" style="color: #0b57d0; font-weight: 500; font-size: 14px;">View All History</a>
                     </div>
                 </div>
 
-                <div class="card shadow-sm border-0 bg-light no-print">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3 small text-uppercase">Account Security</h6>
-                        <div class="d-grid">
-                            <form action="<?= BASE_URL ?>/users/update-role" method="POST" class="mb-2">
-                                <input type="hidden" name="user_id" value="<?= $uid ?>">
-                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                                <input type="hidden" name="redirect" value="<?= $_SERVER['REQUEST_URI'] ?>">
-                                <div class="input-group input-group-sm">
-                                    <select name="role" class="form-select" <?= $uid == $_SESSION['user_id'] ? 'disabled' : '' ?>>
-                                        <option value="sales" <?= $user['role'] === 'sales' ? 'selected' : '' ?>>Sales Role</option>
-                                        <option value="cashier" <?= $user['role'] === 'cashier' ? 'selected' : '' ?>>Cashier Role</option>
-                                        <option value="sales_cashier" <?= $user['role'] === 'sales_cashier' ? 'selected' : '' ?>>Sales & Cashier</option>
-                                        <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin Role</option>
-                                    </select>
-                                    <button class="btn btn-outline-secondary" type="submit" <?= $uid == $_SESSION['user_id'] ? 'disabled' : '' ?>>Update</button>
-                                </div>
-                                <?php if ($uid == $_SESSION['user_id']): ?>
-                                <small class="text-danger mt-1 d-block" style="font-size: 0.65rem;">You cannot change your own role.</small>
-                                <?php endif; ?>
-                            </form>
-                            <a href="<?= BASE_URL ?>/users/edit?id=<?= $uid ?>" class="btn btn-sm btn-outline-primary">Edit User Profile</a>
-                        </div>
+                <div class="google-stat-card p-4 no-print" style="background-color: #f1f3f4; justify-content: flex-start;">
+                    <h6 class="mb-3 text-uppercase" style="font-weight: 500; letter-spacing: 0.5px; color: #1f1f1f; font-size: 13px;">Account Security</h6>
+                    <div class="d-grid gap-3">
+                        <form action="<?= BASE_URL ?>/users/update-role" method="POST" class="m-0">
+                            <input type="hidden" name="user_id" value="<?= $uid ?>">
+                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                            <input type="hidden" name="redirect" value="<?= $_SERVER['REQUEST_URI'] ?>">
+                            <div class="d-flex gap-2">
+                                <select name="role" class="form-select flex-grow-1" style="border-radius: 20px; font-size: 14px;" <?= $uid == $_SESSION['user_id'] ? 'disabled' : '' ?>>
+                                    <option value="sales" <?= $user['role'] === 'sales' ? 'selected' : '' ?>>Sales Role</option>
+                                    <option value="cashier" <?= $user['role'] === 'cashier' ? 'selected' : '' ?>>Cashier Role</option>
+                                    <option value="sales_cashier" <?= $user['role'] === 'sales_cashier' ? 'selected' : '' ?>>Sales & Cashier</option>
+                                    <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin Role</option>
+                                </select>
+                                <button class="google-btn google-btn-primary google-btn-sm" type="submit" <?= $uid == $_SESSION['user_id'] ? 'disabled' : '' ?>>Update</button>
+                            </div>
+                            <?php if ($uid == $_SESSION['user_id']): ?>
+                            <small class="text-danger mt-2 d-block" style="font-size: 12px;">You cannot change your own role.</small>
+                            <?php endif; ?>
+                        </form>
+                        <a href="<?= BASE_URL ?>/users/edit?id=<?= $uid ?>" class="google-btn google-btn-outline w-100 justify-content-center">Edit User Profile</a>
                     </div>
                 </div>
             </div>

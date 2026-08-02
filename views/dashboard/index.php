@@ -4,329 +4,496 @@ ob_start();
 
 $isAdmin = ($_SESSION['role'] === 'admin');
 ?>
+<style>
+    /* Google Dashboard specific styles */
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+
+    .dashboard-title {
+        font-size: 28px;
+        font-weight: 400;
+        color: #202124;
+        letter-spacing: -0.5px;
+    }
+
+    .widget-card {
+        border-radius: 24px;
+        border: none;
+        padding: 24px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .widget-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .widget-icon-container {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .widget-icon-container .material-symbols-outlined {
+        font-size: 24px;
+    }
+
+    .widget-title {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #444746;
+    }
+
+    .widget-value {
+        font-size: 32px;
+        font-weight: 400;
+        margin-bottom: 4px;
+        letter-spacing: -0.5px;
+        color: #1f1f1f;
+    }
+
+    .widget-subtitle {
+        font-size: 12px;
+        color: #5f6368;
+    }
+
+    /* Standard Google Card */
+    .google-card {
+        background: #fff;
+        border-radius: 24px;
+        border: 1px solid #dadce0;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .google-card-header {
+        font-size: 18px;
+        font-weight: 400;
+        color: #202124;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .google-btn-action {
+        border-radius: 20px;
+        padding: 10px 20px;
+        font-weight: 500;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #dadce0;
+        background: #fff;
+        color: #1a73e8;
+        transition: background-color 0.2s;
+        text-decoration: none;
+    }
+
+    .google-btn-action:hover {
+        background-color: #f8f9fa;
+        color: #174ea6;
+    }
+
+    .table-google {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-google th {
+        font-weight: 500;
+        color: #5f6368;
+        font-size: 13px;
+        padding: 12px 16px;
+        border-bottom: 1px solid #dadce0;
+        text-align: left;
+    }
+
+    .table-google td {
+        padding: 16px;
+        border-bottom: 1px solid #f1f3f4;
+        font-size: 14px;
+        color: #202124;
+        vertical-align: middle;
+    }
+
+    .table-google tr:last-child td {
+        border-bottom: none;
+    }
+
+    .section-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 16px;
+        margin-top: 32px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
 <div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-            <h1 class="h2">Dashboard</h1>
+    <div class="col-lg-11 col-xl-10">
+
+        <!-- Header Section -->
+        <div class="dashboard-header d-flex justify-content-between align-items-end pt-4">
+            <div>
+                <h1 class="dashboard-title">Welcome back, <?= e($_SESSION['username'] ?? 'User') ?></h1>
+                <p class="text-muted mb-0" style="font-size: 14px;">Here's what's happening with your store today.</p>
+            </div>
+            <?php if (!empty($_SESSION['profile_image'])): ?>
+                <img src="<?= BASE_URL ?>/<?= htmlspecialchars($_SESSION['profile_image']) ?>" class="rounded-circle border"
+                    style="width: 56px; height: 56px; object-fit: cover;">
+            <?php else: ?>
+                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                    style="width: 56px; height: 56px; font-weight: 500; font-size: 24px; background-color: #0b57d0; color: white;">
+                    <?= strtoupper(substr($_SESSION['username'] ?? 'U', 0, 1)) ?>
+                </div>
+            <?php endif; ?>
         </div>
 
-        <div class="row mt-4">
-            <!-- DAILY STATS SECTION -->
-            <div class="col-12 mb-2">
-                <h5 class="fw-bold text-muted d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined">today</span> Today's Performance (Actual Collections)
-                </h5>
-            </div>
+        <!-- TODAY'S PERFORMANCE -->
+        <div class="section-label">
+            <span class="material-symbols-outlined" style="font-size: 18px;">today</span>
+            Today's Performance
+        </div>
 
-            <div class="col-md-4 mb-4">
-                <div class="card p-3 h-100 bg-primary-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Cash Collected Today</h6>
-                    <h2 class="text-primary mb-0">₵<?php echo format_large_number($todayNewSalesCollected); ?></h2>
-                    <small class="text-muted">From sales, net of returns & deleted sales</small>
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="widget-card" style="background-color: #e8f0fe;">
+                    <div class="widget-icon-container" style="background-color: #d2e3fc; color: #1967d2;">
+                        <span class="material-symbols-outlined">payments</span>
+                    </div>
+                    <div class="widget-title">Cash Collected Today</div>
+                    <div class="widget-value text-primary">₵<?php echo format_large_number($todayNewSalesCollected); ?>
+                    </div>
+                    <div class="widget-subtitle">From sales, net of returns & deleted sales</div>
                 </div>
             </div>
 
-            <div class="col-md-4 mb-4">
-                <div class="card p-3 h-100 bg-success-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Debt Recovered</h6>
-                    <h2 class="text-success mb-0">₵<?php echo format_large_number($todayDebtCollected); ?></h2>
-                    <small class="text-muted">From past invoices</small>
+            <div class="col-md-4">
+                <div class="widget-card" style="background-color: #e6f4ea;">
+                    <div class="widget-icon-container" style="background-color: #ceead6; color: #137333;">
+                        <span class="material-symbols-outlined">assignment_return</span>
+                    </div>
+                    <div class="widget-title">Debt Recovered</div>
+                    <div class="widget-value text-success">₵<?php echo format_large_number($todayDebtCollected); ?>
+                    </div>
+                    <div class="widget-subtitle">From past invoices</div>
                 </div>
             </div>
 
-            <div class="col-md-4 mb-4">
-                <div class="card p-3 h-100 bg-warning-subtle border-0 shadow-sm">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Total Net Collections</h6>
-                    <h2 class="text-warning-emphasis mb-0">₵<?php echo format_large_number($totalNetCollections); ?></h2>
-                    <small class="text-muted">New + Old - Refunds</small>
+            <div class="col-md-4">
+                <div class="widget-card" style="background-color: #fef7e0;">
+                    <div class="widget-icon-container" style="background-color: #feefc3; color: #e37400;">
+                        <span class="material-symbols-outlined">account_balance_wallet</span>
+                    </div>
+                    <div class="widget-title">Total Net Collections</div>
+                    <div class="widget-value text-warning-emphasis">
+                        ₵<?php echo format_large_number($totalNetCollections); ?></div>
+                    <div class="widget-subtitle">New + Old - Refunds</div>
                 </div>
             </div>
 
             <?php if ($isAdmin): ?>
-                <div class="col-md-6 mb-4">
-                    <div class="card p-3 h-100 bg-info-subtle border-0 shadow-sm">
-                        <h6 class="text-muted text-uppercase small fw-bold mb-2">Realized Gross Profit</h6>
-                        <h2 class="text-info mb-0">₵<?php echo format_large_number($todayRealizedProfit); ?></h2>
-                        <small class="text-muted">Earned from total cash collected above</small>
+                <div class="col-md-6">
+                    <div class="widget-card" style="background-color: #e4f7fb;">
+                        <div class="widget-icon-container" style="background-color: #cbf0f8; color: #007b83;">
+                            <span class="material-symbols-outlined">trending_up</span>
+                        </div>
+                        <div class="widget-title">Realized Gross Profit</div>
+                        <div class="widget-value text-info-emphasis">
+                            ₵<?php echo format_large_number($todayRealizedProfit); ?></div>
+                        <div class="widget-subtitle">Earned from total cash collected above</div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
-                    <div class="card p-3 h-100 bg-dark border-0 shadow-sm text-white">
-                        <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Realized Net Profit</h6>
-                        <h2 class="text-info mb-0">₵<?php echo format_large_number($todayRealizedNetProfit); ?></h2>
-                        <small class="text-white-50" style="font-size: 10px;">Realized GP - Expenditures</small>
+                <div class="col-md-6">
+                    <div class="widget-card" style="background-color: #202124;">
+                        <div class="widget-icon-container" style="background-color: #3c4043; color: #e8eaed;">
+                            <span class="material-symbols-outlined">monitoring</span>
+                        </div>
+                        <div class="widget-title" style="color: #9aa0a6;">Realized Net Profit</div>
+                        <div class="widget-value" style="color: #e8eaed;">
+                            ₵<?php echo format_large_number($todayRealizedNetProfit); ?></div>
+                        <div class="widget-subtitle" style="color: #9aa0a6;">Realized GP - Expenditures</div>
                     </div>
                 </div>
             <?php endif; ?>
+        </div>
 
-            <!-- INVOICED STATS (FOR REFERENCE) -->
-            <div class="col-12 mb-2">
-                <p class="text-muted small mb-1">
-                    <span class="material-symbols-outlined align-middle fs-6">info</span>
-                    <strong>Invoiced Statistics:</strong> Totals based on today's invoices (Invoiced vs Expenses).
+        <!-- INVOICED STATS -->
+        <div class="section-label">
+            <span class="material-symbols-outlined" style="font-size: 18px;">receipt_long</span>
+            Invoiced Statistics
+        </div>
+
+        <div class="google-card" style="padding: 0;">
+            <div
+                style="padding: 16px 24px; background-color: #f8f9fa; border-bottom: 1px solid #dadce0; border-radius: 24px 24px 0 0;">
+                <p class="text-muted small mb-0 d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined fs-6">info</span>
+                    Totals based on today's invoices (Invoiced vs Expenses).
                 </p>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="card p-2 border shadow-sm bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted small fw-bold">Daily Sales (Invoiced)</span>
-                        <span class="fw-bold">₵<?php echo format_large_number($dailySales); ?></span>
+            <div class="row g-0">
+                <div class="col-md-3 border-end">
+                    <div class="p-4 text-center">
+                        <div class="text-muted small fw-medium mb-1">Daily Sales (Invoiced)</div>
+                        <div class="fs-4 fw-normal" style="color: #202124;">
+                            ₵<?php echo format_large_number($dailySales); ?></div>
                     </div>
                 </div>
-            </div>
-            <?php if ($isAdmin): ?>
-                <div class="col-md-3 mb-3">
-                    <div class="card p-2 border shadow-sm bg-white">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small fw-bold">Potential Profit</span>
-                            <span class="fw-bold text-success">₵<?php echo format_large_number($dailyProfit); ?></span>
+                <?php if ($isAdmin): ?>
+                    <div class="col-md-3 border-end">
+                        <div class="p-4 text-center">
+                            <div class="text-muted small fw-medium mb-1">Potential Profit</div>
+                            <div class="fs-4 fw-normal text-success">₵<?php echo format_large_number($dailyProfit); ?></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <div class="col-md-3 <?php echo $isAdmin ? 'border-end' : ''; ?>">
+                    <div class="p-4 text-center">
+                        <div class="text-muted small fw-medium mb-1">Expenditure</div>
+                        <div class="fs-4 fw-normal text-danger">₵<?php echo format_large_number($dailyExpenditures); ?>
                         </div>
                     </div>
                 </div>
-            <?php endif; ?>
-            <div class="col-md-3 mb-3">
-                <div class="card p-2 border shadow-sm bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted small fw-bold">Expenditure</span>
-                        <span class="fw-bold text-danger">₵<?php echo format_large_number($dailyExpenditures); ?></span>
-                    </div>
-                </div>
-            </div>
-            <?php if ($isAdmin): ?>
-                <div class="col-md-3 mb-3">
-                    <div class="card p-2 border shadow-sm bg-white">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small fw-bold">Daily Net Profit</span>
-                            <span class="fw-bold text-danger">₵<?php echo format_large_number($dailyNetProfit); ?></span>
+                <?php if ($isAdmin): ?>
+                    <div class="col-md-3">
+                        <div class="p-4 text-center">
+                            <div class="text-muted small fw-medium mb-1">Daily Net Profit</div>
+                            <div class="fs-4 fw-normal text-danger">₵<?php echo format_large_number($dailyNetProfit); ?>
+                            </div>
                         </div>
                     </div>
-                </div>
-            <?php endif; ?>
-            <!-- Expanded Invoiced Section -->
-            <?php if ($isAdmin): ?>
-                <!-- <div class="col-md-6 mb-4">
-                <div class="card p-2 border-start border-4 border-info shadow-sm bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="text-muted small fw-bold d-block">Daily Net Profit (Invoiced)</span>
-                            <small class="text-muted" style="font-size: 10px;">Formula: Potential Profit - Expenditure</small>
-                        </div>
-                        <h4 class="mb-0 text-info">₵<?php echo number_format($dailyNetProfit, 2); ?></h4>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card p-2 border-start border-4 border-success shadow-sm bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="text-muted small fw-bold d-block">Realized Gross Profit (Collected)</span>
-                            <small class="text-muted" style="font-size: 10px;">Formula: (Collected / Total Sales) * Potential Profit</small>
-                        </div>
-                        <h4 class="mb-0 text-success">₵<?php echo number_format($todayRealizedProfit, 2); ?></h4>
-                    </div>
-                </div>
-            </div> -->
-            <?php endif; ?>
-
-            <!-- LIFETIME & FINANCIAL SECTION -->
-            <div class="col-12 mt-2 mb-3">
-                <h5 class="fw-bold text-muted d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined">account_balance_wallet</span> Lifetime & Financial Summary
-                </h5>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #e3f2fd;">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Total Lifetime Sales</h6>
-                    <h2 class="text-primary mb-0">₵<?php echo format_large_number($lifetimeStats['total']); ?></h2>
-                    <small class="text-muted mt-1">Total Revenue Generated</small>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #e8f5e9;">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Cash Collected</h6>
-                    <h2 class="text-success mb-0">₵<?php echo format_large_number($lifetimeStats['collected']); ?></h2>
-                    <small class="text-muted mt-1">Total payments received</small>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #fff3e0;">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Balance Pending</h6>
-                    <h2 class="text-warning mb-0">
-                        ₵<?php echo format_large_number($lifetimeStats['total'] - $lifetimeStats['collected']); ?></h2>
-                    <small class="text-muted mt-1">Outstanding receivables</small>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 border-0 shadow-sm" style="background-color: #ffebee;">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Total Outstanding Debt</h6>
-                    <h2 class="text-danger mb-0">₵<?php echo format_large_number($totalDebt); ?></h2>
-                    <small class="text-muted mt-1">Sales + Standalone Debt</small>
-                </div>
-            </div>
-
-            <!-- INVENTORY & ADDITIONAL SECTION -->
-            <div class="col-12 mt-2 mb-3">
-                <h5 class="fw-bold text-muted d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined">inventory_2</span> Inventory & Monthly Info
-                </h5>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 border-0 shadow-sm bg-light">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Low Stock Items</h6>
-                    <h2 class="text-dark mb-0"><?php echo $lowStockCount; ?></h2>
-                    <small class="text-muted mt-1">Quantity <= 5</small>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 border-0 shadow-sm bg-light">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Total Sales Count</h6>
-                    <h2 class="text-dark mb-0"><?php echo number_format($lifetimeStats['count']); ?></h2>
-                    <small class="text-muted mt-1">Lifetime Transactions</small>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 h-100 border-0 shadow-sm bg-light text-danger">
-                    <h6 class="text-danger-emphasis text-uppercase small fw-bold mb-2">Monthly Expenditure</h6>
-                    <h2 class="mb-0">₵<?php echo format_large_number($monthlyExpenditures); ?></h2>
-                    <small class="text-muted mt-1"><?php echo date('F'); ?> expenses</small>
-                </div>
-            </div>
-            <?php if ($isAdmin): ?>
-                <div class="col-md-3 mb-4">
-                    <div class="card p-3 h-100 border-0 shadow-sm bg-dark text-white">
-                        <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Inventory Net Worth</h6>
-                        <h3 class="mb-0">₵<?php echo format_large_number($inventoryWorth); ?> <small
-                                class="fs-6 text-white-50">(Retail)</small></h3>
-                        <h5 class="mb-0 text-info">₵<?php echo format_large_number($inventoryCost); ?> <small
-                                class="fs-6 text-info-emphasis">(Cost)</small></h5>
-                    </div>
-                </div>
-            <?php endif; ?>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-header bg-white fw-bold d-flex align-items-center gap-2 border-0 pt-3">
-                        <span class="material-symbols-outlined text-muted">calendar_month</span>
-                        Monthly Overview (<?php echo date('F Y'); ?>)
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                Monthly Sales Count
-                                <span
-                                    class="badge bg-secondary rounded-pill"><?php echo $monthlyStats['count']; ?></span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                Monthly Revenue
-                                <span class="fw-bold">₵<?php echo format_large_number($monthlyStats['total']); ?></span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                Monthly Cash Collected
-                                <span
-                                    class="fw-bold text-success">₵<?php echo format_large_number($monthlyStats['collected']); ?></span>
-                            </li>
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
-                                Monthly Balance Pending
-                                <span
-                                    class="fw-bold text-danger">₵<?php echo format_large_number($monthlyStats['total'] - $monthlyStats['collected']); ?></span>
-                            </li>
-                        </ul>
+        <!-- LIFETIME & FINANCIAL SECTION -->
+        <div class="section-label">
+            <span class="material-symbols-outlined" style="font-size: 18px;">public</span>
+            Lifetime Summary
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="widget-card border" style="background-color: #fff; padding: 20px;">
+                    <div class="widget-title">Total Lifetime Sales</div>
+                    <div class="widget-value fs-3 text-primary">
+                        ₵<?php echo format_large_number($lifetimeStats['total']); ?></div>
+                    <div class="widget-subtitle">Total Revenue Generated</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="widget-card border" style="background-color: #fff; padding: 20px;">
+                    <div class="widget-title">Cash Collected</div>
+                    <div class="widget-value fs-3 text-success">
+                        ₵<?php echo format_large_number($lifetimeStats['collected']); ?></div>
+                    <div class="widget-subtitle">Total payments received</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="widget-card border" style="background-color: #fff; padding: 20px;">
+                    <div class="widget-title">Balance Pending</div>
+                    <div class="widget-value fs-3 text-warning-emphasis">
+                        ₵<?php echo format_large_number($lifetimeStats['total'] - $lifetimeStats['collected']); ?></div>
+                    <div class="widget-subtitle">Outstanding receivables</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="widget-card border" style="background-color: #fff; padding: 20px;">
+                    <div class="widget-title">Total Outstanding Debt</div>
+                    <div class="widget-value fs-3 text-danger">₵<?php echo format_large_number($totalDebt); ?></div>
+                    <div class="widget-subtitle">
+                        <?= (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1) ? 'Sales + Standalone Debt' : 'From unpaid sales invoices' ?>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-header bg-white fw-bold d-flex align-items-center gap-2 border-0 pt-3">
-                        <span class="material-symbols-outlined text-muted">bolt</span>
-                        Quick Actions
+        </div>
+
+        <!-- INVENTORY & ADDITIONAL SECTION -->
+        <div class="section-label">
+            <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span>
+            Inventory & Monthly Info
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="widget-card border" style="background-color: #f8f9fa; padding: 20px;">
+                    <div class="widget-title">Low Stock Items</div>
+                    <div class="widget-value fs-3" style="color: #202124;"><?php echo $lowStockCount; ?></div>
+                    <div class="widget-subtitle">Quantity <= 5</div>
                     </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-3">
+                </div>
+                <div class="col-md-3">
+                    <div class="widget-card border" style="background-color: #f8f9fa; padding: 20px;">
+                        <div class="widget-title">Total Sales Count</div>
+                        <div class="widget-value fs-3" style="color: #202124;">
+                            <?php echo number_format($lifetimeStats['count']); ?></div>
+                        <div class="widget-subtitle">Lifetime Transactions</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="widget-card border" style="background-color: #fcf1f1; padding: 20px;">
+                        <div class="widget-title text-danger">Monthly Expenditure</div>
+                        <div class="widget-value fs-3 text-danger">
+                            ₵<?php echo format_large_number($monthlyExpenditures); ?></div>
+                        <div class="widget-subtitle"><?php echo date('F'); ?> expenses</div>
+                    </div>
+                </div>
+                <?php if ($isAdmin): ?>
+                    <div class="col-md-3">
+                        <div class="widget-card border" style="background-color: #f8f9fa; padding: 20px;">
+                            <div class="widget-title">Inventory Net Worth</div>
+                            <div class="widget-value fs-3 text-success">₵<?php echo format_large_number($inventoryWorth); ?>
+                            </div>
+                            <div class="widget-subtitle text-info">Cost: ₵<?php echo format_large_number($inventoryCost); ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="google-card h-100">
+                        <div class="google-card-header">
+                            <span class="material-symbols-outlined text-primary">calendar_month</span>
+                            Monthly Overview (<?php echo date('F Y'); ?>)
+                        </div>
+                        <table class="table-google mt-2">
+                            <tbody>
+                                <tr>
+                                    <td style="padding-left: 0;">Monthly Sales Count</td>
+                                    <td class="text-end" style="padding-right: 0;"><span
+                                            class="badge rounded-pill bg-light text-dark border"><?php echo $monthlyStats['count']; ?></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 0;">Monthly Revenue</td>
+                                    <td class="text-end fw-medium" style="padding-right: 0; color: #202124;">
+                                        ₵<?php echo format_large_number($monthlyStats['total']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 0;">Monthly Cash Collected</td>
+                                    <td class="text-end fw-medium text-success" style="padding-right: 0;">
+                                        ₵<?php echo format_large_number($monthlyStats['collected']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 0;">Monthly Balance Pending</td>
+                                    <td class="text-end fw-medium text-danger" style="padding-right: 0;">
+                                        ₵<?php echo format_large_number($monthlyStats['total'] - $monthlyStats['collected']); ?>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="google-card h-100">
+                        <div class="google-card-header">
+                            <span class="material-symbols-outlined text-warning">bolt</span>
+                            Quick Actions
+                        </div>
+                        <div class="d-flex flex-wrap gap-3 mt-3">
                             <a href="<?= BASE_URL ?>/sales/create"
-                                class="btn btn-outline-primary btn-lg text-start d-flex align-items-center shadow-sm">
-                                <span class="material-symbols-outlined me-2">shopping_cart_checkout</span> New Sale
+                                class="google-btn-action w-100 justify-content-center py-3">
+                                <span class="material-symbols-outlined">shopping_cart_checkout</span> New Sale
                             </a>
                             <a href="<?= BASE_URL ?>/items/create"
-                                class="btn btn-outline-secondary btn-lg text-start d-flex align-items-center shadow-sm">
-                                <span class="material-symbols-outlined me-2">add_box</span> Add New Item
+                                class="google-btn-action w-100 justify-content-center py-3" style="color: #5f6368;">
+                                <span class="material-symbols-outlined">add_box</span> Add New Item
                             </a>
                             <a href="<?= BASE_URL ?>/customers"
-                                class="btn btn-outline-success btn-lg text-start d-flex align-items-center shadow-sm">
-                                <span class="material-symbols-outlined me-2">person_add</span> Manage Customers
+                                class="google-btn-action w-100 justify-content-center py-3" style="color: #0f9d58;">
+                                <span class="material-symbols-outlined">person_add</span> Manage Customers
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- TODAY'S RETURNS TABLE -->
-        <div class="row mt-4 mb-5">
-            <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div
-                        class="card-header bg-white fw-bold d-flex justify-content-between align-items-center border-0 pt-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="material-symbols-outlined text-danger">assignment_return</span>
-                            Today's Returned Items
-                        </div>
-                        <span
-                            class="badge bg-danger-subtle text-danger rounded-pill"><?php echo count($todayReturnedItemsList); ?>
-                            Items</span>
+            <!-- TODAY'S RETURNS TABLE -->
+            <div class="google-card p-0 mb-5">
+                <div class="d-flex justify-content-between align-items-center"
+                    style="padding: 20px 24px; border-bottom: 1px solid #dadce0;">
+                    <div class="google-card-header mb-0">
+                        <span class="material-symbols-outlined text-danger">assignment_return</span>
+                        Today's Returned Items
                     </div>
-                    <div class="card-body">
-                        <?php if (empty($todayReturnedItemsList)): ?>
-                            <div class="text-center py-4 text-muted">
-                                <span class="material-symbols-outlined fs-1 mb-2 d-block">inventory_2</span>
-                                No items have been returned today.
-                            </div>
-                        <?php else: ?>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
+                    <span class="badge rounded-pill bg-danger-subtle text-danger"
+                        style="font-size: 12px; font-weight: 500; padding: 6px 12px;">
+                        <?php echo count($todayReturnedItemsList); ?> Items
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <?php if (empty($todayReturnedItemsList)): ?>
+                        <div class="text-center py-5 text-muted">
+                            <span class="material-symbols-outlined mb-2"
+                                style="font-size: 48px; color: #dadce0;">inventory_2</span>
+                            <div style="font-size: 14px;">No items have been returned today.</div>
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table-google">
+                                <thead style="background-color: #f8f9fa;">
+                                    <tr>
+                                        <th style="padding-left: 24px;">Time</th>
+                                        <th>Item Name</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-end">Deduction</th>
+                                        <?php if ($isAdmin): ?>
+                                            <th style="padding-right: 24px;">Sales Person</th>
+                                        <?php endif; ?>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($todayReturnedItemsList as $ret): ?>
                                         <tr>
-                                            <th>Time</th>
-                                            <th>Item Name</th>
-                                            <th class="text-center">Qty</th>
-                                            <th class="text-end">Deduction</th>
+                                            <td class="text-muted" style="font-size: 13px; padding-left: 24px;">
+                                                <?php echo $ret['return_time']; ?></td>
+                                            <td class="fw-medium"><?php echo htmlspecialchars($ret['item_name']); ?></td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="badge rounded-pill bg-light text-dark border"><?php echo $ret['quantity']; ?></span>
+                                            </td>
+                                            <td class="text-end fw-medium text-danger">
+                                                ₵<?php echo number_format($ret['deduction'], 2); ?>
+                                            </td>
                                             <?php if ($isAdmin): ?>
-                                                <th>Sales Person</th>
+                                                <td style="padding-right: 24px;">
+                                                    <span
+                                                        class="badge bg-light text-primary border rounded-pill fw-normal"><?php echo htmlspecialchars($ret['salesperson']); ?></span>
+                                                </td>
                                             <?php endif; ?>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($todayReturnedItemsList as $ret): ?>
-                                            <tr>
-                                                <td class="text-muted small"><?php echo $ret['return_time']; ?></td>
-                                                <td class="fw-bold"><?php echo htmlspecialchars($ret['item_name']); ?></td>
-                                                <td class="text-center">
-                                                    <span
-                                                        class="badge bg-light text-dark border"><?php echo $ret['quantity']; ?></span>
-                                                </td>
-                                                <td class="text-end fw-bold text-danger">
-                                                    ₵<?php echo number_format($ret['deduction'], 2); ?></td>
-                                                <?php if ($isAdmin): ?>
-                                                    <td>
-                                                        <span
-                                                            class="badge bg-info-subtle text-info"><?php echo htmlspecialchars($ret['salesperson']); ?></span>
-                                                    </td>
-                                                <?php endif; ?>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
+
         </div>
     </div>
-</div>
-<?php
-$content = ob_get_clean();
-require __DIR__ . '/../layouts/main.php';
-?>
+    <?php
+    $content = ob_get_clean();
+    require __DIR__ . '/../layouts/main.php';
+    ?>

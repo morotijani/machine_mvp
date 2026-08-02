@@ -5,21 +5,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in - <?= e($settings['company_name'] ?? 'Machine MVP') ?></title>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="<?= BASE_URL ?>/manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="apple-touch-icon" href="<?= BASE_URL ?>/assets/icon.svg">
+    
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
     <?php if (!empty($settings['company_logo'])): ?>
         <link rel="icon" type="image/png" href="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>">
     <?php endif; ?>
+
+    <style>
+        .google-btn {
+            background-color: #0b57d0;
+            color: #fff;
+            border-radius: 24px;
+            padding: 10px 24px;
+            font-weight: 500;
+            border: none;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .google-btn:hover {
+            background-color: #0842a0;
+            color: #fff;
+        }
+        .google-alert {
+            border-radius: 12px;
+            border: none;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .google-alert-danger {
+            background-color: #fce8e6;
+            color: #d93025;
+        }
+    </style>
 </head>
 
-<body class="bg-light" style="padding-top: 0px;">
-    <div class="auth-wrapper">
-        <div class="auth-card">
+<body style="padding-top: 0px; background-color: #f0f4f9;">
+    <div class="auth-wrapper" style="background-color: #f0f4f9;">
+        <div class="auth-card" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: none;">
             <div class="text-center mb-4">
                 <?php if (!empty($settings['company_logo'])): ?>
                     <img src="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>" alt="Logo"
-                        style="max-height: 80px; margin-bottom: 15px;">
+                        style="max-height: 80px; margin-bottom: 15px; border-radius: 8px;">
                 <?php else: ?>
                     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 48 48"
                         class="mb-2">
@@ -45,8 +88,9 @@
             </div>
 
             <?php if (isset($error)): ?>
-                <div class="alert alert-danger py-2 mb-3" style="font-size: 14px; border-radius: 4px;">
-                    <?php echo $error; ?>
+                <div class="google-alert google-alert-danger">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">error</span>
+                    <div><?php echo $error; ?></div>
                 </div>
             <?php endif; ?>
 
@@ -63,25 +107,36 @@
                     <label for="passwordInput">Password</label>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="d-flex justify-content-between align-items-center mt-5">
                     <a href="#" class="text-decoration-none text-primary fw-medium"
                         style="font-size: 14px; opacity: 0; pointer-events: none;">Forgot password?</a>
-                    <button type="submit" id="loginSubmitBtn"
-                        class="btn btn-primary rounded-pill px-4 py-2 fw-medium shadow-sm d-flex align-items-center gap-2">
+                    <button type="submit" id="loginSubmitBtn" class="google-btn">
                         Sign In
                     </button>
                 </div>
             </form>
         </div>
     </div>
-    </div>
 
     <script>
-        document.querySelector('form').addEventListener('submit', function () {
+        document.querySelector('form').addEventListener('submit', function() {
             const btn = document.getElementById('loginSubmitBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing in...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span> Signing in...';
         });
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= BASE_URL ?>/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
     </script>
 </body>
 

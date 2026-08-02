@@ -135,7 +135,7 @@ class StaffController {
         $recentSales = $stmt->fetchAll();
 
         // 6. Login History
-        $stmt = $pdo->prepare("SELECT * FROM user_logins WHERE user_id = ? ORDER BY login_at DESC LIMIT 20");
+        $stmt = $pdo->prepare("SELECT * FROM user_logins WHERE user_id = ? ORDER BY login_at DESC LIMIT 10");
         $stmt->execute([$uid]);
         $loginHistory = $stmt->fetchAll();
 
