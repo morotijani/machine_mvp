@@ -77,4 +77,58 @@ class SettingController {
             require __DIR__ . '/../../views/settings/index.php';
         }
     }
+
+    public function cleanLogs() {
+        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $period = $_POST['clean_period'] ?? '';
+            $pdo = Database::getInstance();
+            $dateConstraint = "";
+            $params = [];
+
+            if ($period === 'last_week') {
+                $dateConstraint = "created_at < :date";
+                $params['date'] = date('Y-m-d H:i:s', strtotime('-7 days'));
+            } elseif ($period === 'last_month') {
+                $dateConstraint = "created_at < :date";
+                $params['date'] = date('Y-m-d H:i:s', strtotime('-30 days'));
+            } elseif ($period === 'last_2months') {
+                $dateConstraint = "created_at < :date";
+                $params['date'] = date('Y-m-d H:i:s', strtotime('-60 days'));
+            } elseif ($period === 'all') {
+                $dateConstraint = "1=1";
+            }
+
+            if ($dateConstraint !== "") {
+                try {
+                    $pdo->beginTransaction();
+                    
+                    // Clean item_logs
+                    $stmt1 = $pdo->prepare("DELETE FROM item_logs WHERE $dateConstraint");
+                    $stmt1->execute($params);
+                    $itemLogsDeleted = $stmt1->rowCount();
+                    
+                    // Clean user_logins
+                    $loginDateConstraint = str_replace('created_at', 'login_at', $dateConstraint);
+                    $stmt2 = $pdo->prepare("DELETE FROM user_logins WHERE $loginDateConstraint");
+                    $stmt2->execute($params);
+                    $userLoginsDeleted = $stmt2->rowCount();
+                    
+                    $pdo->commit();
+                    $success = "Successfully deleted $itemLogsDeleted item logs and $userLoginsDeleted user logins.";
+                } catch (\Exception $e) {
+                    $pdo->rollBack();
+                    $error = "Failed to clean logs: " . $e->getMessage();
+                }
+            } else {
+                $error = "Invalid cleaning period selected.";
+            }
+
+            $settingModel = new Setting($pdo);
+            $settings = $settingModel->get();
+            require __DIR__ . '/../../views/settings/index.php';
+        }
+    }
 }

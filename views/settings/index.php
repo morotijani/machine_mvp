@@ -267,13 +267,71 @@ ob_start();
             </div>
             <?php endif; ?>
 
-            <div class="d-flex justify-content-end mb-5">
+            <div class="d-flex justify-content-end mb-4">
                 <button type="submit" class="google-btn">Save Settings</button>
             </div>
         </form>
+        
+        <div class="google-card mt-4 mb-5">
+            <form id="cleanLogsForm" action="<?= BASE_URL ?>/settings/clean-logs" method="POST">
+                <div class="google-row align-items-center" style="background-color: #fff3e0;">
+                    <span class="material-symbols-outlined google-icon text-warning">delete_sweep</span>
+                    <div class="google-content">
+                        <h5 class="mb-0 fw-bold" style="color: #1f1f1f;">Database Maintenance (Logs)</h5>
+                        <div class="text-muted" style="font-size: 13px;">Clean up old system logs (Item Logs, User Logins) to free up database space.</div>
+                    </div>
+                </div>
+                <div class="google-row">
+                    <div class="google-content w-100 d-flex flex-wrap gap-3 align-items-end" style="border-bottom: none;">
+                        <div class="flex-grow-1">
+                            <label class="google-label">Select Timeframe to Delete</label>
+                            <select name="clean_period" class="google-input" required>
+                                <option value="" disabled selected>Choose what to keep...</option>
+                                <option value="last_week">Clean all logs (Keep ONLY the last 7 days)</option>
+                                <option value="last_month">Clean all logs (Keep ONLY the last 30 days)</option>
+                                <option value="last_2months">Clean all logs (Keep ONLY the last 60 days)</option>
+                                <option value="all">Delete ALL Logs entirely</option>
+                            </select>
+                        </div>
+                        <button type="button" class="google-btn" style="background-color: #dc3545; min-width: 150px;" onclick="promptCleanLogs()">Clean Logs Now</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
+<!-- Clean Logs Confirmation Modal -->
+<div class="modal fade" id="cleanLogsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 28px;">
+            <div class="modal-body p-4">
+                <h4 class="mb-3" style="font-size: 24px; color: #1f1f1f; font-weight: 400;">Clean Logs?</h4>
+                <p style="font-size: 14px; color: #444746; line-height: 1.5; margin-bottom: 32px;">Are you sure you want to clean the logs? This action cannot be undone.</p>
+                <div class="d-flex justify-content-end align-items-center gap-2">
+                    <button type="button" class="btn btn-link" data-bs-dismiss="modal" style="color: #0b57d0; font-weight: 500; text-decoration: none; padding: 10px 16px; border-radius: 20px;">Cancel</button>
+                    <button type="button" id="confirmCleanLogsBtn" class="btn" style="background-color: #dc3545; color: #fff; font-weight: 500; border-radius: 20px; padding: 10px 24px; border: none;">Clean Logs</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function promptCleanLogs() {
+        const select = document.querySelector('select[name="clean_period"]');
+        if (!select.value) {
+            alert('Please select a timeframe to delete.');
+            return;
+        }
+        const modal = new bootstrap.Modal(document.getElementById('cleanLogsModal'));
+        modal.show();
+    }
+    
+    document.getElementById('confirmCleanLogsBtn')?.addEventListener('click', function() {
+        document.getElementById('cleanLogsForm').submit();
+    });
+</script>
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/../layouts/main.php';

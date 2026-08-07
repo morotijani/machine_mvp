@@ -139,6 +139,7 @@ $router->post('/profile/update', [$profileController, 'update']);
 $settingController = new \App\Controllers\SettingController();
 $router->get('/settings', [$settingController, 'index']);
 $router->post('/settings/update', [$settingController, 'update']);
+$router->post('/settings/clean-logs', [$settingController, 'cleanLogs']);
 
 // Cloud Sync & Backup UI
 $syncController = new \App\Controllers\SyncController();
