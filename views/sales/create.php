@@ -229,6 +229,8 @@ ob_start();
                             </div>
                         </div>
 
+                        <?php $useBarcode = (!isset($settings['enable_barcode_reader']) || $settings['enable_barcode_reader'] == 1); ?>
+                        <?php if ($useBarcode): ?>
                         <div class="mb-4">
                             <div class="position-relative">
                                 <span class="material-symbols-outlined position-absolute" style="left: 16px; top: 50%; transform: translateY(-50%); color: #0b57d0;">barcode_scanner</span>
@@ -239,6 +241,7 @@ ob_start();
                                 <small class="text-muted" style="font-size: 0.75rem;">Scanner will auto-add item to cart.</small>
                             </div>
                         </div>
+                        <?php endif; ?>
 
                         <div class="mb-4 rounded-3 border" style="max-height: 250px; overflow-y: auto; background: #fff;">
                             <table class="table table-borderless cart-table mb-0 w-100">
@@ -505,8 +508,12 @@ ob_start();
 
     // GLOBAL SEARCH INTEGRATION
     const globalSearch = document.getElementById('globalSearch');
+    const barcodeInput = document.getElementById('barcodeInput');
+
     if (globalSearch) {
-        globalSearch.focus(); // Focus on load
+        if (!barcodeInput) {
+            globalSearch.focus(); // Focus on load if barcode disabled
+        }
         globalSearch.addEventListener('input', function (e) {
             const term = e.target.value.toLowerCase();
             const rows = document.querySelectorAll('.item-row');
@@ -524,8 +531,8 @@ ob_start();
     }
 
     // Barcode Scanner Logic
-    const barcodeInput = document.getElementById('barcodeInput');
     if (barcodeInput) {
+        barcodeInput.focus(); // Focus barcode on load
         barcodeInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 const sku = e.target.value.trim();
@@ -538,8 +545,15 @@ ob_start();
 
         // Auto-focus barcode input when clicking anywhere outside of other inputs
         document.addEventListener('click', function (e) {
-            if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A'].includes(e.target.tagName)) {
+            if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A', 'LABEL'].includes(e.target.tagName)) {
                 barcodeInput.focus();
+            }
+        });
+    } else if (globalSearch) {
+        // Auto-focus search input when clicking anywhere outside if barcode disabled
+        document.addEventListener('click', function (e) {
+            if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A', 'LABEL'].includes(e.target.tagName)) {
+                globalSearch.focus();
             }
         });
     }

@@ -110,11 +110,17 @@ class ReportController
         $stmtVoidedToday->execute(array_merge(['today' => $today], $params));
         $voidedRefundsToday = $stmtVoidedToday->fetchColumn() ?: 0;
 
+        // 6. Expenditures (Daily & Monthly) - Fetched early for Net Collections
+        $expModel = new \App\Models\Expenditure($pdo);
+        $userIdExp = $isAdmin ? null : $uid;
+        $dailyExpenditures = $expModel->getDailyTotal($today, $userIdExp);
+        $monthlyExpenditures = $expModel->getMonthlyTotal($month, $year, $userIdExp);
+
         // Net Cash from New Sales = Gross Payments for Today's Sales - ALL Returns Today - ALL Voided Refunds Today
         $todayNewSalesCollected = $todayNewSalesGross - $totalReturnsToday - $voidedRefundsToday;
 
-        // Total Net Collections = All payments today - all returns today - all voided refunds today
-        $totalNetCollections = $totalPaymentsToday - $totalReturnsToday - $voidedRefundsToday;
+        // Total Net Collections = All payments today - all returns today - all voided refunds today - expenditures today
+        $totalNetCollections = $totalPaymentsToday - $totalReturnsToday - $voidedRefundsToday - $dailyExpenditures;
 
         // 2.b Realized Gross Profit (Actual earned profit from collections)
         // Formula: SUM( (payment_amount / sale_total) * sale_potential_profit )
@@ -157,11 +163,6 @@ class ReportController
         $stmt = $pdo->query("SELECT COUNT(*) FROM items WHERE quantity <= 5 AND is_deleted = 0");
         $lowStockCount = $stmt->fetchColumn() ?: 0;
 
-        // 6. Expenditures (Daily & Monthly)
-        $expModel = new \App\Models\Expenditure($pdo);
-        $userIdExp = $isAdmin ? null : $uid;
-        $dailyExpenditures = $expModel->getDailyTotal($today, $userIdExp);
-        $monthlyExpenditures = $expModel->getMonthlyTotal($month, $year, $userIdExp);
         $dailyNetProfit = $dailyProfit - $dailyExpenditures;
 
         // Realized Net Profit (Actual Cash Profit minus Expenses)
@@ -189,16 +190,47 @@ class ReportController
         $stmt->execute($params);
         $lifetimeStats = $stmt->fetch();
 
-        // 9. Monthly Stats (Current Month)
-        $monthStart = date('Y-m-01 00:00:00');
-        $sqlMonthly = "SELECT 
-            COUNT(id) as count, 
-            SUM(total_amount) as total, 
-            SUM(paid_amount) as collected 
-            FROM sales WHERE created_at >= :start AND voided = 0" . $userFilter;
-        $stmt = $pdo->prepare($sqlMonthly);
-        $stmt->execute(array_merge(['start' => $monthStart], $params));
-        $monthlyStats = $stmt->fetch();
+        // 9. Monthly Stats (This Month & Last Month)
+        $thisMonthStart = date('Y-m-01 00:00:00');
+        $thisMonthEnd = date('Y-m-t 23:59:59');
+        $lastMonthStart = date('Y-m-01 00:00:00', strtotime('last month'));
+        $lastMonthEnd = date('Y-m-t 23:59:59', strtotime('last month'));
+
+        // Helper to get stats for a date range
+        $getMonthlyStats = function($start, $end) use ($pdo, $userFilter, $params, $isLimitedView) {
+            // Sales Stats
+            $sql = "SELECT 
+                COUNT(id) as count, 
+                SUM(total_amount) as total, 
+                SUM(paid_amount) as collected 
+                FROM sales WHERE created_at BETWEEN :start AND :end AND voided = 0" . $userFilter;
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array_merge(['start' => $start, 'end' => $end], $params));
+            $stats = $stmt->fetch();
+
+            // Realized Profit for that month
+            $sqlProfit = "
+                SELECT SUM(
+                    (p.amount / s.total_amount) * 
+                    (SELECT SUM(si.quantity * (si.price_at_sale - i.cost_price)) 
+                     FROM sale_items si 
+                     JOIN items i ON si.item_id = i.id 
+                     WHERE si.sale_id = s.id)
+                )
+                FROM payments p
+                JOIN sales s ON p.sale_id = s.id
+                WHERE p.payment_date BETWEEN :start AND :end AND s.voided = 0 AND s.total_amount > 0
+            " . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+            
+            $stmtProfit = $pdo->prepare($sqlProfit);
+            $stmtProfit->execute(array_merge(['start' => $start, 'end' => $end], $params));
+            $stats['profit'] = $stmtProfit->fetchColumn() ?: 0;
+
+            return $stats;
+        };
+
+        $thisMonthStats = $getMonthlyStats($thisMonthStart, $thisMonthEnd);
+        $lastMonthStats = $getMonthlyStats($lastMonthStart, $lastMonthEnd);
 
         // 10. Today's Returns List (Broken down by item)
         $sqlTodayReturns = "

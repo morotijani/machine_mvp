@@ -205,7 +205,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                     <div class="widget-title">Total Net Collections</div>
                     <div class="widget-value text-warning-emphasis">
                         ₵<?php echo format_large_number($totalNetCollections); ?></div>
-                    <div class="widget-subtitle">New + Old - Refunds</div>
+                    <div class="widget-subtitle">New + Old - Refunds - Expenses</div>
                 </div>
             </div>
 
@@ -284,6 +284,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
             </div>
         </div>
 
+        <?php if ($isAdmin): ?>
         <!-- LIFETIME & FINANCIAL SECTION -->
         <div class="section-label">
             <span class="material-symbols-outlined" style="font-size: 18px;">public</span>
@@ -325,6 +326,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- INVENTORY & ADDITIONAL SECTION -->
         <div class="section-label">
@@ -344,7 +346,8 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                     <div class="widget-card border" style="background-color: #f8f9fa; padding: 20px;">
                         <div class="widget-title">Total Sales Count</div>
                         <div class="widget-value fs-3" style="color: #202124;">
-                            <?php echo number_format($lifetimeStats['count']); ?></div>
+                            <?php echo number_format($lifetimeStats['count']); ?>
+                        </div>
                         <div class="widget-subtitle">Lifetime Transactions</div>
                     </div>
                 </div>
@@ -369,65 +372,95 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                 <?php endif; ?>
             </div>
 
+            <?php if ($isAdmin): ?>
             <div class="row g-4 mb-4">
                 <div class="col-md-6">
                     <div class="google-card h-100">
                         <div class="google-card-header">
                             <span class="material-symbols-outlined text-primary">calendar_month</span>
-                            Monthly Overview (<?php echo date('F Y'); ?>)
+                            Monthly Overview (<?php echo date('F Y', strtotime('last month')); ?>)
                         </div>
                         <table class="table-google mt-2">
                             <tbody>
                                 <tr>
                                     <td style="padding-left: 0;">Monthly Sales Count</td>
                                     <td class="text-end" style="padding-right: 0;"><span
-                                            class="badge rounded-pill bg-light text-dark border"><?php echo $monthlyStats['count']; ?></span>
+                                            class="badge rounded-pill bg-light text-dark border"><?php echo $lastMonthStats['count']; ?></span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left: 0;">Monthly Revenue</td>
                                     <td class="text-end fw-medium" style="padding-right: 0; color: #202124;">
-                                        ₵<?php echo format_large_number($monthlyStats['total']); ?></td>
+                                        ₵<?php echo format_large_number($lastMonthStats['total']); ?></td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left: 0;">Monthly Cash Collected</td>
                                     <td class="text-end fw-medium text-success" style="padding-right: 0;">
-                                        ₵<?php echo format_large_number($monthlyStats['collected']); ?></td>
+                                        ₵<?php echo format_large_number($lastMonthStats['collected']); ?></td>
                                 </tr>
                                 <tr>
                                     <td style="padding-left: 0;">Monthly Balance Pending</td>
                                     <td class="text-end fw-medium text-danger" style="padding-right: 0;">
-                                        ₵<?php echo format_large_number($monthlyStats['total'] - $monthlyStats['collected']); ?>
+                                        ₵<?php echo format_large_number($lastMonthStats['total'] - $lastMonthStats['collected']); ?>
                                     </td>
                                 </tr>
+                                <?php if ($isAdmin): ?>
+                                <tr>
+                                    <td style="padding-left: 0; color: #174ea6;">Profit from Cash Collected</td>
+                                    <td class="text-end fw-bold" style="padding-right: 0; color: #174ea6;">
+                                        ₵<?php echo format_large_number($lastMonthStats['profit']); ?>
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="col-md-6">
-                    <div class="google-card h-100">
-                        <div class="google-card-header">
-                            <span class="material-symbols-outlined text-warning">bolt</span>
-                            Quick Actions
+                    <div class="google-card h-100" style="background-color: #f8fafd; border: 1px solid #d2e3fc;">
+                        <div class="google-card-header" style="color: #174ea6;">
+                            <span class="material-symbols-outlined" style="color: #1967d2;">calendar_month</span>
+                            Monthly Overview (<?php echo date('F Y'); ?>)
                         </div>
-                        <div class="d-flex flex-wrap gap-3 mt-3">
-                            <a href="<?= BASE_URL ?>/sales/create"
-                                class="google-btn-action w-100 justify-content-center py-3">
-                                <span class="material-symbols-outlined">shopping_cart_checkout</span> New Sale
-                            </a>
-                            <a href="<?= BASE_URL ?>/items/create"
-                                class="google-btn-action w-100 justify-content-center py-3" style="color: #5f6368;">
-                                <span class="material-symbols-outlined">add_box</span> Add New Item
-                            </a>
-                            <a href="<?= BASE_URL ?>/customers"
-                                class="google-btn-action w-100 justify-content-center py-3" style="color: #0f9d58;">
-                                <span class="material-symbols-outlined">person_add</span> Manage Customers
-                            </a>
-                        </div>
+                        <table class="table-google mt-2">
+                            <tbody>
+                                <tr>
+                                    <td style="padding-left: 0; border-color: #e8f0fe;">Monthly Sales Count</td>
+                                    <td class="text-end" style="padding-right: 0; border-color: #e8f0fe;"><span
+                                            class="badge rounded-pill bg-white text-dark border"><?php echo $thisMonthStats['count']; ?></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 0; border-color: #e8f0fe;">Monthly Revenue</td>
+                                    <td class="text-end fw-medium" style="padding-right: 0; color: #202124; border-color: #e8f0fe;">
+                                        ₵<?php echo format_large_number($thisMonthStats['total']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 0; border-color: #e8f0fe;">Monthly Cash Collected</td>
+                                    <td class="text-end fw-medium text-success" style="padding-right: 0; border-color: #e8f0fe;">
+                                        ₵<?php echo format_large_number($thisMonthStats['collected']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 0; border-color: #e8f0fe;">Monthly Balance Pending</td>
+                                    <td class="text-end fw-medium text-danger" style="padding-right: 0; border-color: #e8f0fe;">
+                                        ₵<?php echo format_large_number($thisMonthStats['total'] - $thisMonthStats['collected']); ?>
+                                    </td>
+                                </tr>
+                                <?php if ($isAdmin): ?>
+                                <tr>
+                                    <td style="padding-left: 0; color: #174ea6; border-color: transparent;">Profit from Cash Collected</td>
+                                    <td class="text-end fw-bold" style="padding-right: 0; color: #174ea6; border-color: transparent;">
+                                        ₵<?php echo format_large_number($thisMonthStats['profit']); ?>
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- TODAY'S RETURNS TABLE -->
             <div class="google-card p-0 mb-5">
@@ -467,7 +500,8 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                                     <?php foreach ($todayReturnedItemsList as $ret): ?>
                                         <tr>
                                             <td class="text-muted" style="font-size: 13px; padding-left: 24px;">
-                                                <?php echo $ret['return_time']; ?></td>
+                                                <?php echo $ret['return_time']; ?>
+                                            </td>
                                             <td class="fw-medium"><?php echo htmlspecialchars($ret['item_name']); ?></td>
                                             <td class="text-center">
                                                 <span

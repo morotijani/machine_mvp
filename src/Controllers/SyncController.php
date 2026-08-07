@@ -18,6 +18,11 @@ class SyncController {
         $settingModel = new \App\Models\Setting($this->pdo);
         $settings = $settingModel->get();
         
+        if (isset($settings['enable_desktop_setup']) && $settings['enable_desktop_setup'] == 0) {
+            header('Location: ' . BASE_URL . '/dashboard');
+            exit;
+        }
+        
         // Fetch unsynced counts for dashboard
         $unsyncedCounts = [];
         $tablesToCheck = [

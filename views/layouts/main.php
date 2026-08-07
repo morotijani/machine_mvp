@@ -285,12 +285,14 @@ if (!isset($settings)) {
                                 <span class="material-symbols-outlined icon">admin_panel_settings</span> Company Settings
                             </a>
                         </li>
+                        <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/sync') !== false) ? 'active' : ''; ?>"
                                 href="<?= BASE_URL ?>/sync">
                                 <span class="material-symbols-outlined icon">cloud_sync</span> Cloud Sync & Backup
                             </a>
                         </li>
+                        <?php endif; ?>
                     <?php endif; ?>
 
                     <li class="nav-item">
@@ -406,11 +408,16 @@ if (!isset($settings)) {
         }
     </script>
     
-    <!-- Auto-Backup Background System -->
+    <!-- Bootstrap JS Bundle -->
+    <script src="<?= BASE_URL ?>/public/assets/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Background Auto-Sync Service -->
     <script>
         window.APP_BASE_URL = <?= json_encode(BASE_URL) ?>;
     </script>
+    <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
     <script src="<?= BASE_URL ?>/public/assets/js/auto-sync.js"></script>
+    <?php endif; ?>
 </body>
 
 </html>

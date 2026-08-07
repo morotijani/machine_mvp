@@ -30,6 +30,8 @@ class Setting {
                 company_email = :company_email,
                 receipt_type = :receipt_type,
                 enable_debt_module = :enable_debt_module,
+                enable_barcode_reader = :enable_barcode_reader,
+                enable_desktop_setup = :enable_desktop_setup,
                 cloud_url = :cloud_url,
                 sync_api_key = :sync_api_key,
                 sync_status = 0";
@@ -41,6 +43,8 @@ class Setting {
             'company_email' => $data['company_email'],
             'receipt_type' => $data['receipt_type'] ?? 'a4',
             'enable_debt_module' => $data['enable_debt_module'] ?? 1,
+            'enable_barcode_reader' => $data['enable_barcode_reader'] ?? 1,
+            'enable_desktop_setup' => $data['enable_desktop_setup'] ?? 1,
             'cloud_url' => $data['cloud_url'] ?? '',
             'sync_api_key' => $data['sync_api_key'] ?? ''
         ];

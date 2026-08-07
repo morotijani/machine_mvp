@@ -316,7 +316,7 @@ ob_start();
                             <?php foreach ($comparisonData as $monthNum => $data): 
                                 $isCurrentMonth = ($selectedYear == date('Y') && $monthNum == date('n'));
                             ?>
-                            <tr style="<?= $isCurrentMonth ? 'background-color: #f4f7fe;' : '' ?>">
+                            <tr <?= $isCurrentMonth ? 'style="--bs-table-bg: #e8f0fe; background-color: #e8f0fe;"' : '' ?>>
                                 <td style="<?= $isCurrentMonth ? 'font-weight: 500;' : '' ?>"><?= $data['month_name'] ?></td>
                                 <td class="text-end text-muted">₵<?= format_large_number($data['last_year']) ?></td>
                                 <td class="text-end" style="color: #1f1f1f; font-weight: 500;">₵<?= format_large_number($data['current_year']) ?></td>
