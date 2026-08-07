@@ -11,7 +11,7 @@ if (!isset($settings)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($settings['company_name'] ?? ($title ?? 'Machine MVP')) ?></title>
+    <title><?= e($settings['company_name'] ?? ($title ?? 'POS LITE')) ?></title>
     <!-- PWA Manifest -->
     <link rel="manifest" href="<?= BASE_URL ?>/manifest.json">
     <!-- Theme Color for mobile status bar -->
@@ -286,12 +286,12 @@ if (!isset($settings)) {
                             </a>
                         </li>
                         <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
-                        <li class="nav-item">
-                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/sync') !== false) ? 'active' : ''; ?>"
-                                href="<?= BASE_URL ?>/sync">
-                                <span class="material-symbols-outlined icon">cloud_sync</span> Cloud Sync & Backup
-                            </a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/sync') !== false) ? 'active' : ''; ?>"
+                                    href="<?= BASE_URL ?>/sync">
+                                    <span class="material-symbols-outlined icon">cloud_sync</span> Cloud Sync & Backup
+                                </a>
+                            </li>
                         <?php endif; ?>
                     <?php endif; ?>
 
@@ -407,16 +407,16 @@ if (!isset($settings)) {
             });
         }
     </script>
-    
+
     <!-- Bootstrap JS Bundle -->
     <script src="<?= BASE_URL ?>/public/assets/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Background Auto-Sync Service -->
     <script>
         window.APP_BASE_URL = <?= json_encode(BASE_URL) ?>;
     </script>
     <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
-    <script src="<?= BASE_URL ?>/public/assets/js/auto-sync.js"></script>
+        <script src="<?= BASE_URL ?>/public/assets/js/auto-sync.js"></script>
     <?php endif; ?>
 </body>
 

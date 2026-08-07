@@ -289,12 +289,20 @@ class SyncController {
         $updateStmts = [];
         foreach ($columns as $col) {
             if ($col !== 'id') {
-                $updateStmts[] = "`$col` = VALUES(`$col`)";
+                if (\App\Config\Database::getDriver() === 'sqlite') {
+                    $updateStmts[] = "`$col` = excluded.`$col`";
+                } else {
+                    $updateStmts[] = "`$col` = VALUES(`$col`)";
+                }
             }
         }
         $updateSql = implode(', ', $updateStmts);
         
-        $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON DUPLICATE KEY UPDATE $updateSql";
+        if (\App\Config\Database::getDriver() === 'sqlite') {
+            $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON CONFLICT(id) DO UPDATE SET $updateSql";
+        } else {
+            $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON DUPLICATE KEY UPDATE $updateSql";
+        }
         $stmt = $this->pdo->prepare($sql);
         
         foreach ($rows as $row) {

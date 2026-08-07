@@ -88,10 +88,11 @@ class Debtor {
             $stmt->execute(['amt' => $amount, 'did' => $debtorId]);
 
             // 2. Insert a record in debt_repayments with negative amount to track the increase
-            $stmt = $this->pdo->prepare("INSERT INTO debt_repayments (debtor_id, amount, payment_date, recorded_by, notes) VALUES (:did, :amt, NOW(), :uid, :notes)");
+            $stmt = $this->pdo->prepare("INSERT INTO debt_repayments (debtor_id, amount, payment_date, recorded_by, notes) VALUES (:did, :amt, :now, :uid, :notes)");
             $stmt->execute([
                 'did' => $debtorId,
                 'amt' => -$amount, // Negative to indicate debt increase
+                'now' => date('Y-m-d H:i:s'),
                 'uid' => $recordedBy,
                 'notes' => $description
             ]);

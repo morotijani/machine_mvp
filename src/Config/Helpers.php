@@ -9,6 +9,7 @@ if (!function_exists('format_large_number')) {
      * Example: 1,200,000 -> 1.2M
      */
     function format_large_number($number) {
+        $number = (float) $number;
         if ($number >= 1000000) {
             $formatted = number_format($number / 1000000, 2) . 'M';
             $fullNumber = number_format($number, 2);

@@ -67,8 +67,8 @@ $router->get('/manifest.json', function () {
     $settings = $settingModel->get();
 
     $manifest = [
-        "name" => $settings['company_name'] ?? "POS Lite",
-        "short_name" => "POS Lite",
+        "name" => $settings['company_name'] ?? "POS LITE",
+        "short_name" => "POS LITE",
         "start_url" => ".",
         "display" => "standalone",
         "background_color" => "#f8f9fa",
@@ -244,7 +244,10 @@ if (!isset($settingsIndex['enable_debt_module']) || $settingsIndex['enable_debt_
     $router->post('/debtors/delete', [$debtorController, 'delete']);
 } else {
     // Redirect all /debtors routes to dashboard if module is disabled
-    $router->get('/debtors', function() { header('Location: ' . BASE_URL . '/dashboard'); exit; });
+    $router->get('/debtors', function () {
+        header('Location: ' . BASE_URL . '/dashboard');
+        exit;
+    });
 }
 
 

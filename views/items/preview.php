@@ -45,7 +45,7 @@ ob_start();
                     <img src="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>" alt="Company Logo" class="mb-3"
                         style="max-height: 80px; object-fit: contain;">
                 <?php endif; ?>
-                <h3 class="fw-bold mb-1"><?= e($settings['company_name'] ?: 'My Company') ?></h3>
+                <h3 class="fw-bold mb-1"><?= e($settings['company_name'] ?: 'POS LITE') ?></h3>
                 <?php if (!empty($settings['company_address'])): ?>
                     <p class="text-muted mb-1 small"><?= nl2br(e($settings['company_address'])) ?></p>
                 <?php endif; ?>

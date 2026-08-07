@@ -239,7 +239,7 @@ class ReportController
                 ri.quantity, 
                 (ri.quantity * ri.price_at_sale) as deduction,
                 u.username as salesperson,
-                DATE_FORMAT(r.created_at, '%H:%i') as return_time
+                " . (\App\Config\Database::getDriver() === 'sqlite' ? "strftime('%H:%M', r.created_at)" : "DATE_FORMAT(r.created_at, '%H:%i')") . " as return_time
             FROM sale_return_items ri
             JOIN sale_returns r ON ri.return_id = r.id
             JOIN items i ON ri.item_id = i.id
@@ -264,7 +264,8 @@ class ReportController
         $selectedYear = $_GET['year'] ?? date('Y');
 
         // 1. Get Available Years for Filter
-        $stmt = $pdo->query("SELECT DISTINCT YEAR(created_at) as year FROM sales ORDER BY year DESC");
+        $yearSql = \App\Config\Database::year('created_at');
+        $stmt = $pdo->query("SELECT DISTINCT $yearSql as year FROM sales ORDER BY year DESC");
         $availableYears = $stmt->fetchAll(PDO::FETCH_COLUMN);
         if (empty($availableYears))
             $availableYears = [date('Y')];
@@ -273,16 +274,19 @@ class ReportController
         $monthlySales = array_fill(1, 12, 0);
         $monthlyProfits = array_fill(1, 12, 0);
 
+        $monthSql = \App\Config\Database::month('s.created_at');
+        $yearSql = \App\Config\Database::year('s.created_at');
+
         $stmt = $pdo->prepare("
             SELECT 
-                MONTH(s.created_at) as month, 
+                $monthSql as month, 
                 SUM(si.subtotal) as total,
                 SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) as profit
             FROM sales s
             JOIN sale_items si ON s.id = si.sale_id
             JOIN items i ON si.item_id = i.id
-            WHERE YEAR(s.created_at) = :year AND s.voided = 0 AND s.total_amount > 0
-            GROUP BY MONTH(s.created_at)
+            WHERE $yearSql = :year AND s.voided = 0 AND s.total_amount > 0
+            GROUP BY $monthSql
         ");
         $stmt->execute(['year' => $selectedYear]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -312,7 +316,7 @@ class ReportController
             FROM sale_items si 
             JOIN items i ON si.item_id = i.id 
             JOIN sales s ON si.sale_id = s.id
-            WHERE YEAR(s.created_at) = :year AND s.voided = 0
+            WHERE " . \App\Config\Database::year('s.created_at') . " = :year AND s.voided = 0
         ");
         $stmtCOGS->execute(['year' => $selectedYear]);
         $annualCOGS = $stmtCOGS->fetchColumn() ?: 0;
@@ -333,11 +337,13 @@ class ReportController
 
         // 3.a Monthly Expenses for Selected Year
         $monthlyExpenses = array_fill(1, 12, 0);
+        $monthSqlDate = \App\Config\Database::month('date');
+        $yearSqlDate = \App\Config\Database::year('date');
         $stmtExp = $pdo->prepare("
-            SELECT MONTH(date) as month, SUM(amount) as total_expenses
+            SELECT $monthSqlDate as month, SUM(amount) as total_expenses
             FROM expenditures
-            WHERE YEAR(date) = :year
-            GROUP BY MONTH(date)
+            WHERE $yearSqlDate = :year
+            GROUP BY $monthSqlDate
         ");
         $stmtExp->execute(['year' => $selectedYear]);
         $expResults = $stmtExp->fetchAll(PDO::FETCH_ASSOC);
@@ -345,11 +351,13 @@ class ReportController
             $monthlyExpenses[$row['month']] = $row['total_expenses'];
         }
 
+        $monthSql = \App\Config\Database::month('created_at');
+        $yearSql = \App\Config\Database::year('created_at');
         $stmt = $pdo->prepare("
-            SELECT MONTH(created_at) as month, SUM(total_amount) as total 
+            SELECT $monthSql as month, SUM(total_amount) as total 
             FROM sales 
-            WHERE YEAR(created_at) = :lastYear AND voided = 0
-            GROUP BY MONTH(created_at)
+            WHERE $yearSql = :lastYear AND voided = 0
+            GROUP BY $monthSql
         ");
         $stmt->execute(['lastYear' => $lastYear]);
         $lastYearResults = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
@@ -414,7 +422,7 @@ class ReportController
             FROM sale_items si
             JOIN items i ON si.item_id = i.id
             JOIN sales s ON si.sale_id = s.id
-            WHERE s.voided = 0 AND YEAR(s.created_at) = :year
+            WHERE s.voided = 0 AND " . \App\Config\Database::year('s.created_at') . " = :year
             GROUP BY si.item_id
             ORDER BY total_qty DESC
             LIMIT 5
@@ -428,7 +436,7 @@ class ReportController
             FROM sale_items si
             JOIN items i ON si.item_id = i.id
             JOIN sales s ON si.sale_id = s.id
-            WHERE s.voided = 0 AND YEAR(s.created_at) = :year
+            WHERE s.voided = 0 AND " . \App\Config\Database::year('s.created_at') . " = :year
             GROUP BY si.item_id
             ORDER BY total_revenue DESC
             LIMIT 5
@@ -452,19 +460,22 @@ class ReportController
 
         $output = fopen('php://output', 'w');
 
+        $monthSql = \App\Config\Database::month('created_at');
+        $yearSql = \App\Config\Database::year('created_at');
+
         if ($type === 'monthly_comparison') {
             fputcsv($output, ['Month', 'Last Year Sales', 'Current Year Sales', 'Profit', 'Difference', 'Growth %']);
 
             // Logic similar to index() to get data
             $monthlySales = array_fill(1, 12, 0);
-            $stmt = $pdo->prepare("SELECT MONTH(created_at) as month, SUM(total_amount) as total FROM sales WHERE YEAR(created_at) = :year AND voided = 0 GROUP BY MONTH(created_at)");
+            $stmt = $pdo->prepare("SELECT $monthSql as month, SUM(total_amount) as total FROM sales WHERE $yearSql = :year AND voided = 0 GROUP BY $monthSql");
             $stmt->execute(['year' => $year]);
             $results = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
             foreach ($results as $m => $t)
                 $monthlySales[$m] = $t;
 
             $lastYear = $year - 1;
-            $stmt = $pdo->prepare("SELECT MONTH(created_at) as month, SUM(total_amount) as total FROM sales WHERE YEAR(created_at) = :lastYear AND voided = 0 GROUP BY MONTH(created_at)");
+            $stmt = $pdo->prepare("SELECT $monthSql as month, SUM(total_amount) as total FROM sales WHERE $yearSql = :lastYear AND voided = 0 GROUP BY $monthSql");
             $stmt->execute(['lastYear' => $lastYear]);
             $lastYearResults = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 

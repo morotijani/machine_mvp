@@ -4,15 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in - <?= e($settings['company_name'] ?? 'Machine MVP') ?></title>
+    <title>Sign in - <?= e($settings['company_name'] ?? 'POS LITE') ?></title>
     <!-- PWA Manifest -->
     <link rel="manifest" href="<?= BASE_URL ?>/manifest.json">
     <meta name="theme-color" content="#0d6efd">
     <link rel="apple-touch-icon" href="<?= BASE_URL ?>/assets/icon.svg">
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <!-- Material Symbols -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
     <?php if (!empty($settings['company_logo'])): ?>
@@ -34,10 +35,12 @@
             font-size: 14px;
             cursor: pointer;
         }
+
         .google-btn:hover {
             background-color: #0842a0;
             color: #fff;
         }
+
         .google-alert {
             border-radius: 12px;
             border: none;
@@ -49,6 +52,7 @@
             font-size: 14px;
             margin-bottom: 24px;
         }
+
         .google-alert-danger {
             background-color: #fce8e6;
             color: #d93025;
@@ -64,7 +68,7 @@
                     <img src="<?= BASE_URL ?>/<?= e($settings['company_logo']) ?>" alt="Logo"
                         style="max-height: 80px; margin-bottom: 15px; border-radius: 8px;">
                 <?php else: ?>
-                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 48 48"
+                    <!-- <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 48 48"
                         class="mb-2">
                         <g>
                             <path fill="#EA4335"
@@ -81,10 +85,12 @@
                             </path>
                             <path fill="none" d="M0 0h48v48H0z"></path>
                         </g>
-                    </svg>
+                    </svg> -->
+                    <img src="<?= BASE_URL ?>/assets/icon.svg" alt="Logo"
+                        style="max-height: 80px; margin-bottom: 15px; border-radius: 8px;">
                 <?php endif; ?>
                 <h2 class="auth-title">Sign in</h2>
-                <p class="auth-subtitle mb-4">to continue to <?= e($settings['company_name'] ?? 'Machine MVP') ?></p>
+                <p class="auth-subtitle mb-4">to continue to <?= e($settings['company_name'] ?? 'POS LITE') ?></p>
             </div>
 
             <?php if (isset($error)): ?>
@@ -119,7 +125,7 @@
     </div>
 
     <script>
-        document.querySelector('form').addEventListener('submit', function() {
+        document.querySelector('form').addEventListener('submit', function () {
             const btn = document.getElementById('loginSubmitBtn');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 8px;"></span> Signing in...';

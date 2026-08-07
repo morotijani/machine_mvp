@@ -120,7 +120,7 @@ class Expenditure {
     }
 
     public function getMonthlyTotal($month, $year, $userId = null) {
-        $sql = "SELECT SUM(amount) FROM expenditures WHERE MONTH(date) = :m AND YEAR(date) = :y AND is_deleted = 0";
+        $sql = "SELECT SUM(amount) FROM expenditures WHERE " . \App\Config\Database::month('date') . " = :m AND " . \App\Config\Database::year('date') . " = :y AND is_deleted = 0";
         $params = ['m' => $month, 'y' => $year];
         if ($userId) {
             $sql .= " AND recorded_by = :userId";

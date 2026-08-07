@@ -3,26 +3,30 @@ namespace App\Models;
 
 use PDO;
 
-class Setting {
+class Setting
+{
     private $pdo;
 
-    public function __construct($pdo) {
+    public function __construct($pdo)
+    {
         $this->pdo = $pdo;
     }
 
-    public function get() {
+    public function get()
+    {
         $stmt = $this->pdo->query("SELECT * FROM settings LIMIT 1");
         $settings = $stmt->fetch();
         if (!$settings) {
             // Should exist due to migration, but fallback
-            $this->pdo->exec("INSERT INTO settings (company_name) VALUES ('My Company')");
+            $this->pdo->exec("INSERT INTO settings (company_name) VALUES ('POS LITE')");
             $stmt = $this->pdo->query("SELECT * FROM settings LIMIT 1");
             return $stmt->fetch();
         }
         return $settings;
     }
 
-    public function update($data) {
+    public function update($data)
+    {
         $sql = "UPDATE settings SET 
                 company_name = :company_name,
                 company_address = :company_address,
@@ -35,7 +39,7 @@ class Setting {
                 cloud_url = :cloud_url,
                 sync_api_key = :sync_api_key,
                 sync_status = 0";
-        
+
         $params = [
             'company_name' => $data['company_name'],
             'company_address' => $data['company_address'],

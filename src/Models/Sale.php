@@ -228,8 +228,8 @@ class Sale {
         return $sale;
     }
     public function requestDelete($id) {
-        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'pending', delete_requested_at = NOW(), sync_status = 0 WHERE id = :id");
-        return $stmt->execute(['id' => $id]);
+        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'pending', delete_requested_at = :now, sync_status = 0 WHERE id = :id");
+        return $stmt->execute(['id' => $id, 'now' => date('Y-m-d H:i:s')]);
     }
 
     public function approveDelete($id) {
