@@ -69,6 +69,11 @@ ob_start();
                     <strong>Cloud URL:</strong> <?= htmlspecialchars($settings['cloud_url']) ?>
                 </div>
 
+                <div class="mb-4 text-muted small fw-bold d-flex align-items-center justify-content-center gap-2" id="lastAutoSyncContainer">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">history</span>
+                    Last Auto-Sync: <span id="lastAutoSyncTime">Never</span>
+                </div>
+
                 <div>
                     <button class="google-btn mx-auto" id="syncBtn" onclick="startSync()">
                         <span class="material-symbols-outlined">backup</span> Start Manual Backup
@@ -153,6 +158,30 @@ async function startSync() {
         btn.innerHTML = '<span class="material-symbols-outlined">refresh</span> Try Again';
     }
 }
+
+// Auto-Sync UI Updater
+function updateLastAutoSyncTime() {
+    const timeSpan = document.getElementById('lastAutoSyncTime');
+    if (!timeSpan) return;
+
+    const lastSyncStr = localStorage.getItem('last_auto_sync_time');
+    if (!lastSyncStr) {
+        timeSpan.textContent = 'Never';
+        return;
+    }
+
+    const lastSync = parseInt(lastSyncStr, 10);
+    const date = new Date(lastSync);
+    timeSpan.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + date.toLocaleDateString() + ')';
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', updateLastAutoSyncTime);
+
+// Listen for background auto-sync completion
+window.addEventListener('autoSyncCompleted', function(e) {
+    updateLastAutoSyncTime();
+});
 </script>
 
 <?php

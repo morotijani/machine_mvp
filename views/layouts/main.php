@@ -405,6 +405,12 @@ if (!isset($settings)) {
             });
         }
     </script>
+    
+    <!-- Auto-Backup Background System -->
+    <script>
+        window.APP_BASE_URL = <?= json_encode(BASE_URL) ?>;
+    </script>
+    <script src="<?= BASE_URL ?>/public/assets/js/auto-sync.js"></script>
 </body>
 
 </html>
