@@ -228,7 +228,7 @@ class Sale {
         return $sale;
     }
     public function requestDelete($id) {
-        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'pending', delete_requested_at = NOW() WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'pending', delete_requested_at = NOW(), sync_status = 0 WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
@@ -253,12 +253,12 @@ class Sale {
 
             // 2. Restore Stock
             foreach ($items as $item) {
-                $stmtStock = $this->pdo->prepare("UPDATE items SET quantity = quantity + :qty WHERE id = :id");
+                $stmtStock = $this->pdo->prepare("UPDATE items SET quantity = quantity + :qty, sync_status = 0 WHERE id = :id");
                 $stmtStock->execute(['qty' => $item['quantity'], 'id' => $item['item_id']]);
             }
 
             // 3. Mark as Approved and Voided
-            $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'approved', voided = 1, voided_at = CURRENT_TIMESTAMP WHERE id = :id");
+            $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'approved', voided = 1, voided_at = CURRENT_TIMESTAMP, sync_status = 0 WHERE id = :id");
             $stmt->execute(['id' => $id]);
 
             $this->pdo->commit();
@@ -270,7 +270,7 @@ class Sale {
     }
 
     public function rejectDelete($id) {
-        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'rejected' WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE sales SET delete_request_status = 'rejected', sync_status = 0 WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
@@ -287,11 +287,11 @@ class Sale {
             $items = $stmt->fetchAll();
 
             foreach ($items as $item) {
-                $stmtStock = $this->pdo->prepare("UPDATE items SET quantity = quantity - :qty WHERE id = :id");
+                $stmtStock = $this->pdo->prepare("UPDATE items SET quantity = quantity - :qty, sync_status = 0 WHERE id = :id");
                 $stmtStock->execute(['qty' => $item['quantity'], 'id' => $item['item_id']]);
             }
 
-            $stmt = $this->pdo->prepare("UPDATE sales SET voided = 0, delete_request_status = 'none' WHERE id = :id");
+            $stmt = $this->pdo->prepare("UPDATE sales SET voided = 0, delete_request_status = 'none', sync_status = 0 WHERE id = :id");
             $stmt->execute(['id' => $id]);
             
             $this->pdo->commit();
@@ -349,11 +349,11 @@ class Sale {
                 $totalDeduction += $itemDeduction;
 
                 // 2. Update sale_items record
-                $stmt = $this->pdo->prepare("UPDATE sale_items SET quantity = quantity - :qty, subtotal = subtotal - :deduction WHERE id = :id");
+                $stmt = $this->pdo->prepare("UPDATE sale_items SET quantity = quantity - :qty, subtotal = subtotal - :deduction, sync_status = 0 WHERE id = :id");
                 $stmt->execute(['qty' => $qty, 'deduction' => $itemDeduction, 'id' => $originalItem['id']]);
 
                 // 3. Restore stock in items table
-                $stmt = $this->pdo->prepare("UPDATE items SET quantity = quantity + :qty WHERE id = :id");
+                $stmt = $this->pdo->prepare("UPDATE items SET quantity = quantity + :qty, sync_status = 0 WHERE id = :id");
                 $stmt->execute(['qty' => $qty, 'id' => $itemId]);
             }
 
@@ -401,7 +401,7 @@ class Sale {
                 $status = 'partial';
             }
 
-            $stmt = $this->pdo->prepare("UPDATE sales SET total_amount = :total, paid_amount = :paid, payment_status = :status WHERE id = :id");
+            $stmt = $this->pdo->prepare("UPDATE sales SET total_amount = :total, paid_amount = :paid, payment_status = :status, sync_status = 0 WHERE id = :id");
             $stmt->execute(['total' => $newTotal, 'paid' => $newPaid, 'status' => $status, 'id' => $saleId]);
 
             $this->pdo->commit();
@@ -467,7 +467,7 @@ class Sale {
                 ]);
 
                 // Update Sale
-                $stmtUpdate = $this->pdo->prepare("UPDATE sales SET paid_amount = :paid, payment_status = :status WHERE id = :id");
+                $stmtUpdate = $this->pdo->prepare("UPDATE sales SET paid_amount = :paid, payment_status = :status, sync_status = 0 WHERE id = :id");
                 $stmtUpdate->execute([
                     'paid' => $newPaidAmount,
                     'status' => $newStatus,

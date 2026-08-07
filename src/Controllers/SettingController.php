@@ -34,7 +34,9 @@ class SettingController {
                 'company_phone' => $_POST['company_phone'],
                 'company_email' => $_POST['company_email'],
                 'receipt_type' => $_POST['receipt_type'] ?? 'a4',
-                'enable_debt_module' => isset($_POST['enable_debt_module']) ? 1 : 0
+                'enable_debt_module' => isset($_POST['enable_debt_module']) ? 1 : 0,
+                'cloud_url' => rtrim($_POST['cloud_url'] ?? '', '/'),
+                'sync_api_key' => $_POST['sync_api_key'] ?? ''
             ];
 
             // Handle Logo Upload

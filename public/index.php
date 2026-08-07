@@ -140,6 +140,11 @@ $settingController = new \App\Controllers\SettingController();
 $router->get('/settings', [$settingController, 'index']);
 $router->post('/settings/update', [$settingController, 'update']);
 
+// Cloud Sync & Backup UI
+$syncController = new \App\Controllers\SyncController();
+$router->get('/sync', [$syncController, 'index']);
+$router->post('/sync/push', [$syncController, 'pushToCloud']);
+
 // Expenditures (previously incorrectly labeled expenses in routes)
 $expenditureController = new ExpenditureController();
 $router->get('/expenses', [$expenditureController, 'index']);
@@ -244,6 +249,12 @@ if (!isset($settingsIndex['enable_debt_module']) || $settingsIndex['enable_debt_
 
 // API Status
 $router->get('/api/status', [new \App\Controllers\StatusController(), 'check']);
+
+// Cloud Sync Receivers
+$syncController = new \App\Controllers\SyncController();
+$router->post('/api/sync/receive', [$syncController, 'receiveDatabase']);
+$router->post('/api/sync/files', [$syncController, 'receiveFiles']);
+$router->post('/api/sync/cleanupFiles', [$syncController, 'cleanupFiles']);
 
 // Dispatch
 $router->dispatch();

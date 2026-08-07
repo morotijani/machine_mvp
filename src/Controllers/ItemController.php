@@ -273,18 +273,27 @@ class ItemController
                 ];
 
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                    if (!empty($item['image_path'])) {
-                        $old = __DIR__ . '/../../public/' . $item['image_path'];
-                        if (file_exists($old))
-                            unlink($old);
-                    }
                     $uploadDir = __DIR__ . '/../../public/uploads/items/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+                    
                     $filename = uniqid('item_') . '.' . pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                    
                     if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename)) {
                         $data['image_path'] = 'uploads/items/' . $filename;
+                        
+                        // Delete old image only if new one uploaded successfully
+                        if (!empty($item['image_path'])) {
+                            $old = __DIR__ . '/../../public/' . $item['image_path'];
+                            if (file_exists($old)) {
+                                unlink($old);
+                            }
+                        }
+                    } else {
+                        $data['image_path'] = $item['image_path'];
                     }
-                }
-                else {
+                } else {
                     $data['image_path'] = $item['image_path'];
                 }
 

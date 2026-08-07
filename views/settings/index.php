@@ -227,6 +227,32 @@ ob_start();
 
             </div>
 
+            <div class="google-card mt-4">
+                <div class="google-row align-items-center" style="background-color: #f8f9fa;">
+                    <span class="material-symbols-outlined google-icon text-primary">cloud_sync</span>
+                    <div class="google-content">
+                        <h5 class="mb-0 fw-bold" style="color: #1f1f1f;">Cloud Sync & Backup Configuration</h5>
+                        <div class="text-muted" style="font-size: 13px;">Configure your connection to the online dashboard server.</div>
+                    </div>
+                </div>
+                <div class="google-row">
+                    <span class="material-symbols-outlined google-icon">language</span>
+                    <div class="google-content">
+                        <label class="google-label">Cloud Server URL</label>
+                        <input type="url" name="cloud_url" class="google-input" value="<?= e($settings['cloud_url'] ?? '') ?>" placeholder="e.g. https://myhardware.com">
+                        <div class="text-muted mt-1" style="font-size: 12px;">Leave empty if this is the cloud server. Local apps must enter the URL of the cloud server.</div>
+                    </div>
+                </div>
+                <div class="google-row">
+                    <span class="material-symbols-outlined google-icon">vpn_key</span>
+                    <div class="google-content">
+                        <label class="google-label">Sync API Key</label>
+                        <input type="password" name="sync_api_key" class="google-input" value="<?= e($settings['sync_api_key'] ?? '') ?>" placeholder="Enter secret API key">
+                        <div class="text-muted mt-1" style="font-size: 12px;">This key must be identical on both the local system and the cloud server.</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-flex justify-content-end mb-5">
                 <button type="submit" class="google-btn">Save Settings</button>
             </div>
