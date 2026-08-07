@@ -54,8 +54,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    console.log("Auto-Sync: Completed successfully.");
-                    // Update the timestamp on success
+                    console.log("Auto-Sync: Push completed successfully.");
+                    
+                    // Now, silently pull any updates from the cloud!
+                    console.log("Auto-Sync: Starting background pull...");
+                    const pullUrl = (window.APP_BASE_URL || '') + '/sync/pull';
+                    const pullResponse = await fetch(pullUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    if (pullResponse.ok) {
+                        const pullData = await pullResponse.json();
+                        if (pullData.success) {
+                            console.log("Auto-Sync: Pull completed successfully.");
+                        } else {
+                            console.warn("Auto-Sync: Pull failed - ", pullData.message);
+                        }
+                    }
+
+                    // Update the timestamp on success of the whole cycle
                     localStorage.setItem('last_auto_sync_time', Date.now().toString());
                     
                     // Dispatch a custom event so the Dashboard UI can update if it's currently open

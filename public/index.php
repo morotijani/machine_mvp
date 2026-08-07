@@ -144,6 +144,7 @@ $router->post('/settings/update', [$settingController, 'update']);
 $syncController = new \App\Controllers\SyncController();
 $router->get('/sync', [$syncController, 'index']);
 $router->post('/sync/push', [$syncController, 'pushToCloud']);
+$router->post('/sync/pull', [$syncController, 'pullFromCloud']);
 
 // Expenditures (previously incorrectly labeled expenses in routes)
 $expenditureController = new ExpenditureController();
@@ -255,6 +256,8 @@ $syncController = new \App\Controllers\SyncController();
 $router->post('/api/sync/receive', [$syncController, 'receiveDatabase']);
 $router->post('/api/sync/files', [$syncController, 'receiveFiles']);
 $router->post('/api/sync/cleanupFiles', [$syncController, 'cleanupFiles']);
+$router->get('/api/sync/export', [$syncController, 'exportDatabase']);
+$router->post('/api/sync/confirm-pull', [$syncController, 'confirmPull']);
 
 // Dispatch
 $router->dispatch();

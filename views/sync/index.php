@@ -74,9 +74,12 @@ ob_start();
                     Last Auto-Sync: <span id="lastAutoSyncTime">Never</span>
                 </div>
 
-                <div>
-                    <button class="google-btn mx-auto" id="syncBtn" onclick="startSync()">
-                        <span class="material-symbols-outlined">backup</span> Start Manual Backup
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <button class="google-btn" id="syncBtn" onclick="startSync()">
+                        <span class="material-symbols-outlined">backup</span> Push Local Changes
+                    </button>
+                    <button class="google-btn bg-success border-0" id="pullBtn" onclick="startPull()">
+                        <span class="material-symbols-outlined">download</span> Pull Cloud Updates
                     </button>
                 </div>
 
@@ -156,6 +159,77 @@ async function startSync() {
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<span class="material-symbols-outlined">refresh</span> Try Again';
+    }
+}
+
+async function startPull() {
+    const btn = document.getElementById('pullBtn');
+    const pushBtn = document.getElementById('syncBtn');
+    const progressContainer = document.getElementById('syncProgressContainer');
+    const progressBar = document.getElementById('syncProgressBar');
+    const statusText = document.getElementById('syncStatusText');
+    const percentText = document.getElementById('syncPercentage');
+    const icon = document.getElementById('syncIcon');
+    const title = document.getElementById('syncTitle');
+
+    btn.disabled = true;
+    pushBtn.disabled = true;
+    progressContainer.classList.remove('d-none');
+    
+    icon.classList.add('text-primary');
+    icon.classList.remove('text-success', 'text-danger');
+    icon.textContent = 'cloud_download';
+    
+    title.textContent = 'Pulling...';
+    statusText.textContent = 'Connecting to cloud...';
+    statusText.classList.remove('text-danger');
+    progressBar.classList.remove('bg-danger', 'bg-success');
+    progressBar.classList.add('bg-primary', 'progress-bar-animated');
+    progressBar.style.width = '30%';
+    percentText.textContent = '30%';
+
+    try {
+        const response = await fetch('<?= BASE_URL ?>/sync/pull', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            progressBar.style.width = '100%';
+            percentText.textContent = '100%';
+            statusText.textContent = data.message || 'Pull completed successfully!';
+            progressBar.classList.remove('progress-bar-animated');
+            progressBar.classList.add('bg-success');
+            
+            icon.classList.remove('text-primary');
+            icon.classList.add('text-success');
+            icon.textContent = 'check_circle';
+            title.textContent = 'Pull Complete';
+        } else {
+            throw new Error(data.message || 'Unknown error occurred');
+        }
+    } catch (err) {
+        console.error(err);
+        progressBar.style.width = '100%';
+        progressBar.classList.remove('progress-bar-animated');
+        progressBar.classList.replace('bg-primary', 'bg-danger');
+        
+        statusText.textContent = 'Error: ' + err.message;
+        statusText.classList.add('text-danger');
+        percentText.textContent = 'Failed';
+        
+        icon.classList.remove('text-primary');
+        icon.classList.add('text-danger');
+        icon.textContent = 'error';
+        title.textContent = 'Pull Failed';
+    } finally {
+        btn.disabled = false;
+        pushBtn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined">refresh</span> Try Pulling Again';
     }
 }
 
