@@ -256,6 +256,12 @@ class SyncController {
             $this->jsonResponse(false, 'Invalid payload received.', 400);
         }
         
+        $isSqlite = \App\Config\Database::getDriver() === 'sqlite';
+        if ($isSqlite) {
+            $this->pdo->exec('PRAGMA foreign_keys = OFF;');
+        } else {
+            $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 0;');
+        }
         $this->pdo->beginTransaction();
         try {
             // Process tables in order of foreign key constraints
@@ -268,9 +274,13 @@ class SyncController {
             }
             
             $this->pdo->commit();
+            if ($isSqlite) $this->pdo->exec('PRAGMA foreign_keys = ON;');
+            else $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 1;');
             $this->jsonResponse(true, 'Database synced successfully.');
         } catch (\Exception $e) {
             $this->pdo->rollBack();
+            if ($isSqlite) $this->pdo->exec('PRAGMA foreign_keys = ON;');
+            else $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 1;');
             $this->jsonResponse(false, 'Sync failed: ' . $e->getMessage(), 500);
         }
     }
@@ -401,11 +411,16 @@ class SyncController {
         
         $payload = ['tables' => []];
         
+        $isFull = isset($_GET['full']) && $_GET['full'] == '1';
         foreach ($tables as $table) {
             // Check if table exists (for backward compatibility if missing)
             if ($this->pdo->query("SHOW TABLES LIKE '$table'")->rowCount() > 0) {
-                // Fetch all records modified on cloud (sync_status = 0)
-                $stmt = $this->pdo->query("SELECT * FROM `$table` WHERE sync_status = 0");
+                if ($isFull) {
+                    $stmt = $this->pdo->query("SELECT * FROM `$table`");
+                } else {
+                    // Fetch all records modified on cloud (sync_status = 0)
+                    $stmt = $this->pdo->query("SELECT * FROM `$table` WHERE sync_status = 0");
+                }
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 if (count($rows) > 0) {
                     $payload['tables'][$table] = $rows;
@@ -467,8 +482,22 @@ class SyncController {
         $cloudUrl = rtrim($settings['cloud_url'], '/');
         $apiKey = $settings['sync_api_key'];
         
+        // Detect if local database is mostly empty to request a full pull
+        $isLocalEmpty = false;
+        try {
+            $count = $this->pdo->query("SELECT COUNT(*) FROM sales")->fetchColumn();
+            if ($count == 0) {
+                $isLocalEmpty = true;
+            }
+        } catch (\Exception $e) {}
+        
+        $exportUrl = $cloudUrl . '/api/sync/export';
+        if ($isLocalEmpty) {
+            $exportUrl .= '?full=1';
+        }
+        
         // 1. Request Export
-        $ch = curl_init($cloudUrl . '/api/sync/export');
+        $ch = curl_init($exportUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $apiKey,
@@ -505,6 +534,14 @@ class SyncController {
             
             // 2. Process Pulled Data Locally
             $syncedIds = [];
+            
+            $isSqlite = \App\Config\Database::getDriver() === 'sqlite';
+            if ($isSqlite) {
+                $this->pdo->exec('PRAGMA foreign_keys = OFF;');
+            } else {
+                $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 0;');
+            }
+            
             $this->pdo->beginTransaction();
             try {
                 // Same strict foreign key order
@@ -525,6 +562,9 @@ class SyncController {
                 $this->pdo->rollBack();
                 $this->jsonResponse(false, 'Error applying pulled data: ' . $e->getMessage());
             }
+
+            if ($isSqlite) $this->pdo->exec('PRAGMA foreign_keys = ON;');
+            else $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 1;');
             
             // 3. Confirm Pull with Cloud
             if (!empty($syncedIds)) {
