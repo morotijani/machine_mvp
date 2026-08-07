@@ -18,6 +18,32 @@ class SyncController {
         $settingModel = new \App\Models\Setting($this->pdo);
         $settings = $settingModel->get();
         
+        // Fetch unsynced counts for dashboard
+        $unsyncedCounts = [];
+        $tablesToCheck = [
+            'sales' => 'Sales',
+            'items' => 'Items',
+            'customers' => 'Customers',
+            'payments' => 'Payments',
+            'expenditures' => 'Expenditures',
+            'sale_returns' => 'Returns',
+            'debt_repayments' => 'Debt Repayments'
+        ];
+        
+        $totalUnsynced = 0;
+        foreach ($tablesToCheck as $table => $label) {
+            try {
+                $stmt = $this->pdo->query("SELECT COUNT(*) FROM `$table` WHERE sync_status = 0");
+                $count = (int)$stmt->fetchColumn();
+                if ($count > 0) {
+                    $unsyncedCounts[$label] = $count;
+                    $totalUnsynced += $count;
+                }
+            } catch (\Exception $e) {
+                // Table might not exist yet if older DB version
+            }
+        }
+        
         require __DIR__ . '/../../views/sync/index.php';
     }
     

@@ -69,6 +69,27 @@ ob_start();
                     <strong>Cloud URL:</strong> <?= htmlspecialchars($settings['cloud_url']) ?>
                 </div>
 
+                <?php if (isset($totalUnsynced)): ?>
+                    <div class="mb-4">
+                        <?php if ($totalUnsynced > 0): ?>
+                            <div class="text-warning fw-bold mb-2">
+                                <span class="material-symbols-outlined align-middle" style="font-size: 20px;">pending</span>
+                                <?= $totalUnsynced ?> Unsynced Local Records
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                                <?php foreach ($unsyncedCounts as $label => $count): ?>
+                                    <span class="badge bg-light text-dark border"><?= $count ?> <?= $label ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-success fw-bold">
+                                <span class="material-symbols-outlined align-middle" style="font-size: 20px;">check_circle</span>
+                                All local records are synced!
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
                 <div class="mb-4 text-muted small fw-bold d-flex align-items-center justify-content-center gap-2" id="lastAutoSyncContainer">
                     <span class="material-symbols-outlined" style="font-size: 16px;">history</span>
                     Last Auto-Sync: <span id="lastAutoSyncTime">Never</span>
