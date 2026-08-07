@@ -130,8 +130,13 @@ class Customer {
         return $this->pdo->lastInsertId();
     }
     public function update($id, $name, $phone, $address) {
-        $stmt = $this->pdo->prepare("UPDATE customers SET name = :name, phone = :phone, address = :address WHERE id = :id");
-        return $stmt->execute(['name' => $name, 'phone' => $phone, 'address' => $address, 'id' => $id]);
+        $stmt = $this->pdo->prepare("UPDATE customers SET name = :name, phone = :phone, address = :address, sync_status = 0 WHERE id = :id");
+        return $stmt->execute([
+            'id' => $id,
+            'name' => $name,
+            'phone' => $phone,
+            'address' => $address
+        ]);
     }
 
     public function findByPhone($phone, $excludeId = null) {
@@ -149,7 +154,7 @@ class Customer {
     }
 
     public function softDelete($id) {
-        $stmt = $this->pdo->prepare("UPDATE customers SET is_deleted = 1 WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE customers SET is_deleted = 1, sync_status = 0 WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 

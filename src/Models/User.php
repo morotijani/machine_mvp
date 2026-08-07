@@ -43,31 +43,34 @@ class User {
     }
 
     public function delete($id) {
-        $stmt = $this->pdo->prepare("UPDATE users SET is_deleted = 1 WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE users SET is_deleted = 1, sync_status = 0 WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
     public function updatePassword($id, $newPassword) {
         $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-        $stmt = $this->pdo->prepare("UPDATE users SET password = :password WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE users SET password = :password, sync_status = 0 WHERE id = :id");
         return $stmt->execute(['password' => $hash, 'id' => $id]);
     }
     public function updateProfile($id, $fullname, $profileImage) {
-        if ($profileImage) {
-            $stmt = $this->pdo->prepare("UPDATE users SET fullname = :fullname, profile_image = :image WHERE id = :id");
-            return $stmt->execute(['fullname' => $fullname, 'image' => $profileImage, 'id' => $id]);
-        } else {
-            $stmt = $this->pdo->prepare("UPDATE users SET fullname = :fullname WHERE id = :id");
-            return $stmt->execute(['fullname' => $fullname, 'id' => $id]);
+        $sql = "UPDATE users SET fullname = :fullname, sync_status = 0";
+        $params = ['fullname' => $fullname, 'id' => $id];
+        if ($profileImage !== null) {
+            $sql .= ", profile_image = :profile_image";
+            $params['profile_image'] = $profileImage;
         }
+        $sql .= " WHERE id = :id";
+        
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute($params);
     }
     public function updateStatus($id, $status) {
-        $stmt = $this->pdo->prepare("UPDATE users SET is_active = :status WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE users SET is_active = :status, sync_status = 0 WHERE id = :id");
         return $stmt->execute(['status' => $status, 'id' => $id]);
     }
 
     public function updateRole($id, $role) {
-        $stmt = $this->pdo->prepare("UPDATE users SET role = :role WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE users SET role = :role, sync_status = 0 WHERE id = :id");
         return $stmt->execute(['role' => $role, 'id' => $id]);
     }
 

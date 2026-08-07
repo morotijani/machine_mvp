@@ -77,7 +77,7 @@ class Expenditure {
     }
 
     public function update($id, $data) {
-        $stmt = $this->pdo->prepare("UPDATE expenditures SET category = :category, amount = :amount, description = :description, date = :date WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE expenditures SET category = :category, amount = :amount, description = :description, date = :date, sync_status = 0 WHERE id = :id");
         return $stmt->execute([
             'category' => $data['category'],
             'amount' => $data['amount'],
@@ -88,7 +88,7 @@ class Expenditure {
     }
 
     public function delete($id) {
-        $stmt = $this->pdo->prepare("UPDATE expenditures SET is_deleted = 1 WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE expenditures SET is_deleted = 1, sync_status = 0 WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 

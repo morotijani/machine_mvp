@@ -29,8 +29,9 @@ class SaleController {
             'show_voided' => $_GET['show_voided'] ?? 'no'
         ];
 
-        // Restrict non-admins to their own sales
-        if ($_SESSION['role'] !== 'admin') {
+        // Restrict non-admins (like pure 'sales') to their own sales, 
+        // but let cashiers and sales_cashiers see everything to process returns.
+        if (!in_array($_SESSION['role'], ['admin', 'cashier', 'sales_cashier'])) {
             $filters['user_id'] = $_SESSION['user_id'];
         }
 
@@ -138,6 +139,9 @@ class SaleController {
         // Prepare data for the View
         $itemModel = new Item($pdo);
         $customerModel = new Customer($pdo);
+        $settingModel = new \App\Models\Setting($pdo);
+        $settings = $settingModel->get();
+        
         $items = $itemModel->getAll();
         $customers = $customerModel->getAll(null, 0, null, 'name', 'ASC');
         

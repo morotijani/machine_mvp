@@ -86,7 +86,7 @@ class Item {
     }
 
     public function delete($id) {
-        $stmt = $this->pdo->prepare("UPDATE items SET is_deleted = 1 WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE items SET is_deleted = 1, sync_status = 0 WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
@@ -101,11 +101,11 @@ class Item {
     public function update($id, $data) {
         if (array_key_exists('image_path', $data)) {
             $sql = "UPDATE items SET name=:name, category=:category, sku=:sku, unit=:unit, 
-                    price=:price, cost_price=:cost_price, quantity=:quantity, location=:location, image_path=:image_path 
+                    price=:price, cost_price=:cost_price, quantity=:quantity, location=:location, image_path=:image_path, sync_status=0 
                     WHERE id=:id";
         } else {
              $sql = "UPDATE items SET name=:name, category=:category, sku=:sku, unit=:unit, 
-                    price=:price, cost_price=:cost_price, quantity=:quantity, location=:location 
+                    price=:price, cost_price=:cost_price, quantity=:quantity, location=:location, sync_status=0 
                     WHERE id=:id";
         }
         $data['id'] = $id;
@@ -114,7 +114,7 @@ class Item {
     }
     
     public function adjustStock($id, $quantityChange) {
-        $sql = "UPDATE items SET quantity = quantity + :change WHERE id = :id";
+        $sql = "UPDATE items SET quantity = quantity + :change, sync_status = 0 WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute(['change' => $quantityChange, 'id' => $id]);
     }

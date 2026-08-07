@@ -221,11 +221,51 @@ ob_start();
                             <input class="form-check-input" type="checkbox" role="switch" id="enable_debt_module" name="enable_debt_module" value="1" <?= (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
                             <label class="form-check-label" for="enable_debt_module" style="color: #1f1f1f;">Enable Standalone Debt Module</label>
                         </div>
-                        <div class="text-muted mt-1" style="font-size: 13px;">If turned off, the Debtors menu will be hidden and standalone debt will not be included in dashboard calculations.</div>
+                        <div class="text-muted mt-1 mb-3" style="font-size: 13px;">If turned off, the Debtors menu will be hidden and standalone debt will not be included in dashboard calculations.</div>
+                        
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" role="switch" id="enable_barcode_reader" name="enable_barcode_reader" value="1" <?= (!isset($settings['enable_barcode_reader']) || $settings['enable_barcode_reader'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="enable_barcode_reader" style="color: #1f1f1f;">Use Barcode Scanner</label>
+                        </div>
+                        <div class="text-muted mt-1 mb-3" style="font-size: 13px;">If turned off, the barcode scanner input will be hidden on the New Sale page and autofocus will default to the search bar.</div>
+                        
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" role="switch" id="enable_desktop_setup" name="enable_desktop_setup" value="1" <?= (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="enable_desktop_setup" style="color: #1f1f1f;">Desktop Setup</label>
+                        </div>
+                        <div class="text-muted mt-1" style="font-size: 13px;">If turned off, Cloud Sync will be completely disabled. Use this if this is the online dashboard.</div>
                     </div>
                 </div>
 
             </div>
+
+            <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
+            <div class="google-card mt-4">
+                <div class="google-row align-items-center" style="background-color: #f8f9fa;">
+                    <span class="material-symbols-outlined google-icon text-primary">cloud_sync</span>
+                    <div class="google-content">
+                        <h5 class="mb-0 fw-bold" style="color: #1f1f1f;">Cloud Sync & Backup Configuration</h5>
+                        <div class="text-muted" style="font-size: 13px;">Configure your connection to the online dashboard server.</div>
+                    </div>
+                </div>
+                <div class="google-row">
+                    <span class="material-symbols-outlined google-icon">language</span>
+                    <div class="google-content">
+                        <label class="google-label">Cloud Server URL</label>
+                        <input type="url" name="cloud_url" class="google-input" value="<?= e($settings['cloud_url'] ?? '') ?>" placeholder="e.g. https://myhardware.com">
+                        <div class="text-muted mt-1" style="font-size: 12px;">Leave empty if this is the cloud server. Local apps must enter the URL of the cloud server.</div>
+                    </div>
+                </div>
+                <div class="google-row">
+                    <span class="material-symbols-outlined google-icon">vpn_key</span>
+                    <div class="google-content">
+                        <label class="google-label">Sync API Key</label>
+                        <input type="password" name="sync_api_key" class="google-input" value="<?= e($settings['sync_api_key'] ?? '') ?>" placeholder="Enter secret API key">
+                        <div class="text-muted mt-1" style="font-size: 12px;">This key must be identical on both the local system and the cloud server.</div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <div class="d-flex justify-content-end mb-5">
                 <button type="submit" class="google-btn">Save Settings</button>

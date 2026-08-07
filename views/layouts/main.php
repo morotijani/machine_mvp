@@ -285,6 +285,14 @@ if (!isset($settings)) {
                                 <span class="material-symbols-outlined icon">admin_panel_settings</span> Company Settings
                             </a>
                         </li>
+                        <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], BASE_URL . '/sync') !== false) ? 'active' : ''; ?>"
+                                href="<?= BASE_URL ?>/sync">
+                                <span class="material-symbols-outlined icon">cloud_sync</span> Cloud Sync & Backup
+                            </a>
+                        </li>
+                        <?php endif; ?>
                     <?php endif; ?>
 
                     <li class="nav-item">
@@ -340,14 +348,18 @@ if (!isset($settings)) {
         function updateStatus() {
             // Internet Status
             const internetStatus = document.getElementById('internetStatus');
-            if (navigator.onLine) {
-                internetStatus.classList.replace('bg-danger', 'bg-success');
-                internetStatus.querySelector('.status-text').innerText = 'Online';
-                internetStatus.querySelector('.material-symbols-outlined').innerText = 'wifi';
-            } else {
-                internetStatus.classList.replace('bg-success', 'bg-danger');
-                internetStatus.querySelector('.status-text').innerText = 'Offline';
-                internetStatus.querySelector('.material-symbols-outlined').innerText = 'wifi_off';
+            if (internetStatus) {
+                if (navigator.onLine) {
+                    internetStatus.classList.replace('bg-danger', 'bg-success');
+                    const stText = internetStatus.querySelector('.status-text');
+                    if (stText) stText.innerText = 'Online';
+                    internetStatus.querySelector('.material-symbols-outlined').innerText = 'wifi';
+                } else {
+                    internetStatus.classList.replace('bg-success', 'bg-danger');
+                    const stText = internetStatus.querySelector('.status-text');
+                    if (stText) stText.innerText = 'Offline';
+                    internetStatus.querySelector('.material-symbols-outlined').innerText = 'wifi_off';
+                }
             }
 
             // Database Status
@@ -355,18 +367,25 @@ if (!isset($settings)) {
                 .then(res => res.json())
                 .then(data => {
                     const dbStatus = document.getElementById('dbStatus');
-                    if (data.database) {
-                        dbStatus.classList.replace('bg-danger', 'bg-success');
-                        dbStatus.querySelector('.status-text').innerText = 'DB Connected';
-                    } else {
-                        dbStatus.classList.replace('bg-success', 'bg-danger');
-                        dbStatus.querySelector('.status-text').innerText = 'DB Disconnected';
+                    if (dbStatus) {
+                        if (data.database) {
+                            dbStatus.classList.replace('bg-danger', 'bg-success');
+                            const dbText = dbStatus.querySelector('.status-text');
+                            if (dbText) dbText.innerText = 'DB Connected';
+                        } else {
+                            dbStatus.classList.replace('bg-success', 'bg-danger');
+                            const dbText = dbStatus.querySelector('.status-text');
+                            if (dbText) dbText.innerText = 'DB Disconnected';
+                        }
                     }
                 })
                 .catch(err => {
                     const dbStatus = document.getElementById('dbStatus');
-                    dbStatus.classList.replace('bg-success', 'bg-danger');
-                    dbStatus.querySelector('.status-text').innerText = 'Server Error';
+                    if (dbStatus) {
+                        dbStatus.classList.replace('bg-success', 'bg-danger');
+                        const dbText = dbStatus.querySelector('.status-text');
+                        if (dbText) dbText.innerText = 'Server Error';
+                    }
                 });
         }
 
@@ -388,6 +407,17 @@ if (!isset($settings)) {
             });
         }
     </script>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="<?= BASE_URL ?>/public/assets/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Background Auto-Sync Service -->
+    <script>
+        window.APP_BASE_URL = <?= json_encode(BASE_URL) ?>;
+    </script>
+    <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
+    <script src="<?= BASE_URL ?>/public/assets/js/auto-sync.js"></script>
+    <?php endif; ?>
 </body>
 
 </html>

@@ -45,7 +45,7 @@ class PaymentRequest {
     public function endorse($id, $cashierId) {
         $stmt = $this->pdo->prepare("
             UPDATE payment_requests 
-            SET status = 'approved', cashier_id = :cashier_id, processed_at = CURRENT_TIMESTAMP 
+            SET status = 'approved', cashier_id = :cashier_id, processed_at = CURRENT_TIMESTAMP, sync_status = 0 
             WHERE id = :id
         ");
         return $stmt->execute([
@@ -57,7 +57,7 @@ class PaymentRequest {
     public function reject($id, $cashierId) {
         $stmt = $this->pdo->prepare("
             UPDATE payment_requests 
-            SET status = 'rejected', cashier_id = :cashier_id, processed_at = CURRENT_TIMESTAMP 
+            SET status = 'rejected', cashier_id = :cashier_id, processed_at = CURRENT_TIMESTAMP, sync_status = 0 
             WHERE id = :id
         ");
         return $stmt->execute([

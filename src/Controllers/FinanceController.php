@@ -131,7 +131,7 @@ class FinanceController {
             }
 
             $pdo = Database::getInstance();
-            $stmt = $pdo->prepare("UPDATE coffer_transactions SET amount = :amount, purpose = :purpose WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE coffer_transactions SET amount = :amount, purpose = :purpose, sync_status = 0 WHERE id = :id");
             $stmt->execute([
                 'amount' => $amount,
                 'purpose' => $purpose,

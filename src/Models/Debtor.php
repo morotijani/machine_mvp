@@ -127,7 +127,7 @@ class Debtor {
     }
 
     public function update($id, $data) {
-        $stmt = $this->pdo->prepare("UPDATE standalone_debtors SET name = :name, phone = :phone, total_amount = :amt, description = :desc WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE standalone_debtors SET name = :name, phone = :phone, total_amount = :amt, description = :desc, sync_status = 0 WHERE id = :id");
         return $stmt->execute([
             'name' => $data['name'],
             'phone' => $data['phone'],
@@ -138,7 +138,7 @@ class Debtor {
     }
 
     public function softDelete($id) {
-        $stmt = $this->pdo->prepare("UPDATE standalone_debtors SET is_deleted = 1 WHERE id = :id");
+        $stmt = $this->pdo->prepare("UPDATE standalone_debtors SET is_deleted = 1, sync_status = 0 WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
