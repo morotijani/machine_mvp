@@ -350,18 +350,42 @@ function timeAgo(dateString) {
     const now = new Date();
     const seconds = Math.max(0, Math.floor((now - d) / 1000));
     
-    if (seconds < 60) return "just now";
+    if (seconds < 60) {
+        if (seconds <= 5) return "just now";
+        return seconds + " secs ago";
+    }
     
-    let interval = seconds / 31536000;
-    if (interval >= 1) return Math.floor(interval) + " years ago";
-    interval = seconds / 2592000;
-    if (interval >= 1) return Math.floor(interval) + " months ago";
-    interval = seconds / 86400;
-    if (interval >= 1) return Math.floor(interval) + " days ago";
-    interval = seconds / 3600;
-    if (interval >= 1) return Math.floor(interval) + " hours ago";
-    interval = seconds / 60;
-    return Math.floor(interval) + " mins ago";
+    if (seconds >= 31536000) {
+        const years = Math.floor(seconds / 31536000);
+        return years + " year" + (years > 1 ? "s" : "") + " ago";
+    }
+    
+    if (seconds >= 2592000) {
+        const months = Math.floor(seconds / 2592000);
+        return months + " month" + (months > 1 ? "s" : "") + " ago";
+    }
+    
+    if (seconds >= 86400) {
+        const days = Math.floor(seconds / 86400);
+        const hrs = Math.floor((seconds % 86400) / 3600);
+        let res = days + " day" + (days > 1 ? "s" : "");
+        if (hrs > 0) res += " " + hrs + " hr" + (hrs > 1 ? "s" : "");
+        return res + " ago";
+    }
+    
+    if (seconds >= 3600) {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        let res = hrs + " hr" + (hrs > 1 ? "s" : "");
+        if (mins > 0) res += " " + mins + " min" + (mins > 1 ? "s" : "");
+        return res + " ago";
+    }
+    
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    let res = mins + " min" + (mins > 1 ? "s" : "");
+    if (secs > 0) res += " " + secs + " sec" + (secs > 1 ? "s" : "");
+    return res + " ago";
 }
 
 function formatDateTime(dateString) {
