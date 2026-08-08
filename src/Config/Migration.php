@@ -321,5 +321,23 @@ SQL;
       $defaultHash = password_hash('admin123', PASSWORD_DEFAULT);
       $pdo->exec("INSERT INTO users (username, password, role, fullname) VALUES ('admin', '$defaultHash', 'admin', 'System Administrator')");
     }
+
+    // Offset Auto-Increment IDs to prevent collisions with Cloud Database (which starts at 1)
+    // Only applies to SQLite, ensuring the local desktop generates IDs > 500,000
+    if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+        $tablesToOffset = ['coffer_transactions', 'customer_debt_payments', 'customers', 'debt_repayments', 'expenditures', 'inventory_logs', 'item_bundles', 'item_logs', 'items', 'payment_requests', 'payments', 'proforma_items', 'proformas', 'sale_items', 'sale_return_items', 'sale_returns', 'sales', 'settings', 'standalone_debtors', 'user_logins', 'users'];
+        foreach ($tablesToOffset as $tbl) {
+            try {
+                // Check if sequence exists
+                $stmt = $pdo->query("SELECT seq FROM sqlite_sequence WHERE name = '$tbl'");
+                if (!$stmt->fetch()) {
+                    // Doesn't exist, insert it
+                    $pdo->exec("INSERT INTO sqlite_sequence (name, seq) VALUES ('$tbl', 500000)");
+                }
+            } catch (\Exception $e) {
+                // Ignore errors
+            }
+        }
+    }
   }
 }

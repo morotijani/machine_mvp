@@ -319,7 +319,11 @@ class SyncController {
         foreach ($rows as $row) {
             $values = [];
             foreach ($columns as $col) {
-                $values[] = $row[$col];
+                if ($col === 'sync_status') {
+                    $values[] = 1; // Force status to 1 on receipt to prevent ping-pong
+                } else {
+                    $values[] = $row[$col];
+                }
             }
             $stmt->execute($values);
         }
