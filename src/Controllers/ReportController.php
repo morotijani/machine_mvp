@@ -126,17 +126,18 @@ class ReportController
         // Formula: SUM( (payment_amount / sale_total) * sale_potential_profit )
         // This naturally accounts for returns because total_amount is reduced in the denominator.
         $sqlRealizedProfit = "
-    SELECT SUM(
-        (p.amount / s.total_amount) * 
-        (SELECT SUM(si.quantity * (si.price_at_sale - i.cost_price)) 
-         FROM sale_items si 
-         JOIN items i ON si.item_id = i.id 
-         WHERE si.sale_id = s.id)
-    )
-    FROM payments p
-    JOIN sales s ON p.sale_id = s.id
-    WHERE DATE(p.payment_date) = :today AND s.voided = 0 AND s.total_amount > 0
-" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+    SELECT SUM( (p_agg.total_paid / s.total_amount) * (si.quantity * (si.price_at_sale - i.cost_price)) )
+    FROM (
+        SELECT sale_id, SUM(amount) as total_paid
+        FROM payments
+        WHERE DATE(payment_date) = :today " . ($isLimitedView ? " AND recorded_by = :uid" : "") . "
+        GROUP BY sale_id
+    ) p_agg
+    JOIN sales s ON p_agg.sale_id = s.id
+    JOIN sale_items si ON si.sale_id = s.id
+    JOIN items i ON si.item_id = i.id
+    WHERE s.voided = 0 AND s.total_amount > 0
+";
         $stmtRealized = $pdo->prepare($sqlRealizedProfit);
         $stmtRealized->execute(array_merge(['today' => $today], $params));
         $todayRealizedProfit = $stmtRealized->fetchColumn() ?: 0;
@@ -210,17 +211,18 @@ class ReportController
 
             // Realized Profit for that month
             $sqlProfit = "
-                SELECT SUM(
-                    (p.amount / s.total_amount) * 
-                    (SELECT SUM(si.quantity * (si.price_at_sale - i.cost_price)) 
-                     FROM sale_items si 
-                     JOIN items i ON si.item_id = i.id 
-                     WHERE si.sale_id = s.id)
-                )
-                FROM payments p
-                JOIN sales s ON p.sale_id = s.id
-                WHERE p.payment_date BETWEEN :start AND :end AND s.voided = 0 AND s.total_amount > 0
-            " . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+                SELECT SUM( (p_agg.total_paid / s.total_amount) * (si.quantity * (si.price_at_sale - i.cost_price)) )
+                FROM (
+                    SELECT sale_id, SUM(amount) as total_paid
+                    FROM payments
+                    WHERE payment_date BETWEEN :start AND :end " . ($isLimitedView ? " AND recorded_by = :uid" : "") . "
+                    GROUP BY sale_id
+                ) p_agg
+                JOIN sales s ON p_agg.sale_id = s.id
+                JOIN sale_items si ON si.sale_id = s.id
+                JOIN items i ON si.item_id = i.id
+                WHERE s.voided = 0 AND s.total_amount > 0
+            ";
             
             $stmtProfit = $pdo->prepare($sqlProfit);
             $stmtProfit->execute(array_merge(['start' => $start, 'end' => $end], $params));

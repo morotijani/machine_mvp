@@ -372,6 +372,7 @@ if (isset($isPrint) && $isPrint) {
                             <th>Category</th>
                             <th class="d-none">SKU / Barcode</th>
                             <th>Location</th>
+                            <th>Added By</th>
                             <th class="text-end">Price</th>
                             <th class="text-center">Stock</th>
                             <?php if ($_SESSION['role'] === 'admin'): ?>
@@ -415,6 +416,10 @@ if (isset($isPrint) && $isPrint) {
                                     </div>
                                 </td>
                                 <td><?= e($item['location']) ?></td>
+                                <td class="text-muted" style="font-size: 0.85rem;">
+                                    <span class="material-symbols-outlined align-middle" style="font-size: 14px;">person</span>
+                                    <?= e($item['created_by_name'] ?? 'System') ?>
+                                </td>
                                 <td class="text-end fw-bold text-primary">₵<?php echo number_format($item['price'], 2); ?>
                                 </td>
                                 <td>

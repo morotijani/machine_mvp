@@ -127,7 +127,9 @@ CREATE TABLE IF NOT EXISTS `items` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` INTEGER DEFAULT 0,
-  `sync_status` INTEGER DEFAULT 0
+  `created_by` INTEGER DEFAULT NULL,
+  `sync_status` INTEGER DEFAULT 0,
+  FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS `payment_requests` (
@@ -303,6 +305,13 @@ SQL;
       if (!empty($stmt)) {
         $pdo->exec($stmt);
       }
+    }
+
+    // ALTER EXISTING TABLES IF NECESSARY
+    try {
+        $pdo->exec("ALTER TABLE items ADD COLUMN created_by INTEGER DEFAULT NULL");
+    } catch (\Exception $e) {
+        // Column already exists or error
     }
 
     // Seed default admin if missing

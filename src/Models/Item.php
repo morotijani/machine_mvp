@@ -11,14 +11,14 @@ class Item {
     }
 
     public function getAll($limit = null, $offset = 0, $search = null, $lowStock = false, $sort = 'created_at', $order = 'DESC') {
-        $sql = "SELECT * FROM items WHERE is_deleted = 0";
+        $sql = "SELECT items.*, users.username as created_by_name FROM items LEFT JOIN users ON items.created_by = users.id WHERE items.is_deleted = 0";
         if ($lowStock) {
-            $sql .= " AND quantity <= 5";
+            $sql .= " AND items.quantity <= 5";
         }
         $params = [];
         
         if ($search) {
-            $sql .= " AND (name LIKE :s1 OR sku LIKE :s2 OR category LIKE :s3)";
+            $sql .= " AND (items.name LIKE :s1 OR items.sku LIKE :s2 OR items.category LIKE :s3)";
             $params['s1'] = "%$search%";
             $params['s2'] = "%$search%";
             $params['s3'] = "%$search%";
@@ -32,7 +32,7 @@ class Item {
         if (!in_array($sort, $allowedSort)) $sort = 'created_at';
         if (!in_array(strtoupper($order), $allowedOrder)) $order = 'DESC';
         
-        $orderField = ($sort === 'name') ? "TRIM(name)" : $sort;
+        $orderField = ($sort === 'name') ? "TRIM(items.name)" : "items." . $sort;
         $sql .= " ORDER BY $orderField $order";
         
         if ($limit !== null) {
@@ -74,7 +74,7 @@ class Item {
     }
 
     public function find($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM items WHERE id = :id AND is_deleted = 0");
+        $stmt = $this->pdo->prepare("SELECT items.*, users.username as created_by_name FROM items LEFT JOIN users ON items.created_by = users.id WHERE items.id = :id AND items.is_deleted = 0");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
     }
@@ -91,8 +91,8 @@ class Item {
     }
 
     public function create($data) {
-        $sql = "INSERT INTO items (name, category, sku, unit, price, cost_price, quantity, location, image_path) 
-                VALUES (:name, :category, :sku, :unit, :price, :cost_price, :quantity, :location, :image_path)";
+        $sql = "INSERT INTO items (name, category, sku, unit, price, cost_price, quantity, location, image_path, created_by) 
+                VALUES (:name, :category, :sku, :unit, :price, :cost_price, :quantity, :location, :image_path, :created_by)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($data);
         return $this->pdo->lastInsertId();
@@ -195,14 +195,14 @@ class Item {
             $data['type'] = 'bundle';
             
             // Insert Bundle Item
-            // Reuse create method or manual insert? reusing create implies strictly single fields mostly.
             // Let's do manual insert to be safe and explicit with 'type'
-            $sql = "INSERT INTO items (name, type, category, sku, unit, price, cost_price, quantity, location, image_path) 
-                    VALUES (:name, 'bundle', :category, :sku, :unit, :price, :cost_price, :quantity, :location, :image_path)";
+            $sql = "INSERT INTO items (name, type, category, sku, unit, price, cost_price, quantity, location, image_path, created_by) 
+                    VALUES (:name, :type, :category, :sku, :unit, :price, :cost_price, :quantity, :location, :image_path, :created_by)";
             
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 'name' => $data['name'],
+                'type' => 'bundle',
                 'category' => $data['category'],
                 'sku' => $data['sku'],
                 'unit' => $data['unit'] ?? 'bundle',
@@ -210,7 +210,8 @@ class Item {
                 'cost_price' => $data['cost_price'],
                 'quantity' => $data['quantity'],
                 'location' => $data['location'] ?? '',
-                'image_path' => $data['image_path'] ?? ''
+                'image_path' => $data['image_path'] ?? '',
+                'created_by' => $data['created_by'] ?? null
             ]);
             $bundleId = $this->pdo->lastInsertId();
 
@@ -528,44 +529,45 @@ class Item {
 
     public function getSalesHistoryPaginated($itemId, $limit, $offset) {
         $sql = "
-            SELECT 
-                si.sale_id,
-                si.quantity,
-                si.price_at_sale,
-                si.subtotal,
-                s.created_at, 
-                s.payment_status, 
-                c.name as customer_name, 
-                c.id as customer_id, 
-                u.username as seller_name,
-                NULL as bundle_name
-            FROM sale_items si
-            JOIN sales s ON si.sale_id = s.id
-            LEFT JOIN customers c ON s.customer_id = c.id
-            LEFT JOIN users u ON s.user_id = u.id
-            WHERE si.item_id = :iid AND s.voided = 0
+            SELECT * FROM (
+                SELECT 
+                    si.sale_id,
+                    si.quantity,
+                    si.price_at_sale,
+                    si.subtotal,
+                    s.created_at, 
+                    s.payment_status, 
+                    c.name as customer_name, 
+                    c.id as customer_id, 
+                    u.username as seller_name,
+                    NULL as bundle_name
+                FROM sale_items si
+                JOIN sales s ON si.sale_id = s.id
+                LEFT JOIN customers c ON s.customer_id = c.id
+                LEFT JOIN users u ON s.user_id = u.id
+                WHERE si.item_id = :iid AND s.voided = 0
 
-            UNION ALL
+                UNION ALL
 
-            SELECT 
-                si.sale_id,
-                (si.quantity * ib.quantity) as quantity,
-                0 as price_at_sale,
-                0 as subtotal,
-                s.created_at, 
-                s.payment_status, 
-                c.name as customer_name, 
-                c.id as customer_id, 
-                u.username as seller_name,
-                i_bundle.name as bundle_name
-            FROM sale_items si
-            JOIN sales s ON si.sale_id = s.id
-            JOIN item_bundles ib ON si.item_id = ib.parent_item_id
-            JOIN items i_bundle ON ib.parent_item_id = i_bundle.id
-            LEFT JOIN customers c ON s.customer_id = c.id
-            LEFT JOIN users u ON s.user_id = u.id
-            WHERE ib.child_item_id = :ciid AND s.voided = 0
-
+                SELECT 
+                    si.sale_id,
+                    (si.quantity * ib.quantity) as quantity,
+                    0 as price_at_sale,
+                    0 as subtotal,
+                    s.created_at, 
+                    s.payment_status, 
+                    c.name as customer_name, 
+                    c.id as customer_id, 
+                    u.username as seller_name,
+                    i_bundle.name as bundle_name
+                FROM sale_items si
+                JOIN sales s ON si.sale_id = s.id
+                JOIN item_bundles ib ON si.item_id = ib.parent_item_id
+                JOIN items i_bundle ON ib.parent_item_id = i_bundle.id
+                LEFT JOIN customers c ON s.customer_id = c.id
+                LEFT JOIN users u ON s.user_id = u.id
+                WHERE ib.child_item_id = :ciid AND s.voided = 0
+            ) as combined
             ORDER BY created_at DESC
             LIMIT :limit OFFSET :offset
         ";

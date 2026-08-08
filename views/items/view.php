@@ -166,6 +166,10 @@ ob_start();
                                 <?php if ($item['type'] === 'bundle'): ?>
                                     <span class="google-badge badge-subtle-warning">Bundle</span>
                                 <?php endif; ?>
+                                <span class="google-badge" style="background: #e8f0fe; color: #1967d2;">
+                                    <span class="material-symbols-outlined align-middle" style="font-size: 14px; margin-right: 2px;">person</span>
+                                    Added by: <?= e($item['created_by_name'] ?? 'Unknown/System') ?>
+                                </span>
                             </div>
                         </div>
                     </div>

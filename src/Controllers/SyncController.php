@@ -55,6 +55,7 @@ class SyncController {
     public function pushToCloud() {
         \App\Middleware\AuthMiddleware::requireLogin();
         \App\Middleware\AuthMiddleware::requireAdmin();
+        session_write_close();
         
         // Sync operations can take a long time on slow networks or with large payloads
         set_time_limit(0);
@@ -469,6 +470,10 @@ class SyncController {
     // LOCAL CLIENT METHODS (Pull Requestor)
     // ==========================================
     public function pullFromCloud() {
+        \App\Middleware\AuthMiddleware::requireLogin();
+        \App\Middleware\AuthMiddleware::requireAdmin();
+        session_write_close();
+        
         set_time_limit(0);
         ini_set('memory_limit', '256M');
         

@@ -72,6 +72,7 @@ class ItemController
                     'quantity' => $_POST['quantity'],
                     'location' => $_POST['location'],
                     'image_path' => null,
+                    'created_by' => $_SESSION['user_id'],
                 ];
 
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
@@ -391,7 +392,8 @@ class ItemController
                     'price' => $_POST['price'],
                     'quantity' => $_POST['quantity'],
                     'location' => $_POST['location'],
-                    'unit' => 'bundle'
+                    'unit' => 'bundle',
+                    'created_by' => $_SESSION['user_id']
                 ];
 
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
