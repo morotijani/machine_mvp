@@ -108,10 +108,16 @@ class Customer {
 
     public function getHistory($customerId) {
         // Fetch all sales for this customer with payment status and item summary
+        $isSqlite = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        
+        $groupConcatStr = $isSqlite 
+            ? "GROUP_CONCAT(i.name || ' (' || si.quantity || ')', ', ')" 
+            : "GROUP_CONCAT(CONCAT(i.name, ' (', si.quantity, ')') SEPARATOR ', ')";
+
         $sql = "SELECT s.*, 
                 (s.total_amount - s.paid_amount) as balance,
                 u.username as seller_name,
-                GROUP_CONCAT(CONCAT(i.name, ' (', si.quantity, ')') SEPARATOR ', ') as items_summary
+                $groupConcatStr as items_summary
                 FROM sales s
                 LEFT JOIN users u ON s.user_id = u.id
                 LEFT JOIN sale_items si ON s.id = si.sale_id
@@ -192,8 +198,14 @@ class Customer {
     }
 
     public function getDebtPaymentHistory($customerId) {
+        $isSqlite = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        
+        $groupConcatStr = $isSqlite 
+            ? "GROUP_CONCAT(p.sale_id, ', ')" 
+            : "GROUP_CONCAT(p.sale_id SEPARATOR ', ')";
+
         $sql = "SELECT dp.*, u.username as recorder_name,
-                GROUP_CONCAT(p.sale_id SEPARATOR ', ') as affected_invoices
+                $groupConcatStr as affected_invoices
                 FROM customer_debt_payments dp
                 LEFT JOIN users u ON dp.recorded_by = u.id
                 LEFT JOIN payments p ON dp.id = p.customer_debt_payment_id

@@ -163,7 +163,8 @@ class Item {
             // 1. Verify Stock for all components
             $totalCost = 0;
             foreach ($components as $comp) {
-                $stmt = $this->pdo->prepare("SELECT name, sku, quantity, cost_price FROM items WHERE id = :id FOR UPDATE");
+                $forUpdate = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "" : "FOR UPDATE";
+                $stmt = $this->pdo->prepare("SELECT name, sku, quantity, cost_price FROM items WHERE id = :id $forUpdate");
                 $stmt->execute(['id' => $comp['id']]);
                 $item = $stmt->fetch();
 
@@ -245,7 +246,8 @@ class Item {
             $this->pdo->beginTransaction();
 
             // 1. Verify Bundle Stock
-            $stmt = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id FOR UPDATE");
+            $forUpdate = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "" : "FOR UPDATE";
+            $stmt = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id $forUpdate");
             $stmt->execute(['id' => $bundleId]);
             $bundle = $stmt->fetch();
 
@@ -293,7 +295,8 @@ class Item {
             $this->pdo->beginTransaction();
 
             // 1. Fetch Current State
-            $stmt = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id FOR UPDATE");
+            $forUpdate = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "" : "FOR UPDATE";
+            $stmt = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id $forUpdate");
             $stmt->execute(['id' => $id]);
             $currentBundle = $stmt->fetch();
             $currentBundleQty = $currentBundle['quantity'];

@@ -19,7 +19,8 @@ class Sale {
             $totalAmount = 0;
             foreach ($items as $item) {
                 // Verify price and stock
-                $stmt = $this->pdo->prepare("SELECT price, quantity FROM items WHERE id = :id FOR UPDATE");
+                $forUpdate = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "" : "FOR UPDATE";
+                $stmt = $this->pdo->prepare("SELECT price, quantity FROM items WHERE id = :id $forUpdate");
                 $stmt->execute(['id' => $item['id']]);
                 $dbItem = $stmt->fetch();
                 
@@ -237,7 +238,8 @@ class Sale {
             $this->pdo->beginTransaction();
 
             // 0. Check if already approved to prevent double restoration
-            $stmt = $this->pdo->prepare("SELECT delete_request_status, voided FROM sales WHERE id = :id FOR UPDATE");
+            $forUpdate = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "" : "FOR UPDATE";
+            $stmt = $this->pdo->prepare("SELECT delete_request_status, voided FROM sales WHERE id = :id $forUpdate");
             $stmt->execute(['id' => $id]);
             $current = $stmt->fetch();
 

@@ -77,12 +77,15 @@ class SyncController {
         $optionalTables = [
             'debtors', 'expenditures', 'user_logins', 'sale_return_items', 
             'sale_returns', 'payment_requests', 'item_logs', 'item_bundles', 
-            'debt_repayments', 'customer_debt_payments', 'coffer_transactions'
+            'debt_repayments', 'customer_debt_payments', 'coffer_transactions', 'standalone_debtors'
         ];
         
         foreach ($optionalTables as $optTable) {
-            if ($this->pdo->query("SHOW TABLES LIKE '$optTable'")->rowCount() > 0) {
+            try {
+                $this->pdo->query("SELECT 1 FROM `$optTable` LIMIT 1");
                 $tables[] = $optTable;
+            } catch (\Exception $e) {
+                // Table doesn't exist
             }
         }
         
@@ -266,7 +269,7 @@ class SyncController {
         $this->pdo->beginTransaction();
         try {
             // Process tables in order of foreign key constraints
-            $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
+            $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
             
             foreach ($tables as $table) {
                 if (isset($data['tables'][$table]) && is_array($data['tables'][$table])) {
@@ -412,14 +415,15 @@ class SyncController {
         ini_set('memory_limit', '256M');
         $this->verifyApiKey();
         
-        $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
+        $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
         
         $payload = ['tables' => []];
         
         $isFull = isset($_GET['full']) && $_GET['full'] == '1';
         foreach ($tables as $table) {
             // Check if table exists (for backward compatibility if missing)
-            if ($this->pdo->query("SHOW TABLES LIKE '$table'")->rowCount() > 0) {
+            try {
+                $this->pdo->query("SELECT 1 FROM `$table` LIMIT 1");
                 if ($isFull) {
                     $stmt = $this->pdo->query("SELECT * FROM `$table`");
                 } else {
@@ -430,6 +434,8 @@ class SyncController {
                 if (count($rows) > 0) {
                     $payload['tables'][$table] = $rows;
                 }
+            } catch (\Exception $e) {
+                // Table doesn't exist
             }
         }
         
@@ -554,7 +560,7 @@ class SyncController {
             $this->pdo->beginTransaction();
             try {
                 // Same strict foreign key order
-                $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
+                $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
                 
                 foreach ($tables as $table) {
                     if (isset($data['tables'][$table]) && is_array($data['tables'][$table])) {

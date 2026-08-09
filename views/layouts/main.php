@@ -409,14 +409,15 @@ if (!isset($settings)) {
     </script>
 
     <!-- Bootstrap JS Bundle -->
-    <script src="<?= BASE_URL ?>/public/assets/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Background Auto-Sync Service -->
+    <script src="<?= BASE_URL ?>/assets/js/bootstrap.bundle.min.js"></script>
     <script>
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
         window.APP_BASE_URL = <?= json_encode(BASE_URL) ?>;
     </script>
-    <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
-        <script src="<?= BASE_URL ?>/public/assets/js/auto-sync.js"></script>
+    
+    <?php if ($settings['cloud_url'] && $settings['sync_api_key'] && \App\Config\Database::getDriver() === 'sqlite'): ?>
+        <script src="<?= BASE_URL ?>/assets/js/auto-sync.js"></script>
     <?php endif; ?>
 </body>
 
