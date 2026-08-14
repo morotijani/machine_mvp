@@ -225,41 +225,10 @@ if (isset($isPrint) && $isPrint) {
     }
 
     @media (max-width: 768px) {
-        .google-search-wrapper {
-            flex-wrap: wrap;
-            border-radius: 16px;
-            padding: 12px;
-            gap: 8px;
-        }
-
-        .google-search-input {
-            width: 100%;
-            border-bottom: 1px solid #e3e3e3;
-            padding-bottom: 12px;
-            margin-bottom: 4px;
-            flex-grow: 1;
-        }
-
-        .google-divider {
-            display: none;
-        }
-
-        .google-search-select {
-            flex-grow: 1;
-            background: #f1f3f4;
-            border-radius: 8px;
-            padding: 8px;
-            width: calc(50% - 4px);
-        }
-
-        .google-search-wrapper label {
-            width: 100%;
-            justify-content: center;
-            background: #f1f3f4;
-            padding: 8px;
-            border-radius: 8px;
-            margin-top: 4px;
-            margin-right: 0 !important;
+        .google-search-wrapper:focus-within .google-search-select,
+        .google-search-wrapper:focus-within .google-divider,
+        .google-search-wrapper:focus-within label {
+            display: none !important;
         }
     }
 </style>
@@ -274,8 +243,12 @@ if (isset($isPrint) && $isPrint) {
                 <form action="" method="GET" class="d-flex flex-grow-1 flex-md-grow-0 gap-2" style="min-width: 280px;">
                     <div class="google-search-wrapper flex-grow-1" style="max-width: none;">
                         <span class="material-symbols-outlined text-muted" style="margin-left: 8px;">search</span>
-                        <input type="text" name="search" class="google-search-input" placeholder="Search items..."
+                        <input type="text" name="search" id="itemSearchInput" class="google-search-input" placeholder="Search items..."
                             value="<?= e($search ?? '') ?>">
+                            
+                        <button type="submit" class="action-btn text-primary d-md-none" style="margin-right: 4px; padding: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
+                        </button>
 
                         <div class="google-divider"></div>
                         <select name="sort" class="google-search-select" onchange="this.form.submit()">
@@ -587,6 +560,27 @@ if (isset($isPrint) && $isPrint) {
                 });
             }
         });
+
+        // Auto-Search with Debounce
+        let searchTimeout = null;
+        const searchInput = document.getElementById('itemSearchInput');
+        
+        if (searchInput) {
+            // Restore focus and cursor position to end of text if there's a search value
+            if (searchInput.value.length > 0) {
+                searchInput.focus();
+                const val = searchInput.value;
+                searchInput.value = '';
+                searchInput.value = val;
+            }
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    searchInput.closest('form').submit();
+                }, 500); // Wait 500ms after user stops typing before submitting
+            });
+        }
     </script>
 </div>
 </div>

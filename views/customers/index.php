@@ -230,6 +230,14 @@ ob_start();
             .google-input:focus {
                 color: #202124;
             }
+
+            /* Hide selects and dividers on mobile when searching to stretch input */
+            @media (max-width: 768px) {
+                .google-search-wrapper:focus-within .google-search-select,
+                .google-search-wrapper:focus-within .google-divider {
+                    display: none !important;
+                }
+            }
         </style>
 
         <div class="d-flex justify-content-between flex-wrap align-items-center pt-4 pb-3 mb-3 gap-2">
@@ -239,8 +247,12 @@ ob_start();
                 <form action="" method="GET" class="d-flex flex-grow-1 flex-md-grow-0" style="min-width: 280px;">
                     <div class="google-search-wrapper">
                         <span class="material-symbols-outlined text-muted" style="margin-left: 8px;">search</span>
-                        <input type="text" name="search" class="google-search-input" placeholder="Search customers..."
+                        <input type="text" name="search" id="customerSearchInput" class="google-search-input" placeholder="Search customers..."
                             value="<?= e($search ?? '') ?>">
+                            
+                        <button type="submit" class="action-btn text-primary d-md-none" style="margin-right: 4px; padding: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
+                        </button>
 
                         <div class="google-divider"></div>
                         <select name="sort" class="google-search-select" onchange="this.form.submit()">
@@ -531,6 +543,27 @@ ob_start();
                 var modal = this;
                 modal.querySelector('#delete_id').value = id;
                 modal.querySelector('#delete_name_display').textContent = name;
+            });
+        }
+
+        // Auto-Search with Debounce
+        let searchTimeout = null;
+        const searchInput = document.getElementById('customerSearchInput');
+        
+        if (searchInput) {
+            // Restore focus and cursor position to end of text if there's a search value
+            if (searchInput.value.length > 0) {
+                searchInput.focus();
+                const val = searchInput.value;
+                searchInput.value = '';
+                searchInput.value = val;
+            }
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    searchInput.closest('form').submit();
+                }, 500); // Wait 500ms after user stops typing before submitting
             });
         }
     </script>
