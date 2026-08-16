@@ -3,6 +3,7 @@ namespace App\Models;
 
 use PDO;
 use Exception;
+use App\Utils\UUID;
 
 class Sale {
     private $pdo;
@@ -39,9 +40,21 @@ class Sale {
                 $status = 'partial';
             }
 
+            // Generate Invoice Number
+            $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+            $prefix = $driver === 'sqlite' ? 'OFF-' : 'ONL-';
+            $stmt = $this->pdo->query("SELECT invoice_number FROM sales WHERE invoice_number LIKE '{$prefix}%' ORDER BY LENGTH(invoice_number) DESC, invoice_number DESC LIMIT 1");
+            $lastInv = $stmt->fetchColumn();
+            $nextNum = 1;
+            if ($lastInv) {
+                $nextNum = (int)substr($lastInv, 4) + 1;
+            }
+            $invoiceNumber = sprintf("%s%05d", $prefix, $nextNum);
+
             // 3. Create Sale Record
-            $stmt = $this->pdo->prepare("INSERT INTO sales (customer_id, user_id, total_amount, paid_amount, payment_status) VALUES (:cid, :uid, :total, :paid, :status)");
+            $stmt = $this->pdo->prepare("INSERT INTO sales (invoice_number, customer_id, user_id, total_amount, paid_amount, payment_status) VALUES (:inv, :cid, :uid, :total, :paid, :status)");
             $stmt->execute([
+                'inv' => $invoiceNumber,
                 'cid' => $customerId,
                 'uid' => $userId,
                 'total' => $totalAmount,
@@ -94,7 +107,7 @@ class Sale {
 
         if (!empty($filters['search'])) {
             $term = $filters['search'];
-            $where[] = "(s.id = :search OR c.name LIKE :searchLike)";
+            $where[] = "(s.id = :search OR s.invoice_number = :search OR c.name LIKE :searchLike)";
             $params['search'] = $term; // For exact ID match if numeric
             $params['searchLike'] = "%$term%";
         }
@@ -160,7 +173,7 @@ class Sale {
 
         if (!empty($filters['search'])) {
             $term = $filters['search'];
-            $where[] = "(s.id = :search OR c.name LIKE :searchLike)";
+            $where[] = "(s.id = :search OR s.invoice_number = :search OR c.name LIKE :searchLike)";
             $params['search'] = $term;
             $params['searchLike'] = "%$term%";
         }

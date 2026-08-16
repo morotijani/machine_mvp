@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Config\Database;
+use App\Utils\UUID;
 use PDO;
 
 class SyncController {
@@ -91,6 +92,9 @@ class SyncController {
         
         $payload = ['tables' => []];
         $syncedIds = [];
+        
+        // Populate UUIDs before syncing
+        $this->populateUuidsBeforeSync($tables);
         
         foreach ($tables as $table) {
             // Fetch all unsynced records
@@ -292,17 +296,104 @@ class SyncController {
     private function upsertTable($table, $rows) {
         if (empty($rows)) return;
         
-        $columns = array_keys($rows[0]);
-        // Remove columns that shouldn't be overridden if they cause issues, but for 1-1 sync we want exact match.
-        // However, we MUST ensure we don't accidentally update `cloud_url` or `sync_api_key` on the cloud from the local, 
-        // otherwise it might break things. Actually, local has the key, cloud has the key. It's fine.
-        
+        // Reverse map foreign key UUIDs to local integer IDs
+        $mappings = [
+            'sales' => [
+                'customer_id' => ['ref_table' => 'customers', 'uuid_col' => 'customer_uuid'],
+                'user_id' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'sale_items' => [
+                'sale_id' => ['ref_table' => 'sales', 'uuid_col' => 'sale_uuid'],
+                'item_id' => ['ref_table' => 'items', 'uuid_col' => 'item_uuid']
+            ],
+            'payments' => [
+                'sale_id' => ['ref_table' => 'sales', 'uuid_col' => 'sale_uuid'],
+                'recorded_by' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'sale_returns' => [
+                'sale_id' => ['ref_table' => 'sales', 'uuid_col' => 'sale_uuid'],
+                'recorded_by' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'sale_return_items' => [
+                'return_id' => ['ref_table' => 'sale_returns', 'uuid_col' => 'return_uuid'],
+                'item_id' => ['ref_table' => 'items', 'uuid_col' => 'item_uuid']
+            ],
+            'inventory_logs' => [
+                'item_id' => ['ref_table' => 'items', 'uuid_col' => 'item_uuid'],
+                'user_id' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'item_bundles' => [
+                'bundle_item_id' => ['ref_table' => 'items', 'uuid_col' => 'bundle_item_uuid'],
+                'component_item_id' => ['ref_table' => 'items', 'uuid_col' => 'component_item_uuid']
+            ],
+            'item_logs' => [
+                'item_id' => ['ref_table' => 'items', 'uuid_col' => 'item_uuid'],
+                'user_id' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'debtors' => [
+                'customer_id' => ['ref_table' => 'customers', 'uuid_col' => 'customer_uuid']
+            ],
+            'standalone_debtors' => [
+                'recorded_by' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'customer_debt_payments' => [
+                'customer_id' => ['ref_table' => 'customers', 'uuid_col' => 'customer_uuid'],
+                'recorded_by' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'payment_requests' => [
+                'created_by' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid'],
+                'customer_id' => ['ref_table' => 'customers', 'uuid_col' => 'customer_uuid']
+            ],
+            'expenditures' => [
+                'recorded_by' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'coffer_transactions' => [
+                'recorded_by' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'user_logins' => [
+                'user_id' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ]
+        ];
+
+        if (isset($mappings[$table])) {
+            foreach ($rows as &$row) {
+                foreach ($mappings[$table] as $localIntCol => $map) {
+                    $uuidCol = $map['uuid_col'];
+                    $refTable = $map['ref_table'];
+                    if (!empty($row[$uuidCol])) {
+                        $stmt = $this->pdo->prepare("SELECT id FROM `$refTable` WHERE uuid = ?");
+                        $stmt->execute([$row[$uuidCol]]);
+                        $localId = $stmt->fetchColumn();
+                        if ($localId) {
+                            $row[$localIntCol] = $localId;
+                        } else {
+                            // Local ID not found, but it might just be 0/null allowed. Let it be what it was or null.
+                        }
+                    }
+                }
+            }
+            unset($row); // break reference
+        }
+
+        // Remove 'id' column from insertion logic so local DB auto-increments
+        $columns = [];
+        foreach (array_keys($rows[0]) as $col) {
+            if ($col !== 'id') {
+                $columns[] = $col;
+            }
+        }
+
+        // Only insert if the row has a uuid (essential for matching)
+        if (!in_array('uuid', $columns)) {
+            return;
+        }
+
         $colNames = implode(', ', array_map(function($c) { return "`$c`"; }, $columns));
         $placeholders = implode(', ', array_fill(0, count($columns), '?'));
         
         $updateStmts = [];
         foreach ($columns as $col) {
-            if ($col !== 'id') {
+            if ($col !== 'uuid') {
                 if (\App\Config\Database::getDriver() === 'sqlite') {
                     $updateStmts[] = "`$col` = excluded.`$col`";
                 } else {
@@ -313,7 +404,7 @@ class SyncController {
         $updateSql = implode(', ', $updateStmts);
         
         if (\App\Config\Database::getDriver() === 'sqlite') {
-            $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON CONFLICT(id) DO UPDATE SET $updateSql";
+            $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON CONFLICT(uuid) DO UPDATE SET $updateSql";
         } else {
             $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON DUPLICATE KEY UPDATE $updateSql";
         }

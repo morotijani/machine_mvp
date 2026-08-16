@@ -252,10 +252,10 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                     <?php else: ?>
                         <h4 class="fw-bold" style="color: #0b57d0;">RECEIPT</h4>
                     <?php endif; ?>
-                    <div class="fs-5" style="color: #1f1f1f;">#<?= str_pad($sale['id'], 6, '0', STR_PAD_LEFT) ?></div>
+                    <div class="fs-5" style="color: #1f1f1f;">#<?= htmlspecialchars($sale['invoice_number'] ?? str_pad($sale['id'], 6, '0', STR_PAD_LEFT)) ?></div>
                     <div class="text-muted small mb-2">Date: <?= date('M j, Y', strtotime($sale['created_at'])) ?></div>
                     <div class="d-flex justify-content-end">
-                        <svg id="invoice-barcode" data-value="<?= $sale['id'] ?>"
+                        <svg id="invoice-barcode" data-value="<?= htmlspecialchars($sale['invoice_number'] ?? $sale['id']) ?>"
                             style="max-height: 40px; width: 120px;"></svg>
                     </div>
                 </div>

@@ -223,7 +223,7 @@ ob_start();
                                     <div class="fw-medium text-dark"><?php echo date('M j, Y', strtotime($sale['created_at'])); ?></div>
                                     <div class="text-muted" style="font-size: 12px;"><?php echo date('H:i', strtotime($sale['created_at'])); ?></div>
                                 </td>
-                                <td><a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" class="fw-medium text-decoration-none" style="color: #0b57d0;">#<?= $sale['id'] ?></a></td>
+                                <td><a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" class="fw-medium text-decoration-none" style="color: #0b57d0;">#<?= htmlspecialchars($sale['invoice_number'] ?? $sale['id']) ?></a></td>
                                 <td class="fw-medium text-dark"><?= e($sale['customer_name'] ?? 'Walk-in') ?></td>
                                 <td><span class="google-badge <?php echo $statusClass; ?>"><?php echo ucfirst($sale['payment_status']); ?></span></td>
                                 <td class="text-end fw-bold text-primary">₵<?php echo number_format($sale['total_amount'], 2); ?></td>

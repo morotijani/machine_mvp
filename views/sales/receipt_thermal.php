@@ -41,7 +41,7 @@
     </div>
 
     <div class="mb-2 border-top mt-2" style="padding-top:5px;">
-        <div><span class="font-bold">Receipt #:</span> <?= str_pad($sale['id'], 6, '0', STR_PAD_LEFT) ?></div>
+        <div><span class="font-bold">Receipt #:</span> <?= htmlspecialchars($sale['invoice_number'] ?? str_pad($sale['id'], 6, '0', STR_PAD_LEFT)) ?></div>
         <div><span class="font-bold">Date:</span> <?= date('M j, Y H:i', strtotime($sale['created_at'])) ?></div>
         <div><span class="font-bold">Customer:</span> <?= $sale['customer_name'] ? e($sale['customer_name']) : 'Walk-in' ?></div>
     </div>
