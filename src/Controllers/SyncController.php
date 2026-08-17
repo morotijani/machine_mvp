@@ -65,6 +65,13 @@ class SyncController {
         $settingModel = new \App\Models\Setting($this->pdo);
         $settings = $settingModel->get();
         
+        $syncMasterEnabled = !isset($settings['sync_master_enabled']) || $settings['sync_master_enabled'] == 1;
+        $syncPushEnabled = !isset($settings['sync_push_enabled']) || $settings['sync_push_enabled'] == 1;
+        
+        if (!$syncMasterEnabled || !$syncPushEnabled) {
+            $this->jsonResponse(false, 'Push syncing is disabled in settings.', 403);
+        }
+        
         if (empty($settings['cloud_url']) || empty($settings['sync_api_key'])) {
             $this->jsonResponse(false, 'Sync not configured.', 400);
         }
@@ -701,6 +708,13 @@ class SyncController {
         
         $settingModel = new \App\Models\Setting($this->pdo);
         $settings = $settingModel->get();
+        
+        $syncMasterEnabled = !isset($settings['sync_master_enabled']) || $settings['sync_master_enabled'] == 1;
+        $syncPullEnabled = !isset($settings['sync_pull_enabled']) || $settings['sync_pull_enabled'] == 1;
+        
+        if (!$syncMasterEnabled || !$syncPullEnabled) {
+            $this->jsonResponse(false, 'Pull syncing is disabled in settings.', 403);
+        }
         
         if (empty($settings['cloud_url']) || empty($settings['sync_api_key'])) {
             $this->jsonResponse(false, 'Sync not configured.', 400);

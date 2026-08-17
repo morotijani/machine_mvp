@@ -267,6 +267,11 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `enable_debt_module` INTEGER NOT NULL DEFAULT 1,
   `cloud_url` TEXT DEFAULT NULL,
   `sync_api_key` TEXT DEFAULT NULL,
+  `sync_master_enabled` INTEGER DEFAULT 1,
+  `sync_auto_enabled` INTEGER DEFAULT 1,
+  `sync_push_enabled` INTEGER DEFAULT 1,
+  `sync_pull_enabled` INTEGER DEFAULT 1,
+  `sync_interval_minutes` INTEGER DEFAULT 5,
   `sync_status` INTEGER DEFAULT 0,
   `enable_barcode_reader` INTEGER DEFAULT 1,
   `enable_desktop_setup` INTEGER DEFAULT 1

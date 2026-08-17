@@ -416,7 +416,22 @@ if (!isset($settings)) {
         window.APP_BASE_URL = <?= json_encode(BASE_URL) ?>;
     </script>
     
+    <?php 
+    // Determine if auto-sync should be enabled based on settings
+    $syncMasterEnabled = !isset($settings['sync_master_enabled']) || $settings['sync_master_enabled'] == 1;
+    $syncAutoEnabled = !isset($settings['sync_auto_enabled']) || $settings['sync_auto_enabled'] == 1;
+    $syncInterval = isset($settings['sync_interval_minutes']) ? (int)$settings['sync_interval_minutes'] : 5;
+    
+    // Auto-sync is only active if Master is enabled AND Auto is enabled
+    $shouldRunAutoSync = $syncMasterEnabled && $syncAutoEnabled;
+    ?>
     <?php if ($settings['cloud_url'] && $settings['sync_api_key'] && \App\Config\Database::getDriver() === 'sqlite'): ?>
+        <script>
+            window.SYNC_SETTINGS = {
+                enabled: <?= $shouldRunAutoSync ? 'true' : 'false' ?>,
+                intervalMs: <?= $syncInterval * 60 * 1000 ?>
+            };
+        </script>
         <script src="<?= BASE_URL ?>/assets/js/auto-sync.js"></script>
     <?php endif; ?>
 </body>

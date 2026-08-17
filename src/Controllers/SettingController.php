@@ -38,7 +38,12 @@ class SettingController {
                 'enable_barcode_reader' => isset($_POST['enable_barcode_reader']) ? 1 : 0,
                 'enable_desktop_setup' => isset($_POST['enable_desktop_setup']) ? 1 : 0,
                 'cloud_url' => rtrim($_POST['cloud_url'] ?? '', '/'),
-                'sync_api_key' => $_POST['sync_api_key'] ?? ''
+                'sync_api_key' => $_POST['sync_api_key'] ?? '',
+                'sync_master_enabled' => isset($_POST['sync_master_enabled']) ? 1 : 0,
+                'sync_auto_enabled' => isset($_POST['sync_auto_enabled']) ? 1 : 0,
+                'sync_push_enabled' => isset($_POST['sync_push_enabled']) ? 1 : 0,
+                'sync_pull_enabled' => isset($_POST['sync_pull_enabled']) ? 1 : 0,
+                'sync_interval_minutes' => isset($_POST['sync_interval_minutes']) ? (int)$_POST['sync_interval_minutes'] : 5
             ];
 
             // Handle Logo Upload

@@ -4,8 +4,15 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 5 minutes in milliseconds
-    const SYNC_INTERVAL = 5 * 60 * 1000; 
+    // Read from global SYNC_SETTINGS injected in main.php
+    const syncSettings = window.SYNC_SETTINGS || { enabled: true, intervalMs: 5 * 60 * 1000 };
+    
+    if (!syncSettings.enabled) {
+        console.log("Auto-Sync: Disabled in settings. Background sync will not run.");
+        return;
+    }
+
+    const SYNC_INTERVAL = syncSettings.intervalMs; 
     let syncTimer = null;
     let isSyncing = false;
 
@@ -24,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const lastSync = parseInt(lastSyncStr, 10);
         if (now - lastSync >= SYNC_INTERVAL) {
-            // It has been 5 minutes since the last sync
             runBackgroundSync();
         }
     }

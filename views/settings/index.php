@@ -245,9 +245,70 @@ ob_start();
                     <span class="material-symbols-outlined google-icon text-primary">cloud_sync</span>
                     <div class="google-content">
                         <h5 class="mb-0 fw-bold" style="color: #1f1f1f;">Cloud Sync & Backup Configuration</h5>
-                        <div class="text-muted" style="font-size: 13px;">Configure your connection to the online dashboard server.</div>
+                        <div class="text-muted" style="font-size: 13px;">Configure your connection to the online dashboard server and regulate backup behavior.</div>
                     </div>
                 </div>
+                
+                <div class="google-row">
+                    <span class="material-symbols-outlined google-icon">power_settings_new</span>
+                    <div class="google-content">
+                        <label class="google-label mb-1">Master Cloud Sync</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" role="switch" id="sync_master_enabled" name="sync_master_enabled" value="1" <?= (!isset($settings['sync_master_enabled']) || $settings['sync_master_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="sync_master_enabled" style="color: #1f1f1f;">Enable all Cloud Sync Features</label>
+                        </div>
+                        <div class="text-muted mt-1" style="font-size: 12px;">If turned off, no pushes, pulls, or auto-backups will occur.</div>
+                    </div>
+                </div>
+
+                <div class="google-row">
+                    <span class="material-symbols-outlined google-icon">cloud_upload</span>
+                    <div class="google-content">
+                        <label class="google-label mb-1">Push Local Updates</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" role="switch" id="sync_push_enabled" name="sync_push_enabled" value="1" <?= (!isset($settings['sync_push_enabled']) || $settings['sync_push_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="sync_push_enabled" style="color: #1f1f1f;">Allow sending data to cloud</label>
+                        </div>
+                        <div class="text-muted mt-1" style="font-size: 12px;">Turn this off to prevent local data from being pushed online.</div>
+                    </div>
+                </div>
+
+                <div class="google-row">
+                    <span class="material-symbols-outlined google-icon">cloud_download</span>
+                    <div class="google-content">
+                        <label class="google-label mb-1">Pull Cloud Updates</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" role="switch" id="sync_pull_enabled" name="sync_pull_enabled" value="1" <?= (!isset($settings['sync_pull_enabled']) || $settings['sync_pull_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="sync_pull_enabled" style="color: #1f1f1f;">Allow receiving data from cloud</label>
+                        </div>
+                        <div class="text-muted mt-1" style="font-size: 12px;">Turn this off to prevent online data from overwriting/adding to local records.</div>
+                    </div>
+                </div>
+                
+                <div class="google-row">
+                    <span class="material-symbols-outlined google-icon">update</span>
+                    <div class="google-content">
+                        <label class="google-label mb-1">Auto Backup & Sync</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" role="switch" id="sync_auto_enabled" name="sync_auto_enabled" value="1" <?= (!isset($settings['sync_auto_enabled']) || $settings['sync_auto_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="sync_auto_enabled" style="color: #1f1f1f;">Enable background auto-sync</label>
+                        </div>
+                        <div class="text-muted mt-1" style="font-size: 12px;">If turned off, you can only perform manual backups using the "Sync Now" button on the dashboard.</div>
+                        
+                        <div class="mt-3">
+                            <label class="google-label">Auto-Backup Interval</label>
+                            <select name="sync_interval_minutes" class="google-input mt-1">
+                                <?php $interval = $settings['sync_interval_minutes'] ?? 5; ?>
+                                <option value="1" <?= $interval == 1 ? 'selected' : '' ?>>Every 1 Minute</option>
+                                <option value="5" <?= $interval == 5 ? 'selected' : '' ?>>Every 5 Minutes (Default)</option>
+                                <option value="15" <?= $interval == 15 ? 'selected' : '' ?>>Every 15 Minutes</option>
+                                <option value="30" <?= $interval == 30 ? 'selected' : '' ?>>Every 30 Minutes</option>
+                                <option value="60" <?= $interval == 60 ? 'selected' : '' ?>>Every 1 Hour</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="google-row">
                     <span class="material-symbols-outlined google-icon">language</span>
                     <div class="google-content">
@@ -256,6 +317,7 @@ ob_start();
                         <div class="text-muted mt-1" style="font-size: 12px;">Leave empty if this is the cloud server. Local apps must enter the URL of the cloud server.</div>
                     </div>
                 </div>
+                
                 <div class="google-row">
                     <span class="material-symbols-outlined google-icon">vpn_key</span>
                     <div class="google-content">
