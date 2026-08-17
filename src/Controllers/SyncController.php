@@ -383,7 +383,7 @@ class SyncController {
         $this->pdo->beginTransaction();
         try {
             // Process tables in order of foreign key constraints
-            $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
+            $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments', 'proformas', 'proforma_items'];
             
             foreach ($tables as $table) {
                 if (isset($data['tables'][$table]) && is_array($data['tables'][$table])) {
@@ -772,7 +772,7 @@ class SyncController {
             $this->pdo->beginTransaction();
             try {
                 // Same strict foreign key order
-                $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
+                $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments', 'proformas', 'proforma_items'];
                 
                 foreach ($tables as $table) {
                     if (isset($data['tables'][$table]) && is_array($data['tables'][$table])) {
