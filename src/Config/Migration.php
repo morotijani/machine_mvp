@@ -165,30 +165,43 @@ CREATE TABLE IF NOT EXISTS `payments` (
 
 CREATE TABLE IF NOT EXISTS `proforma_items` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
   `proforma_id` INTEGER NOT NULL,
+  `proforma_uuid` VARCHAR(36) NULL,
   `item_id` INTEGER NOT NULL,
+  `item_uuid` VARCHAR(36) NULL,
   `quantity` INTEGER NOT NULL,
   `price_at_time` REAL NOT NULL,
+  `sync_status` INTEGER DEFAULT 0,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`proforma_id`) REFERENCES `proformas` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`item_id`) REFERENCES `items` (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `proformas` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
   `reference_no` TEXT NOT NULL,
   `customer_id` INTEGER DEFAULT NULL,
+  `customer_uuid` VARCHAR(36) NULL,
   `total_amount` REAL NOT NULL DEFAULT 0.00,
   `recorded_by` INTEGER NOT NULL,
+  `user_uuid` VARCHAR(36) NULL,
   `notes` text DEFAULT NULL,
+  `sync_status` INTEGER DEFAULT 0,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL,
   FOREIGN KEY (`recorded_by`) REFERENCES `users` (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `sale_items` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
   `sale_id` INTEGER NOT NULL,
+  `sale_uuid` VARCHAR(36) NULL,
   `item_id` INTEGER DEFAULT NULL,
+  `item_uuid` VARCHAR(36) NULL,
   `quantity` INTEGER NOT NULL,
   `price_at_sale` REAL NOT NULL,
   `subtotal` REAL NOT NULL,

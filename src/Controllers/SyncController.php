@@ -78,7 +78,8 @@ class SyncController {
         $optionalTables = [
             'debtors', 'expenditures', 'user_logins', 'sale_return_items', 
             'sale_returns', 'payment_requests', 'item_logs', 'item_bundles', 
-            'debt_repayments', 'customer_debt_payments', 'coffer_transactions', 'standalone_debtors'
+            'debt_repayments', 'customer_debt_payments', 'coffer_transactions', 'standalone_debtors',
+            'proformas', 'proforma_items'
         ];
         
         foreach ($optionalTables as $optTable) {
@@ -98,7 +99,7 @@ class SyncController {
         
         foreach ($tables as $table) {
             // Fetch all unsynced records
-            $stmt = $this->pdo->query("SELECT * FROM `$table` WHERE sync_status = 0");
+            $stmt = $this->pdo->query("SELECT * FROM `$table` WHERE sync_status = 0 LIMIT 500");
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if (count($rows) > 0) {
                 $payload['tables'][$table] = $rows;
@@ -119,9 +120,9 @@ class SyncController {
         
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['sync_data' => $compressedPayload]));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $compressedPayload);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/x-www-form-urlencoded',
+            'Content-Type: application/octet-stream',
             'Authorization: Bearer ' . $apiKey,
             'X-Sync-Api-Key: ' . $apiKey,
             'Accept: application/json'
@@ -245,13 +246,122 @@ class SyncController {
         }
     }
     
+    private function populateUuidsBeforeSync($tables) {
+        $mappings = [
+            'sales' => [
+                ['new_col' => 'customer_uuid', 'old_col' => 'customer_id', 'ref_table' => 'customers'],
+                ['new_col' => 'user_uuid', 'old_col' => 'user_id', 'ref_table' => 'users'],
+            ],
+            'sale_items' => [
+                ['new_col' => 'sale_uuid', 'old_col' => 'sale_id', 'ref_table' => 'sales'],
+                ['new_col' => 'item_uuid', 'old_col' => 'item_id', 'ref_table' => 'items'],
+            ],
+            'payments' => [
+                ['new_col' => 'sale_uuid', 'old_col' => 'sale_id', 'ref_table' => 'sales'],
+                ['new_col' => 'user_uuid', 'old_col' => 'recorded_by', 'ref_table' => 'users'],
+            ],
+            'sale_returns' => [
+                ['new_col' => 'sale_uuid', 'old_col' => 'sale_id', 'ref_table' => 'sales'],
+                ['new_col' => 'user_uuid', 'old_col' => 'recorded_by', 'ref_table' => 'users'],
+            ],
+            'sale_return_items' => [
+                ['new_col' => 'return_uuid', 'old_col' => 'return_id', 'ref_table' => 'sale_returns'],
+                ['new_col' => 'item_uuid', 'old_col' => 'item_id', 'ref_table' => 'items'],
+            ],
+            'payment_requests' => [
+                ['new_col' => 'user_uuid', 'old_col' => 'created_by', 'ref_table' => 'users'],
+                ['new_col' => 'customer_uuid', 'old_col' => 'customer_id', 'ref_table' => 'customers'],
+            ],
+            'inventory_logs' => [
+                ['new_col' => 'item_uuid', 'old_col' => 'item_id', 'ref_table' => 'items'],
+                ['new_col' => 'user_uuid', 'old_col' => 'user_id', 'ref_table' => 'users'],
+            ],
+            'item_bundles' => [
+                ['new_col' => 'bundle_item_uuid', 'old_col' => 'bundle_item_id', 'ref_table' => 'items'],
+                ['new_col' => 'component_item_uuid', 'old_col' => 'component_item_id', 'ref_table' => 'items'],
+            ],
+            'item_logs' => [
+                ['new_col' => 'item_uuid', 'old_col' => 'item_id', 'ref_table' => 'items'],
+                ['new_col' => 'user_uuid', 'old_col' => 'user_id', 'ref_table' => 'users'],
+            ],
+            'debtors' => [
+                ['new_col' => 'customer_uuid', 'old_col' => 'customer_id', 'ref_table' => 'customers'],
+            ],
+            'standalone_debtors' => [
+                ['new_col' => 'user_uuid', 'old_col' => 'recorded_by', 'ref_table' => 'users'],
+            ],
+            'customer_debt_payments' => [
+                ['new_col' => 'customer_uuid', 'old_col' => 'customer_id', 'ref_table' => 'customers'],
+                ['new_col' => 'user_uuid', 'old_col' => 'recorded_by', 'ref_table' => 'users'],
+            ],
+            'expenditures' => [
+                ['new_col' => 'user_uuid', 'old_col' => 'recorded_by', 'ref_table' => 'users'],
+            ],
+            'coffer_transactions' => [
+                ['new_col' => 'user_uuid', 'old_col' => 'recorded_by', 'ref_table' => 'users'],
+            ],
+            'user_logins' => [
+                ['new_col' => 'user_uuid', 'old_col' => 'user_id', 'ref_table' => 'users'],
+            ],
+            'proformas' => [
+                ['new_col' => 'customer_uuid', 'old_col' => 'customer_id', 'ref_table' => 'customers'],
+                ['new_col' => 'user_uuid', 'old_col' => 'recorded_by', 'ref_table' => 'users'],
+            ],
+            'proforma_items' => [
+                ['new_col' => 'proforma_uuid', 'old_col' => 'proforma_id', 'ref_table' => 'proformas'],
+                ['new_col' => 'item_uuid', 'old_col' => 'item_id', 'ref_table' => 'items'],
+            ],
+        ];
+
+        foreach ($tables as $table) {
+            try {
+                // Check if uuid column exists
+                $stmt = $this->pdo->query("SELECT uuid FROM `$table` LIMIT 1");
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            try {
+                // Ensure primary uuid exists
+                $stmt = $this->pdo->query("SELECT id FROM `$table` WHERE uuid IS NULL OR uuid = '' LIMIT 500");
+                $missingUuidRows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                foreach ($missingUuidRows as $row) {
+                    $uuid = \App\Utils\UUID::v4();
+                    $updateStmt = $this->pdo->prepare("UPDATE `$table` SET uuid = ? WHERE id = ?");
+                    $updateStmt->execute([$uuid, $row['id']]);
+                }
+                
+                // Map foreign keys
+                if (isset($mappings[$table])) {
+                    foreach ($mappings[$table] as $map) {
+                        $newCol = $map['new_col'];
+                        $oldCol = $map['old_col'];
+                        $refTable = $map['ref_table'];
+                        
+                        $sql = "UPDATE `$table` SET `$newCol` = (SELECT uuid FROM `$refTable` WHERE `$refTable`.id = `$table`.`$oldCol`) 
+                                WHERE (`$newCol` IS NULL OR `$newCol` = '') AND `$oldCol` IS NOT NULL AND `$oldCol` > 0";
+                        $this->pdo->exec($sql);
+                    }
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+    }
+    
     public function receiveDatabase() {
         set_time_limit(0);
         ini_set('memory_limit', '256M');
         $this->verifyApiKey();
         
-        // Handle both old raw JSON and new compressed form-data
-        if (isset($_POST['sync_data'])) {
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        
+        // Handle both old raw JSON and new compressed form-data/octet-stream
+        if (strpos($contentType, 'application/octet-stream') !== false) {
+            $input = file_get_contents('php://input');
+            $jsonString = gzdecode(base64_decode($input));
+            $data = json_decode($jsonString, true);
+        } elseif (isset($_POST['sync_data'])) {
             $decoded = base64_decode($_POST['sync_data']);
             $jsonString = gzdecode($decoded);
             $data = json_decode($jsonString, true);
@@ -352,6 +462,14 @@ class SyncController {
             ],
             'user_logins' => [
                 'user_id' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'proformas' => [
+                'customer_id' => ['ref_table' => 'customers', 'uuid_col' => 'customer_uuid'],
+                'recorded_by' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
+            ],
+            'proforma_items' => [
+                'proforma_id' => ['ref_table' => 'proformas', 'uuid_col' => 'proforma_uuid'],
+                'item_id' => ['ref_table' => 'items', 'uuid_col' => 'item_uuid']
             ]
         ];
 
@@ -506,7 +624,10 @@ class SyncController {
         ini_set('memory_limit', '256M');
         $this->verifyApiKey();
         
-        $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments'];
+        $tables = ['settings', 'users', 'customers', 'items', 'item_bundles', 'sales', 'sale_items', 'sale_returns', 'sale_return_items', 'payment_requests', 'inventory_logs', 'item_logs', 'debtors', 'standalone_debtors', 'debt_repayments', 'customer_debt_payments', 'expenditures', 'coffer_transactions', 'user_logins', 'payments', 'proformas', 'proforma_items'];
+        
+        // Before exporting, ensure all cloud records have UUIDs generated to prevent sync insertion failures
+        $this->populateUuidsBeforeSync($tables);
         
         $payload = ['tables' => []];
         
@@ -518,8 +639,8 @@ class SyncController {
                 if ($isFull) {
                     $stmt = $this->pdo->query("SELECT * FROM `$table`");
                 } else {
-                    // Fetch all records modified on cloud (sync_status = 0)
-                    $stmt = $this->pdo->query("SELECT * FROM `$table` WHERE sync_status = 0");
+                    // Fetch all records modified on cloud (sync_status = 0) in chunks of 500 to avoid memory/payload limits
+                    $stmt = $this->pdo->query("SELECT * FROM `$table` WHERE sync_status = 0 LIMIT 500");
                 }
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 if (count($rows) > 0) {
