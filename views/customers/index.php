@@ -551,8 +551,12 @@ ob_start();
         const searchInput = document.getElementById('customerSearchInput');
         
         if (searchInput) {
+            // Check if we are on a mobile device (width <= 768px)
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
             // Restore focus and cursor position to end of text if there's a search value
-            if (searchInput.value.length > 0) {
+            // We skip this on mobile so the keyboard doesn't randomly pop up on page load
+            if (searchInput.value.length > 0 && !isMobile) {
                 searchInput.focus();
                 const val = searchInput.value;
                 searchInput.value = '';
@@ -560,6 +564,12 @@ ob_start();
             }
 
             searchInput.addEventListener('input', function() {
+                // Disable auto-submit on mobile because form submission reloads the page,
+                // which causes the mobile keyboard to disappear and cursor to blur.
+                if (window.matchMedia("(max-width: 768px)").matches) {
+                    return;
+                }
+
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(function() {
                     searchInput.closest('form').submit();

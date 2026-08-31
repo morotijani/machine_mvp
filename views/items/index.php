@@ -561,25 +561,21 @@ if (isset($isPrint) && $isPrint) {
             }
         });
 
-        // Auto-Search with Debounce
-        let searchTimeout = null;
+        // Auto-Search with Debounce has been removed per user request
         const searchInput = document.getElementById('itemSearchInput');
         
         if (searchInput) {
+            // Check if we are on a mobile device (width <= 768px)
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
             // Restore focus and cursor position to end of text if there's a search value
-            if (searchInput.value.length > 0) {
+            // We skip this on mobile so the keyboard doesn't randomly pop up on page load
+            if (searchInput.value.length > 0 && !isMobile) {
                 searchInput.focus();
                 const val = searchInput.value;
                 searchInput.value = '';
                 searchInput.value = val;
             }
-
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(function() {
-                    searchInput.closest('form').submit();
-                }, 500); // Wait 500ms after user stops typing before submitting
-            });
         }
     </script>
 </div>

@@ -53,13 +53,13 @@ class Setting
             'receipt_type' => $data['receipt_type'] ?? 'a4',
             'enable_debt_module' => $data['enable_debt_module'] ?? 1,
             'enable_barcode_reader' => $data['enable_barcode_reader'] ?? 1,
-            'enable_desktop_setup' => isset($data['enable_desktop_setup']) ? 1 : 0,
+            'enable_desktop_setup' => isset($data['enable_desktop_setup']) ? $data['enable_desktop_setup'] : 1,
             'cloud_url' => $data['cloud_url'] ?? null,
             'sync_api_key' => $data['sync_api_key'] ?? null,
-            'sync_master_enabled' => isset($data['sync_master_enabled']) ? 1 : 0,
-            'sync_auto_enabled' => isset($data['sync_auto_enabled']) ? 1 : 0,
-            'sync_push_enabled' => isset($data['sync_push_enabled']) ? 1 : 0,
-            'sync_pull_enabled' => isset($data['sync_pull_enabled']) ? 1 : 0,
+            'sync_master_enabled' => isset($data['sync_master_enabled']) ? $data['sync_master_enabled'] : 1,
+            'sync_auto_enabled' => isset($data['sync_auto_enabled']) ? $data['sync_auto_enabled'] : 1,
+            'sync_push_enabled' => isset($data['sync_push_enabled']) ? $data['sync_push_enabled'] : 1,
+            'sync_pull_enabled' => isset($data['sync_pull_enabled']) ? $data['sync_pull_enabled'] : 1,
             'sync_interval_minutes' => isset($data['sync_interval_minutes']) ? (int)$data['sync_interval_minutes'] : 5,
         ];
 
