@@ -4,6 +4,91 @@ ob_start();
 ?>
 
 <style>
+    /* View Toggle */
+    .view-toggle {
+        display: inline-flex;
+        background: #fff;
+        border: 1px solid #dadce0;
+        border-radius: 20px;
+        padding: 2px;
+    }
+    .view-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        color: #5f6368;
+        padding: 6px 12px;
+        border-radius: 18px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 18px;
+    }
+    .view-toggle-btn.active {
+        background: #e8eaed;
+        color: #1f1f1f;
+    }
+    .view-toggle-btn .check-icon {
+        display: none;
+        font-size: 16px;
+        margin-right: 4px;
+        font-weight: bold;
+    }
+    .view-toggle-btn.active .check-icon {
+        display: inline-block;
+    }
+
+    /* Grid View Styles */
+    #itemList.grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 16px;
+        padding: 16px;
+        background: #f8f9fa;
+    }
+    #itemList.grid-view .item-row {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+        padding: 16px;
+        border: 1px solid #e3e3e3;
+        border-radius: 16px !important;
+        background: #fff;
+        height: 100%;
+        margin: 0;
+    }
+    #itemList.grid-view .item-row:hover {
+        border-color: #0b57d0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    #itemList.grid-view .item-row > div:first-child {
+        flex-direction: column !important;
+        width: 100%;
+    }
+    #itemList.grid-view .item-row img, 
+    #itemList.grid-view .item-row .bg-light {
+        margin: 0 auto 12px auto !important;
+        width: 64px !important;
+        height: 64px !important;
+        border-radius: 12px !important;
+    }
+    #itemList.grid-view .item-row > div > div:nth-child(2) {
+        width: 100%;
+    }
+    #itemList.grid-view .item-row > div > div:nth-child(2) .text-muted {
+        flex-direction: column;
+        gap: 4px !important;
+        align-items: center;
+    }
+    #itemList.grid-view .item-row > div > div:nth-child(2) .text-muted span:nth-child(2) {
+        display: none;
+    }
+    #itemList.grid-view .item-row .badge {
+        margin-top: 12px;
+        align-self: center;
+    }
+
     .google-table-card {
         background: #fff;
         border-radius: 24px;
@@ -154,10 +239,20 @@ ob_start();
             <div class="col-md-7">
                 <div class="google-table-card">
                     <!-- Global Search handles filtering, so we just display the list cleanly -->
-                    <div class="p-3" style="border-bottom: 1px solid #e3e3e3; background: #f8f9fa;">
+                    <div class="p-3 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid #e3e3e3; background: #f8f9fa;">
                         <h6 class="mb-0 fw-medium text-muted d-flex align-items-center gap-2" style="font-size: 13px; text-transform: uppercase;">
                             <span class="material-symbols-outlined fs-6">inventory_2</span> Select Items from Inventory
                         </h6>
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active" id="btnGridView" title="Grid View" onclick="setViewMode('grid')">
+                                <span class="material-symbols-outlined check-icon">check</span>
+                                <span class="material-symbols-outlined">grid_view</span>
+                            </button>
+                            <button class="view-toggle-btn" id="btnListView" title="List View" onclick="setViewMode('list')">
+                                <span class="material-symbols-outlined check-icon">check</span>
+                                <span class="material-symbols-outlined">view_list</span>
+                            </button>
+                        </div>
                     </div>
                     <div style="max-height: 600px; overflow-y: auto;">
                         <div class="list-group list-group-flush" id="itemList">
@@ -816,6 +911,29 @@ ob_start();
                 console.error(err);
                 showPosError('Error communicating with server', 'Network Error');
             });
+    });
+
+    function setViewMode(mode) {
+        const list = document.getElementById('itemList');
+        const btnGrid = document.getElementById('btnGridView');
+        const btnList = document.getElementById('btnListView');
+        
+        if (mode === 'grid') {
+            list.classList.add('grid-view');
+            btnGrid.classList.add('active');
+            btnList.classList.remove('active');
+            localStorage.setItem('sales_view_mode', 'grid');
+        } else {
+            list.classList.remove('grid-view');
+            btnList.classList.add('active');
+            btnGrid.classList.remove('active');
+            localStorage.setItem('sales_view_mode', 'list');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedMode = localStorage.getItem('sales_view_mode') || 'grid';
+        setViewMode(savedMode);
     });
 </script>
 
