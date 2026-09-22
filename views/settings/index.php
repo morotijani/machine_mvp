@@ -1,6 +1,12 @@
 <?php
 $title = "Company Settings";
 ob_start();
+
+// // check if user with id 1 login then redirect that user from this settings page
+// if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 2) {
+//     header('Location: ' . BASE_URL . '/dashboard');
+//     exit();
+// }
 ?>
 
 <div class="row justify-content-center">
@@ -18,6 +24,7 @@ ob_start();
                 border: none;
                 box-shadow: none;
             }
+
             .google-row {
                 display: flex;
                 align-items: center;
@@ -25,29 +32,36 @@ ob_start();
                 border-bottom: 1px solid #e3e3e3;
                 transition: background-color 0.2s;
             }
+
             .google-row:last-child {
                 border-bottom: none;
             }
+
             .google-row:focus-within {
                 background-color: #f8f9fa;
             }
+
             .google-icon {
                 color: #444746;
                 margin-right: 24px;
                 font-size: 24px;
             }
+
             .google-content {
                 flex-grow: 1;
                 display: flex;
                 flex-direction: column;
             }
+
             .google-label {
                 font-size: 14px;
                 color: #444746;
                 margin-bottom: 4px;
                 font-weight: 500;
             }
-            .google-input, .google-textarea {
+
+            .google-input,
+            .google-textarea {
                 border: none;
                 outline: none;
                 background: transparent;
@@ -56,13 +70,17 @@ ob_start();
                 padding: 0;
                 width: 100%;
             }
-            .google-input:focus, .google-textarea:focus {
+
+            .google-input:focus,
+            .google-textarea:focus {
                 color: #0b57d0;
             }
+
             .google-textarea {
                 resize: none;
                 margin-top: 2px;
             }
+
             .google-btn {
                 background-color: #0b57d0;
                 color: #fff;
@@ -78,9 +96,11 @@ ob_start();
                 font-size: 14px;
                 cursor: pointer;
             }
+
             .google-btn:hover {
                 background-color: #0842a0;
             }
+
             .google-alert {
                 border-radius: 16px;
                 border: none;
@@ -88,26 +108,29 @@ ob_start();
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
                 font-weight: 500;
                 font-size: 14px;
                 margin-bottom: 24px;
             }
+
             .google-alert-success {
                 background-color: #e6f4ea;
                 color: #137333;
             }
+
             .google-alert-danger {
                 background-color: #fce8e6;
                 color: #d93025;
             }
-            
+
             /* custom file input wrapper */
             .file-upload-wrapper {
                 position: relative;
                 overflow: hidden;
                 display: inline-block;
             }
+
             .file-upload-wrapper input[type=file] {
                 font-size: 100px;
                 position: absolute;
@@ -126,7 +149,7 @@ ob_start();
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-        
+
         <?php if (isset($success)): ?>
             <div class="alert google-alert google-alert-success alert-dismissible fade show" role="alert">
                 <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
@@ -137,25 +160,29 @@ ob_start();
 
         <form action="<?= BASE_URL ?>/settings/update" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-            
+
             <div class="google-card">
-                
+
                 <div class="google-row align-items-start py-4">
                     <span class="material-symbols-outlined google-icon mt-1">image</span>
                     <div class="google-content">
                         <label class="google-label mb-3">Company Logo</label>
                         <div class="d-flex align-items-center gap-4">
                             <?php if (!empty($settings['company_logo'])): ?>
-                                <img src="<?= BASE_URL ?>/<?= $settings['company_logo'] ?>" style="width: 80px; height: 80px; object-fit: cover; border-radius: 16px; border: 1px solid #e3e3e3;">
+                                <img src="<?= BASE_URL ?>/<?= $settings['company_logo'] ?>"
+                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 16px; border: 1px solid #e3e3e3;">
                             <?php else: ?>
-                                <div class="d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 16px; background-color: #f1f3f4; color: #444746;">
+                                <div class="d-flex align-items-center justify-content-center"
+                                    style="width: 80px; height: 80px; border-radius: 16px; background-color: #f1f3f4; color: #444746;">
                                     <span class="material-symbols-outlined">storefront</span>
                                 </div>
                             <?php endif; ?>
-                            
+
                             <div>
                                 <div class="file-upload-wrapper">
-                                    <button type="button" class="btn btn-light" style="border-radius: 20px; font-weight: 500; background: #f1f3f4; border: none; padding: 6px 16px; font-size: 14px;">Change Logo</button>
+                                    <button type="button" class="btn btn-light"
+                                        style="border-radius: 20px; font-weight: 500; background: #f1f3f4; border: none; padding: 6px 16px; font-size: 14px;">Change
+                                        Logo</button>
                                     <input type="file" name="company_logo" accept="image/*">
                                 </div>
                                 <div class="text-muted mt-2" style="font-size: 12px;">Recommended: Square PNG/JPG</div>
@@ -168,7 +195,8 @@ ob_start();
                     <span class="material-symbols-outlined google-icon">storefront</span>
                     <div class="google-content">
                         <label class="google-label">Company Name</label>
-                        <input type="text" name="company_name" class="google-input" value="<?= e($settings['company_name'] ?? '') ?>" placeholder="Enter company name" required>
+                        <input type="text" name="company_name" class="google-input"
+                            value="<?= e($settings['company_name'] ?? '') ?>" placeholder="Enter company name" required>
                     </div>
                 </div>
 
@@ -176,7 +204,8 @@ ob_start();
                     <span class="material-symbols-outlined google-icon">call</span>
                     <div class="google-content">
                         <label class="google-label">Phone Number</label>
-                        <input type="text" name="company_phone" class="google-input" value="<?= e($settings['company_phone'] ?? '') ?>" placeholder="Enter contact number">
+                        <input type="text" name="company_phone" class="google-input"
+                            value="<?= e($settings['company_phone'] ?? '') ?>" placeholder="Enter contact number">
                     </div>
                 </div>
 
@@ -184,7 +213,8 @@ ob_start();
                     <span class="material-symbols-outlined google-icon">mail</span>
                     <div class="google-content">
                         <label class="google-label">Email Address</label>
-                        <input type="email" name="company_email" class="google-input" value="<?= e($settings['company_email'] ?? '') ?>" placeholder="Enter email address">
+                        <input type="email" name="company_email" class="google-input"
+                            value="<?= e($settings['company_email'] ?? '') ?>" placeholder="Enter email address">
                     </div>
                 </div>
 
@@ -192,22 +222,27 @@ ob_start();
                     <span class="material-symbols-outlined google-icon">location_on</span>
                     <div class="google-content">
                         <label class="google-label">Address (Street, City, State, Zip)</label>
-                        <textarea name="company_address" class="google-textarea" rows="2" placeholder="Enter full address"><?= e($settings['company_address'] ?? '') ?></textarea>
+                        <textarea name="company_address" class="google-textarea" rows="2"
+                            placeholder="Enter full address"><?= e($settings['company_address'] ?? '') ?></textarea>
                     </div>
                 </div>
-                
+
                 <div class="google-row">
                     <span class="material-symbols-outlined google-icon">receipt_long</span>
                     <div class="google-content">
                         <label class="google-label mb-2">Receipt Print Format</label>
                         <div class="d-flex gap-4 mt-1">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="receipt_type" id="receipt_a4" value="a4" <?= (!isset($settings['receipt_type']) || $settings['receipt_type'] === 'a4') ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="receipt_a4" style="color: #1f1f1f;">Standard A4</label>
+                                <input class="form-check-input" type="radio" name="receipt_type" id="receipt_a4"
+                                    value="a4" <?= (!isset($settings['receipt_type']) || $settings['receipt_type'] === 'a4') ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="receipt_a4" style="color: #1f1f1f;">Standard
+                                    A4</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="receipt_type" id="receipt_thermal" value="thermal" <?= (isset($settings['receipt_type']) && $settings['receipt_type'] === 'thermal') ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="receipt_thermal" style="color: #1f1f1f;">Thermal POS Receipt (80mm)</label>
+                                <input class="form-check-input" type="radio" name="receipt_type" id="receipt_thermal"
+                                    value="thermal" <?= (isset($settings['receipt_type']) && $settings['receipt_type'] === 'thermal') ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="receipt_thermal" style="color: #1f1f1f;">Thermal
+                                    POS Receipt (80mm)</label>
                             </div>
                         </div>
                     </div>
@@ -218,133 +253,163 @@ ob_start();
                     <div class="google-content">
                         <label class="google-label mb-1">System Modules</label>
                         <div class="form-check form-switch mt-1">
-                            <input class="form-check-input" type="checkbox" role="switch" id="enable_debt_module" name="enable_debt_module" value="1" <?= (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
-                            <label class="form-check-label" for="enable_debt_module" style="color: #1f1f1f;">Enable Standalone Debt Module</label>
+                            <input class="form-check-input" type="checkbox" role="switch" id="enable_debt_module"
+                                name="enable_debt_module" value="1" <?= (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="enable_debt_module" style="color: #1f1f1f;">Enable
+                                Standalone Debt Module</label>
                         </div>
-                        <div class="text-muted mt-1 mb-3" style="font-size: 13px;">If turned off, the Debtors menu will be hidden and standalone debt will not be included in dashboard calculations.</div>
-                        
+                        <div class="text-muted mt-1 mb-3" style="font-size: 13px;">If turned off, the Debtors menu will
+                            be hidden and standalone debt will not be included in dashboard calculations.</div>
+
                         <div class="form-check form-switch mt-1">
-                            <input class="form-check-input" type="checkbox" role="switch" id="enable_barcode_reader" name="enable_barcode_reader" value="1" <?= (!isset($settings['enable_barcode_reader']) || $settings['enable_barcode_reader'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
-                            <label class="form-check-label" for="enable_barcode_reader" style="color: #1f1f1f;">Use Barcode Scanner</label>
+                            <input class="form-check-input" type="checkbox" role="switch" id="enable_barcode_reader"
+                                name="enable_barcode_reader" value="1" <?= (!isset($settings['enable_barcode_reader']) || $settings['enable_barcode_reader'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="enable_barcode_reader" style="color: #1f1f1f;">Use
+                                Barcode Scanner</label>
                         </div>
-                        <div class="text-muted mt-1 mb-3" style="font-size: 13px;">If turned off, the barcode scanner input will be hidden on the New Sale page and autofocus will default to the search bar.</div>
-                        
+                        <div class="text-muted mt-1 mb-3" style="font-size: 13px;">If turned off, the barcode scanner
+                            input will be hidden on the New Sale page and autofocus will default to the search bar.
+                        </div>
+
                         <div class="form-check form-switch mt-1">
-                            <input class="form-check-input" type="checkbox" role="switch" id="enable_desktop_setup" name="enable_desktop_setup" value="1" <?= (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
-                            <label class="form-check-label" for="enable_desktop_setup" style="color: #1f1f1f;">Desktop Setup</label>
+                            <input class="form-check-input" type="checkbox" role="switch" id="enable_desktop_setup"
+                                name="enable_desktop_setup" value="1" <?= (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                            <label class="form-check-label" for="enable_desktop_setup" style="color: #1f1f1f;">Desktop
+                                Setup</label>
                         </div>
-                        <div class="text-muted mt-1" style="font-size: 13px;">If turned off, Cloud Sync will be completely disabled. Use this if this is the online dashboard.</div>
+                        <div class="text-muted mt-1" style="font-size: 13px;">If turned off, Cloud Sync will be
+                            completely disabled. Use this if this is the online dashboard.</div>
                     </div>
                 </div>
 
             </div>
 
             <?php if (!isset($settings['enable_desktop_setup']) || $settings['enable_desktop_setup'] == 1): ?>
-            <div class="google-card mt-4">
-                <div class="google-row align-items-center" style="background-color: #f8f9fa;">
-                    <span class="material-symbols-outlined google-icon text-primary">cloud_sync</span>
-                    <div class="google-content">
-                        <h5 class="mb-0 fw-bold" style="color: #1f1f1f;">Cloud Sync & Backup Configuration</h5>
-                        <div class="text-muted" style="font-size: 13px;">Configure your connection to the online dashboard server and regulate backup behavior.</div>
-                    </div>
-                </div>
-                
-                <div class="google-row">
-                    <span class="material-symbols-outlined google-icon">power_settings_new</span>
-                    <div class="google-content">
-                        <label class="google-label mb-1">Master Cloud Sync</label>
-                        <div class="form-check form-switch mt-1">
-                            <input class="form-check-input" type="checkbox" role="switch" id="sync_master_enabled" name="sync_master_enabled" value="1" <?= (!isset($settings['sync_master_enabled']) || $settings['sync_master_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
-                            <label class="form-check-label" for="sync_master_enabled" style="color: #1f1f1f;">Enable all Cloud Sync Features</label>
+                <div class="google-card mt-4">
+                    <div class="google-row align-items-center" style="background-color: #f8f9fa;">
+                        <span class="material-symbols-outlined google-icon text-primary">cloud_sync</span>
+                        <div class="google-content">
+                            <h5 class="mb-0 fw-bold" style="color: #1f1f1f;">Cloud Sync & Backup Configuration</h5>
+                            <div class="text-muted" style="font-size: 13px;">Configure your connection to the online
+                                dashboard server and regulate backup behavior.</div>
                         </div>
-                        <div class="text-muted mt-1" style="font-size: 12px;">If turned off, no pushes, pulls, or auto-backups will occur.</div>
                     </div>
-                </div>
 
-                <div class="google-row">
-                    <span class="material-symbols-outlined google-icon">cloud_upload</span>
-                    <div class="google-content">
-                        <label class="google-label mb-1">Push Local Updates</label>
-                        <div class="form-check form-switch mt-1">
-                            <input class="form-check-input" type="checkbox" role="switch" id="sync_push_enabled" name="sync_push_enabled" value="1" <?= (!isset($settings['sync_push_enabled']) || $settings['sync_push_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
-                            <label class="form-check-label" for="sync_push_enabled" style="color: #1f1f1f;">Allow sending data to cloud</label>
+                    <div class="google-row">
+                        <span class="material-symbols-outlined google-icon">power_settings_new</span>
+                        <div class="google-content">
+                            <label class="google-label mb-1">Master Cloud Sync</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sync_master_enabled"
+                                    name="sync_master_enabled" value="1" <?= (!isset($settings['sync_master_enabled']) || $settings['sync_master_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                                <label class="form-check-label" for="sync_master_enabled" style="color: #1f1f1f;">Enable all
+                                    Cloud Sync Features</label>
+                            </div>
+                            <div class="text-muted mt-1" style="font-size: 12px;">If turned off, no pushes, pulls, or
+                                auto-backups will occur.</div>
                         </div>
-                        <div class="text-muted mt-1" style="font-size: 12px;">Turn this off to prevent local data from being pushed online.</div>
                     </div>
-                </div>
 
-                <div class="google-row">
-                    <span class="material-symbols-outlined google-icon">cloud_download</span>
-                    <div class="google-content">
-                        <label class="google-label mb-1">Pull Cloud Updates</label>
-                        <div class="form-check form-switch mt-1">
-                            <input class="form-check-input" type="checkbox" role="switch" id="sync_pull_enabled" name="sync_pull_enabled" value="1" <?= (!isset($settings['sync_pull_enabled']) || $settings['sync_pull_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
-                            <label class="form-check-label" for="sync_pull_enabled" style="color: #1f1f1f;">Allow receiving data from cloud</label>
-                        </div>
-                        <div class="text-muted mt-1" style="font-size: 12px;">Turn this off to prevent online data from overwriting/adding to local records.</div>
-                    </div>
-                </div>
-                
-                <div class="google-row">
-                    <span class="material-symbols-outlined google-icon">update</span>
-                    <div class="google-content">
-                        <label class="google-label mb-1">Auto Backup & Sync</label>
-                        <div class="form-check form-switch mt-1">
-                            <input class="form-check-input" type="checkbox" role="switch" id="sync_auto_enabled" name="sync_auto_enabled" value="1" <?= (!isset($settings['sync_auto_enabled']) || $settings['sync_auto_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
-                            <label class="form-check-label" for="sync_auto_enabled" style="color: #1f1f1f;">Enable background auto-sync</label>
-                        </div>
-                        <div class="text-muted mt-1" style="font-size: 12px;">If turned off, you can only perform manual backups using the "Sync Now" button on the dashboard.</div>
-                        
-                        <div class="mt-3">
-                            <label class="google-label">Auto-Backup Interval</label>
-                            <select name="sync_interval_minutes" class="google-input mt-1">
-                                <?php $interval = $settings['sync_interval_minutes'] ?? 5; ?>
-                                <option value="1" <?= $interval == 1 ? 'selected' : '' ?>>Every 1 Minute</option>
-                                <option value="5" <?= $interval == 5 ? 'selected' : '' ?>>Every 5 Minutes (Default)</option>
-                                <option value="15" <?= $interval == 15 ? 'selected' : '' ?>>Every 15 Minutes</option>
-                                <option value="30" <?= $interval == 30 ? 'selected' : '' ?>>Every 30 Minutes</option>
-                                <option value="60" <?= $interval == 60 ? 'selected' : '' ?>>Every 1 Hour</option>
-                            </select>
+                    <div class="google-row">
+                        <span class="material-symbols-outlined google-icon">cloud_upload</span>
+                        <div class="google-content">
+                            <label class="google-label mb-1">Push Local Updates</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sync_push_enabled"
+                                    name="sync_push_enabled" value="1" <?= (!isset($settings['sync_push_enabled']) || $settings['sync_push_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                                <label class="form-check-label" for="sync_push_enabled" style="color: #1f1f1f;">Allow
+                                    sending data to cloud</label>
+                            </div>
+                            <div class="text-muted mt-1" style="font-size: 12px;">Turn this off to prevent local data from
+                                being pushed online.</div>
                         </div>
                     </div>
-                </div>
 
-                <div class="google-row">
-                    <span class="material-symbols-outlined google-icon">language</span>
-                    <div class="google-content">
-                        <label class="google-label">Cloud Server URL</label>
-                        <input type="url" name="cloud_url" class="google-input" value="<?= e($settings['cloud_url'] ?? '') ?>" placeholder="e.g. https://myhardware.com">
-                        <div class="text-muted mt-1" style="font-size: 12px;">Leave empty if this is the cloud server. Local apps must enter the URL of the cloud server.</div>
+                    <div class="google-row">
+                        <span class="material-symbols-outlined google-icon">cloud_download</span>
+                        <div class="google-content">
+                            <label class="google-label mb-1">Pull Cloud Updates</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sync_pull_enabled"
+                                    name="sync_pull_enabled" value="1" <?= (!isset($settings['sync_pull_enabled']) || $settings['sync_pull_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                                <label class="form-check-label" for="sync_pull_enabled" style="color: #1f1f1f;">Allow
+                                    receiving data from cloud</label>
+                            </div>
+                            <div class="text-muted mt-1" style="font-size: 12px;">Turn this off to prevent online data from
+                                overwriting/adding to local records.</div>
+                        </div>
+                    </div>
+
+                    <div class="google-row">
+                        <span class="material-symbols-outlined google-icon">update</span>
+                        <div class="google-content">
+                            <label class="google-label mb-1">Auto Backup & Sync</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sync_auto_enabled"
+                                    name="sync_auto_enabled" value="1" <?= (!isset($settings['sync_auto_enabled']) || $settings['sync_auto_enabled'] == 1) ? 'checked' : '' ?> style="cursor: pointer;">
+                                <label class="form-check-label" for="sync_auto_enabled" style="color: #1f1f1f;">Enable
+                                    background auto-sync</label>
+                            </div>
+                            <div class="text-muted mt-1" style="font-size: 12px;">If turned off, you can only perform manual
+                                backups using the "Sync Now" button on the dashboard.</div>
+
+                            <div class="mt-3">
+                                <label class="google-label">Auto-Backup Interval</label>
+                                <select name="sync_interval_minutes" class="google-input mt-1">
+                                    <?php $interval = $settings['sync_interval_minutes'] ?? 5; ?>
+                                    <option value="1" <?= $interval == 1 ? 'selected' : '' ?>>Every 1 Minute</option>
+                                    <option value="5" <?= $interval == 5 ? 'selected' : '' ?>>Every 5 Minutes (Default)
+                                    </option>
+                                    <option value="15" <?= $interval == 15 ? 'selected' : '' ?>>Every 15 Minutes</option>
+                                    <option value="30" <?= $interval == 30 ? 'selected' : '' ?>>Every 30 Minutes</option>
+                                    <option value="60" <?= $interval == 60 ? 'selected' : '' ?>>Every 1 Hour</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="google-row">
+                        <span class="material-symbols-outlined google-icon">language</span>
+                        <div class="google-content">
+                            <label class="google-label">Cloud Server URL</label>
+                            <input type="url" name="cloud_url" class="google-input"
+                                value="<?= e($settings['cloud_url'] ?? '') ?>" placeholder="e.g. https://myhardware.com">
+                            <div class="text-muted mt-1" style="font-size: 12px;">Leave empty if this is the cloud server.
+                                Local apps must enter the URL of the cloud server.</div>
+                        </div>
+                    </div>
+
+                    <div class="google-row">
+                        <span class="material-symbols-outlined google-icon">vpn_key</span>
+                        <div class="google-content">
+                            <label class="google-label">Sync API Key</label>
+                            <input type="password" name="sync_api_key" class="google-input"
+                                value="<?= e($settings['sync_api_key'] ?? '') ?>" placeholder="Enter secret API key">
+                            <div class="text-muted mt-1" style="font-size: 12px;">This key must be identical on both the
+                                local system and the cloud server.</div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="google-row">
-                    <span class="material-symbols-outlined google-icon">vpn_key</span>
-                    <div class="google-content">
-                        <label class="google-label">Sync API Key</label>
-                        <input type="password" name="sync_api_key" class="google-input" value="<?= e($settings['sync_api_key'] ?? '') ?>" placeholder="Enter secret API key">
-                        <div class="text-muted mt-1" style="font-size: 12px;">This key must be identical on both the local system and the cloud server.</div>
-                    </div>
-                </div>
-            </div>
             <?php endif; ?>
 
             <div class="d-flex justify-content-end mb-4">
                 <button type="submit" class="google-btn">Save Settings</button>
             </div>
         </form>
-        
+
         <div class="google-card mt-4 mb-5">
             <form id="cleanLogsForm" action="<?= BASE_URL ?>/settings/clean-logs" method="POST">
                 <div class="google-row align-items-center" style="background-color: #fff3e0;">
                     <span class="material-symbols-outlined google-icon text-warning">delete_sweep</span>
                     <div class="google-content">
                         <h5 class="mb-0 fw-bold" style="color: #1f1f1f;">Database Maintenance (Logs)</h5>
-                        <div class="text-muted" style="font-size: 13px;">Clean up old system logs (Item Logs, User Logins) to free up database space.</div>
+                        <div class="text-muted" style="font-size: 13px;">Clean up old system logs (Item Logs, User
+                            Logins) to free up database space.</div>
                     </div>
                 </div>
                 <div class="google-row">
-                    <div class="google-content w-100 d-flex flex-wrap gap-3 align-items-end" style="border-bottom: none;">
+                    <div class="google-content w-100 d-flex flex-wrap gap-3 align-items-end"
+                        style="border-bottom: none;">
                         <div class="flex-grow-1">
                             <label class="google-label">Select Timeframe to Delete</label>
                             <select name="clean_period" class="google-input" required>
@@ -355,7 +420,8 @@ ob_start();
                                 <option value="all">Delete ALL Logs entirely</option>
                             </select>
                         </div>
-                        <button type="button" class="google-btn" style="background-color: #dc3545; min-width: 150px;" onclick="promptCleanLogs()">Clean Logs Now</button>
+                        <button type="button" class="google-btn" style="background-color: #dc3545; min-width: 150px;"
+                            onclick="promptCleanLogs()">Clean Logs Now</button>
                     </div>
                 </div>
             </form>
@@ -369,10 +435,14 @@ ob_start();
         <div class="modal-content border-0 shadow-lg" style="border-radius: 28px;">
             <div class="modal-body p-4">
                 <h4 class="mb-3" style="font-size: 24px; color: #1f1f1f; font-weight: 400;">Clean Logs?</h4>
-                <p style="font-size: 14px; color: #444746; line-height: 1.5; margin-bottom: 32px;">Are you sure you want to clean the logs? This action cannot be undone.</p>
+                <p style="font-size: 14px; color: #444746; line-height: 1.5; margin-bottom: 32px;">Are you sure you want
+                    to clean the logs? This action cannot be undone.</p>
                 <div class="d-flex justify-content-end align-items-center gap-2">
-                    <button type="button" class="btn btn-link" data-bs-dismiss="modal" style="color: #0b57d0; font-weight: 500; text-decoration: none; padding: 10px 16px; border-radius: 20px;">Cancel</button>
-                    <button type="button" id="confirmCleanLogsBtn" class="btn" style="background-color: #dc3545; color: #fff; font-weight: 500; border-radius: 20px; padding: 10px 24px; border: none;">Clean Logs</button>
+                    <button type="button" class="btn btn-link" data-bs-dismiss="modal"
+                        style="color: #0b57d0; font-weight: 500; text-decoration: none; padding: 10px 16px; border-radius: 20px;">Cancel</button>
+                    <button type="button" id="confirmCleanLogsBtn" class="btn"
+                        style="background-color: #dc3545; color: #fff; font-weight: 500; border-radius: 20px; padding: 10px 24px; border: none;">Clean
+                        Logs</button>
                 </div>
             </div>
         </div>
@@ -389,8 +459,8 @@ ob_start();
         const modal = new bootstrap.Modal(document.getElementById('cleanLogsModal'));
         modal.show();
     }
-    
-    document.getElementById('confirmCleanLogsBtn')?.addEventListener('click', function() {
+
+    document.getElementById('confirmCleanLogsBtn')?.addEventListener('click', function () {
         document.getElementById('cleanLogsForm').submit();
     });
 </script>
