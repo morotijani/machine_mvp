@@ -24,18 +24,20 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
         }
 
         <?php if ($receiptFormat === 'thermal'): ?>
-        .invoice-card {
-            display: none !important;
-        }
+            .invoice-card {
+                display: none !important;
+            }
+
         <?php else: ?>
-        .invoice-card {
-            box-shadow: none !important;
-            border: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            max-width: 100% !important;
-            display: block !important;
-        }
+            .invoice-card {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                display: block !important;
+            }
+
         <?php endif; ?>
 
         .modal-backdrop,
@@ -69,10 +71,12 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
         align-items: center;
         justify-content: center;
     }
+
     .google-btn-secondary:hover {
         background: #f8f9fa;
         color: #1f1f1f;
     }
+
     .google-btn-primary {
         background: #0b57d0;
         border: none;
@@ -87,6 +91,7 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
         align-items: center;
         justify-content: center;
     }
+
     .google-btn-primary:hover {
         background: #0842a0;
         color: #fff;
@@ -146,12 +151,14 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
     .material-modal .modal-content {
         border-radius: 28px;
     }
+
     .material-modal .modal-title-custom {
         font-size: 24px;
         color: #1f1f1f;
         font-weight: 400;
         margin-bottom: 16px;
     }
+
     .material-modal .btn-cancel {
         color: #0b57d0;
         font-weight: 500;
@@ -159,9 +166,11 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
         padding: 10px 16px;
         border-radius: 20px;
     }
+
     .material-modal .btn-cancel:hover {
         background-color: #f6f8fb;
     }
+
     .material-modal .btn-ok {
         background-color: #0b57d0;
         color: #fff;
@@ -171,10 +180,12 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
         border: none;
         transition: background-color 0.2s;
     }
+
     .material-modal .btn-ok:hover {
         background-color: #0842a0;
         color: #fff;
     }
+
     .material-modal .btn-danger-ok {
         background-color: #c5221f;
         color: #fff;
@@ -183,6 +194,7 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
         padding: 10px 24px;
         border: none;
     }
+
     .material-modal .btn-danger-ok:hover {
         background-color: #a50e0e;
     }
@@ -192,7 +204,8 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
     <div class="col-md-10">
 
         <!-- Toolbar -->
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-4 gap-2 no-print">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-4 gap-2 no-print">
             <h1 class="h3 mb-0 fw-normal" style="color: #1f1f1f;">Invoice #<?= $sale['id'] ?></h1>
             <div class="d-flex flex-wrap gap-2">
                 <a href="<?= $returnUrl ?>" class="google-btn-secondary gap-1 border-0 shadow-sm bg-white">
@@ -204,13 +217,13 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                     <span class="material-symbols-outlined" style="font-size: 18px;">print</span>
                     <?= ($sale['payment_status'] === 'paid') ? 'Print Receipt' : 'Print Unpaid Draft' ?>
                 </button>
-                <a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" target="_blank" class="google-btn-secondary bg-white d-flex align-items-center gap-1 shadow-sm border-0 ms-2" title="If printing fails, use this to open in your default web browser">
+                <!-- <a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" target="_blank" class="google-btn-secondary bg-white d-flex align-items-center gap-1 shadow-sm border-0 ms-2" title="If printing fails, use this to open in your default web browser">
                     <span class="material-symbols-outlined" style="font-size: 18px;">open_in_new</span>
                     Open in Browser to Print
-                </a>
+                </a> -->
                 <?php if (!$sale['voided'] && $_SESSION['role'] !== 'cashier'): ?>
-                    <button type="button" class="google-btn-secondary d-flex align-items-center gap-1 shadow-sm bg-white" style="color: #c5221f; border-color: #fad2cf;"
-                        data-bs-toggle="modal" data-bs-target="#returnModal">
+                    <button type="button" class="google-btn-secondary d-flex align-items-center gap-1 shadow-sm bg-white"
+                        style="color: #c5221f; border-color: #fad2cf;" data-bs-toggle="modal" data-bs-target="#returnModal">
                         <span class="material-symbols-outlined" style="font-size: 18px;">keyboard_return</span> Return Items
                     </button>
                 <?php endif; ?>
@@ -256,10 +269,13 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                     <?php else: ?>
                         <h4 class="fw-bold" style="color: #0b57d0;">RECEIPT</h4>
                     <?php endif; ?>
-                    <div class="fs-5" style="color: #1f1f1f;">#<?= htmlspecialchars($sale['invoice_number'] ?? str_pad($sale['id'], 6, '0', STR_PAD_LEFT)) ?></div>
+                    <div class="fs-5" style="color: #1f1f1f;">
+                        #<?= htmlspecialchars($sale['invoice_number'] ?? str_pad($sale['id'], 6, '0', STR_PAD_LEFT)) ?>
+                    </div>
                     <div class="text-muted small mb-2">Date: <?= date('M j, Y', strtotime($sale['created_at'])) ?></div>
                     <div class="d-flex justify-content-end">
-                        <svg id="invoice-barcode" data-value="<?= htmlspecialchars($sale['invoice_number'] ?? $sale['id']) ?>"
+                        <svg id="invoice-barcode"
+                            data-value="<?= htmlspecialchars($sale['invoice_number'] ?? $sale['id']) ?>"
                             style="max-height: 40px; width: 120px;"></svg>
                     </div>
                 </div>
@@ -271,7 +287,8 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                     <p class="mb-1 text-uppercase text-muted small fw-bold">Bill To</p>
                     <?php if ($sale['customer_name']): ?>
                         <h5 class="fw-bold" style="color: #1f1f1f;">
-                            <?= e($sale['customer_name']) ?>    <?= ($sale['customer_is_deleted'] == 1) ? ' <span class="text-danger small">[Deleted]</span>' : '' ?>
+                            <?= e($sale['customer_name']) ?>
+                            <?= ($sale['customer_is_deleted'] == 1) ? ' <span class="text-danger small">[Deleted]</span>' : '' ?>
                         </h5>
                         <p style="color: #444746; font-size: 14px;">
                             <?= e($sale['customer_address'] ?? '') ?><br>
@@ -284,11 +301,15 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                 <div class="col-6 text-end">
                     <p class="mb-1 text-uppercase text-muted small fw-bold">Payment Status</p>
                     <?php if ($sale['payment_status'] === 'paid'): ?>
-                        <span class="badge" style="background: #e6f4ea; color: #137333; font-size: 16px; padding: 6px 12px; border-radius: 12px; border: 1px solid #ceead6;">PAID</span>
+                        <span class="badge"
+                            style="background: #e6f4ea; color: #137333; font-size: 16px; padding: 6px 12px; border-radius: 12px; border: 1px solid #ceead6;">PAID</span>
                     <?php elseif ($sale['payment_status'] === 'partial'): ?>
-                        <span class="badge" style="background: #fef7e0; color: #b06000; font-size: 16px; padding: 6px 12px; border-radius: 12px; border: 1px solid #fce8b2;">PARTIAL CREDIT</span>
+                        <span class="badge"
+                            style="background: #fef7e0; color: #b06000; font-size: 16px; padding: 6px 12px; border-radius: 12px; border: 1px solid #fce8b2;">PARTIAL
+                            CREDIT</span>
                     <?php else: ?>
-                        <span class="badge" style="background: #fce8e6; color: #c5221f; font-size: 16px; padding: 6px 12px; border-radius: 12px; border: 1px solid #fad2cf;">UNPAID</span>
+                        <span class="badge"
+                            style="background: #fce8e6; color: #c5221f; font-size: 16px; padding: 6px 12px; border-radius: 12px; border: 1px solid #fad2cf;">UNPAID</span>
                     <?php endif; ?>
                 </div>
             </div>
@@ -334,17 +355,23 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                     </tbody>
                     <tfoot style="background: #f8f9fa;">
                         <tr>
-                            <td colspan="4" class="text-end fw-medium py-3 text-uppercase" style="font-size: 13px; color: #5f6368;">Total Amount</td>
-                            <td class="text-end fw-bold fs-5 py-3" style="color: #0b57d0;">₵<?php echo number_format($sale['total_amount'], 2); ?></td>
+                            <td colspan="4" class="text-end fw-medium py-3 text-uppercase"
+                                style="font-size: 13px; color: #5f6368;">Total Amount</td>
+                            <td class="text-end fw-bold fs-5 py-3" style="color: #0b57d0;">
+                                ₵<?php echo number_format($sale['total_amount'], 2); ?></td>
                         </tr>
                         <tr>
-                            <td colspan="4" class="text-end py-2 text-uppercase" style="font-size: 13px; color: #5f6368;">Amount Paid</td>
-                            <td class="text-end fw-medium py-2" style="color: #137333;">-₵<?php echo number_format($sale['paid_amount'], 2); ?></td>
+                            <td colspan="4" class="text-end py-2 text-uppercase"
+                                style="font-size: 13px; color: #5f6368;">Amount Paid</td>
+                            <td class="text-end fw-medium py-2" style="color: #137333;">
+                                -₵<?php echo number_format($sale['paid_amount'], 2); ?></td>
                         </tr>
                         <?php if ($sale['total_amount'] - $sale['paid_amount'] > 0): ?>
                             <tr>
-                                <td colspan="4" class="text-end fw-bold py-3 text-uppercase" style="font-size: 13px; color: #c5221f;">Balance Due</td>
-                                <td class="text-end fw-bold fs-5 py-3" style="color: #c5221f;">₵<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></td>
+                                <td colspan="4" class="text-end fw-bold py-3 text-uppercase"
+                                    style="font-size: 13px; color: #c5221f;">Balance Due</td>
+                                <td class="text-end fw-bold fs-5 py-3" style="color: #c5221f;">
+                                    ₵<?php echo number_format($sale['total_amount'] - $sale['paid_amount'], 2); ?></td>
                             </tr>
                         <?php endif; ?>
                     </tfoot>
@@ -366,8 +393,11 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                             <tbody>
                                 <?php foreach ($payments as $payment): ?>
                                     <tr>
-                                        <td class="ps-3 pb-2" style="font-size: 14px;"><?php echo date('M j, Y H:i', strtotime($payment['payment_date'])); ?></td>
-                                        <td class="pb-2 fw-medium" style="color: #137333; font-size: 14px;">₵<?php echo number_format($payment['amount'], 2); ?></td>
+                                        <td class="ps-3 pb-2" style="font-size: 14px;">
+                                            <?php echo date('M j, Y H:i', strtotime($payment['payment_date'])); ?>
+                                        </td>
+                                        <td class="pb-2 fw-medium" style="color: #137333; font-size: 14px;">
+                                            ₵<?php echo number_format($payment['amount'], 2); ?></td>
                                         <td class="pe-3 pb-2" style="font-size: 14px;"><?= e($payment['username']) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -387,21 +417,30 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                                 <tr>
                                     <th class="ps-3 pt-2 fw-medium" style="font-size: 13px; color: #a50e0e;">Date</th>
                                     <th class="pt-2 fw-medium" style="font-size: 13px; color: #a50e0e;">Items Returned</th>
-                                    <th class="text-end pt-2 fw-medium" style="font-size: 13px; color: #a50e0e;">Deduction</th>
-                                    <th class="pe-3 pt-2 fw-medium" style="font-size: 13px; color: #a50e0e;">Processed By</th>
+                                    <th class="text-end pt-2 fw-medium" style="font-size: 13px; color: #a50e0e;">Deduction
+                                    </th>
+                                    <th class="pe-3 pt-2 fw-medium" style="font-size: 13px; color: #a50e0e;">Processed By
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($returns as $ret): ?>
                                     <tr>
-                                        <td class="ps-3 pb-2" style="font-size: 14px; color: #c5221f;"><?php echo date('M j, Y H:i', strtotime($ret['created_at'])); ?></td>
+                                        <td class="ps-3 pb-2" style="font-size: 14px; color: #c5221f;">
+                                            <?php echo date('M j, Y H:i', strtotime($ret['created_at'])); ?>
+                                        </td>
                                         <td class="pb-2" style="color: #c5221f;">
                                             <?php foreach ($ret['details'] as $det): ?>
-                                                <div class="small fw-medium">- <?= e($det['item_name']) ?> (qty: <?php echo $det['quantity']; ?>)</div>
+                                                <div class="small fw-medium">- <?= e($det['item_name']) ?> (qty:
+                                                    <?php echo $det['quantity']; ?>)
+                                                </div>
                                             <?php endforeach; ?>
                                         </td>
-                                        <td class="text-end pb-2 fw-bold" style="font-size: 14px; color: #c5221f;">₵<?php echo number_format($ret['total_deduction'], 2); ?></td>
-                                        <td class="pe-3 pb-2" style="font-size: 14px; color: #c5221f;"><?= e($ret['returner_name']) ?></td>
+                                        <td class="text-end pb-2 fw-bold" style="font-size: 14px; color: #c5221f;">
+                                            ₵<?php echo number_format($ret['total_deduction'], 2); ?></td>
+                                        <td class="pe-3 pb-2" style="font-size: 14px; color: #c5221f;">
+                                            <?= e($ret['returner_name']) ?>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -418,7 +457,9 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                             <span class="material-symbols-outlined align-middle fs-5 me-1">send</span> Send Request to Cashier
                         </button>
                     <?php elseif (in_array($_SESSION['role'], ['admin', 'sales_cashier'])): ?>
-                        <button class="btn text-white fw-medium" style="background: #137333; border-radius: 20px; padding: 10px 24px;" data-bs-toggle="modal" data-bs-target="#payModal">
+                        <button class="btn text-white fw-medium"
+                            style="background: #137333; border-radius: 20px; padding: 10px 24px;" data-bs-toggle="modal"
+                            data-bs-target="#payModal">
                             ₵ Record Payment
                         </button>
                     <?php endif; ?>
@@ -455,21 +496,22 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                         </h4>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    
+
                     <div class="mb-4">
                         <label class="form-label text-muted fw-bold small text-uppercase">
                             <?= $_SESSION['role'] === 'sales' ? 'Amount Customer is Paying' : 'Amount Received' ?>
                         </label>
                         <div class="position-relative">
-                            <span class="position-absolute fw-bold" style="left: 16px; top: 50%; transform: translateY(-50%); color: #1f1f1f;">₵</span>
+                            <span class="position-absolute fw-bold"
+                                style="left: 16px; top: 50%; transform: translateY(-50%); color: #1f1f1f;">₵</span>
                             <?php
                             $balanceDue = round($sale['total_amount'] - $sale['paid_amount'], 2);
                             $isWalkin = empty($sale['customer_id']);
                             ?>
                             <input type="number" name="amount" id="payment-amount" step="0.01" min="0"
-                                class="form-control" style="background: #f1f3f4; border: none; border-radius: 8px; padding: 12px 16px 12px 32px; font-size: 18px;" 
-                                max="<?= $balanceDue ?>"
-                                value="<?= $isWalkin ? $balanceDue : '' ?>" <?= $isWalkin ? 'readonly' : '' ?> required>
+                                class="form-control"
+                                style="background: #f1f3f4; border: none; border-radius: 8px; padding: 12px 16px 12px 32px; font-size: 18px;"
+                                max="<?= $balanceDue ?>" value="<?= $isWalkin ? $balanceDue : '' ?>" <?= $isWalkin ? 'readonly' : '' ?> required>
                         </div>
                         <?php if ($isWalkin): ?>
                             <div class="form-text text-danger mt-2" style="font-size: 13px;">
@@ -480,14 +522,16 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                             <div class="d-flex justify-content-between align-items-center mt-2">
                                 <span class="form-text mt-0">Max due: ₵<?= number_format($balanceDue, 2) ?></span>
                                 <button type="button" class="btn btn-link p-0 text-decoration-none" style="font-size: 13px;"
-                                    onclick="document.getElementById('payment-amount').value = '<?= $balanceDue ?>'">Pay All</button>
+                                    onclick="document.getElementById('payment-amount').value = '<?= $balanceDue ?>'">Pay
+                                    All</button>
                             </div>
                         <?php endif; ?>
                     </div>
-                    
+
                     <div class="d-flex justify-content-end align-items-center gap-2">
                         <button type="button" class="btn btn-link btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-ok" style="<?= $_SESSION['role'] !== 'sales' ? 'background-color: #137333;' : '' ?>">
+                        <button type="submit" class="btn btn-ok"
+                            style="<?= $_SESSION['role'] !== 'sales' ? 'background-color: #137333;' : '' ?>">
                             <?= $_SESSION['role'] === 'sales' ? 'Send Request' : 'Save Payment' ?>
                         </button>
                     </div>
@@ -509,8 +553,9 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                         <h4 class="modal-title-custom mb-0 text-danger">Return Items</h4>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    
-                    <p class="small text-muted mb-4">Note: Returning items will reduce the invoice total and balance due. Inventory quantities will be restored.</p>
+
+                    <p class="small text-muted mb-4">Note: Returning items will reduce the invoice total and balance
+                        due. Inventory quantities will be restored.</p>
 
                     <div class="table-responsive mb-4">
                         <table class="table table-borderless table-sm align-middle">
@@ -518,7 +563,8 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                                 <tr>
                                     <th class="text-muted fw-medium small">Item</th>
                                     <th class="text-center text-muted fw-medium small">Purchased</th>
-                                    <th class="text-center text-muted fw-medium small" style="width: 100px;">Return Qty</th>
+                                    <th class="text-center text-muted fw-medium small" style="width: 100px;">Return Qty
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -526,12 +572,15 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                                     <tr style="border-bottom: 1px solid #f1f3f4;">
                                         <td class="py-2">
                                             <div class="fw-medium text-dark"><?= e($item['item_name']) ?></div>
-                                            <small class="text-muted">₵<?php echo number_format($item['price_at_sale'], 2); ?> each</small>
+                                            <small
+                                                class="text-muted">₵<?php echo number_format($item['price_at_sale'], 2); ?>
+                                                each</small>
                                         </td>
                                         <td class="text-center py-2 text-muted"><?php echo $item['quantity']; ?></td>
                                         <td class="py-2">
                                             <input type="number" name="returns[<?php echo $item['item_id']; ?>]"
-                                                class="form-control form-control-sm text-center" style="background: #f1f3f4; border: none; border-radius: 8px;" min="0"
+                                                class="form-control form-control-sm text-center"
+                                                style="background: #f1f3f4; border: none; border-radius: 8px;" min="0"
                                                 max="<?php echo $item['quantity']; ?>" value="0">
                                         </td>
                                     </tr>
@@ -539,7 +588,7 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="d-flex justify-content-end align-items-center gap-2">
                         <button type="button" class="btn btn-link btn-cancel" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-danger-ok">Process Return</button>
