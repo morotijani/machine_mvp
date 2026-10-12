@@ -204,6 +204,10 @@ $receiptFormat = $settings['receipt_type'] ?? 'a4';
                     <span class="material-symbols-outlined" style="font-size: 18px;">print</span>
                     <?= ($sale['payment_status'] === 'paid') ? 'Print Receipt' : 'Print Unpaid Draft' ?>
                 </button>
+                <a href="<?= BASE_URL ?>/sales/view?id=<?= $sale['id'] ?>" target="_blank" class="google-btn-secondary bg-white d-flex align-items-center gap-1 shadow-sm border-0 ms-2" title="If printing fails, use this to open in your default web browser">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">open_in_new</span>
+                    Open in Browser to Print
+                </a>
                 <?php if (!$sale['voided'] && $_SESSION['role'] !== 'cashier'): ?>
                     <button type="button" class="google-btn-secondary d-flex align-items-center gap-1 shadow-sm bg-white" style="color: #c5221f; border-color: #fad2cf;"
                         data-bs-toggle="modal" data-bs-target="#returnModal">

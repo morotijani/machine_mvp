@@ -10,6 +10,8 @@ class Migration
     $schema = <<<SQL
 CREATE TABLE IF NOT EXISTS `coffer_transactions` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `user_uuid` VARCHAR(36) NULL,
   `amount` REAL NOT NULL,
   `type` TEXT DEFAULT 'withdrawal',
   `purpose` text NOT NULL,
@@ -22,6 +24,9 @@ CREATE TABLE IF NOT EXISTS `coffer_transactions` (
 
 CREATE TABLE IF NOT EXISTS `customer_debt_payments` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `customer_uuid` VARCHAR(36) NULL,
+  `user_uuid` VARCHAR(36) NULL,
   `customer_id` INTEGER NOT NULL,
   `amount` REAL NOT NULL,
   `payment_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -35,6 +40,7 @@ CREATE TABLE IF NOT EXISTS `customer_debt_payments` (
 
 CREATE TABLE IF NOT EXISTS `customers` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
   `name` TEXT NOT NULL,
   `phone` TEXT DEFAULT NULL,
   `address` text DEFAULT NULL,
@@ -48,6 +54,7 @@ CREATE TABLE IF NOT EXISTS `customers` (
 
 CREATE TABLE IF NOT EXISTS `debt_repayments` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
   `debtor_id` INTEGER NOT NULL,
   `amount` REAL NOT NULL,
   `notes` TEXT DEFAULT NULL,
@@ -62,6 +69,8 @@ CREATE TABLE IF NOT EXISTS `debt_repayments` (
 
 CREATE TABLE IF NOT EXISTS `expenditures` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `user_uuid` VARCHAR(36) NULL,
   `category` TEXT NOT NULL,
   `amount` REAL NOT NULL,
   `description` text DEFAULT NULL,
@@ -76,6 +85,9 @@ CREATE TABLE IF NOT EXISTS `expenditures` (
 
 CREATE TABLE IF NOT EXISTS `inventory_logs` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `item_uuid` VARCHAR(36) NULL,
+  `user_uuid` VARCHAR(36) NULL,
   `item_id` INTEGER NOT NULL,
   `change_amount` INTEGER NOT NULL,
   `reason` TEXT DEFAULT NULL,
@@ -88,6 +100,9 @@ CREATE TABLE IF NOT EXISTS `inventory_logs` (
 
 CREATE TABLE IF NOT EXISTS `item_bundles` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `bundle_item_uuid` VARCHAR(36) NULL,
+  `component_item_uuid` VARCHAR(36) NULL,
   `parent_item_id` INTEGER NOT NULL,
   `child_item_id` INTEGER NOT NULL,
   `quantity` INTEGER NOT NULL,
@@ -99,6 +114,9 @@ CREATE TABLE IF NOT EXISTS `item_bundles` (
 
 CREATE TABLE IF NOT EXISTS `item_logs` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `item_uuid` VARCHAR(36) NULL,
+  `user_uuid` VARCHAR(36) NULL,
   `item_id` INTEGER NOT NULL,
   `user_id` INTEGER NOT NULL,
   `action` TEXT NOT NULL,
@@ -114,6 +132,7 @@ CREATE TABLE IF NOT EXISTS `item_logs` (
 
 CREATE TABLE IF NOT EXISTS `items` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
   `name` TEXT NOT NULL,
   `type` TEXT DEFAULT 'single',
   `category` TEXT DEFAULT NULL,
@@ -134,6 +153,9 @@ CREATE TABLE IF NOT EXISTS `items` (
 
 CREATE TABLE IF NOT EXISTS `payment_requests` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `user_uuid` VARCHAR(36) NULL,
+  `customer_uuid` VARCHAR(36) NULL,
   `type` TEXT NOT NULL,
   `reference_id` INTEGER NOT NULL,
   `customer_id` INTEGER DEFAULT NULL,
@@ -151,6 +173,9 @@ CREATE TABLE IF NOT EXISTS `payment_requests` (
 
 CREATE TABLE IF NOT EXISTS `payments` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `sale_uuid` VARCHAR(36) NULL,
+  `user_uuid` VARCHAR(36) NULL,
   `sale_id` INTEGER NOT NULL,
   `amount` REAL NOT NULL,
   `payment_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -213,6 +238,9 @@ CREATE TABLE IF NOT EXISTS `sale_items` (
 
 CREATE TABLE IF NOT EXISTS `sale_return_items` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `return_uuid` VARCHAR(36) NULL,
+  `item_uuid` VARCHAR(36) NULL,
   `return_id` INTEGER NOT NULL,
   `item_id` INTEGER NOT NULL,
   `quantity` INTEGER NOT NULL,
@@ -225,6 +253,9 @@ CREATE TABLE IF NOT EXISTS `sale_return_items` (
 
 CREATE TABLE IF NOT EXISTS `sale_returns` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `sale_uuid` VARCHAR(36) NULL,
+  `user_uuid` VARCHAR(36) NULL,
   `sale_id` INTEGER NOT NULL,
   `total_deduction` REAL NOT NULL,
   `cash_refunded` REAL NOT NULL DEFAULT 0.00,
@@ -238,6 +269,10 @@ CREATE TABLE IF NOT EXISTS `sale_returns` (
 
 CREATE TABLE IF NOT EXISTS `sales` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `invoice_number` TEXT NULL UNIQUE,
+  `customer_uuid` VARCHAR(36) NULL,
+  `user_uuid` VARCHAR(36) NULL,
   `customer_id` INTEGER DEFAULT NULL,
   `user_id` INTEGER NOT NULL,
   `total_amount` REAL NOT NULL,
@@ -256,6 +291,7 @@ CREATE TABLE IF NOT EXISTS `sales` (
 
 CREATE TABLE IF NOT EXISTS `settings` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
   `company_name` TEXT NOT NULL DEFAULT 'POS LITE',
   `company_address` text DEFAULT NULL,
   `company_phone` TEXT DEFAULT NULL,
@@ -279,6 +315,8 @@ CREATE TABLE IF NOT EXISTS `settings` (
 
 CREATE TABLE IF NOT EXISTS `standalone_debtors` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `user_uuid` VARCHAR(36) NULL,
   `name` TEXT NOT NULL,
   `phone` TEXT DEFAULT NULL,
   `total_amount` REAL NOT NULL,
@@ -293,6 +331,8 @@ CREATE TABLE IF NOT EXISTS `standalone_debtors` (
 
 CREATE TABLE IF NOT EXISTS `user_logins` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
+  `user_uuid` VARCHAR(36) NULL,
   `user_id` INTEGER NOT NULL,
   `login_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `ip_address` TEXT DEFAULT NULL,
@@ -304,6 +344,7 @@ CREATE TABLE IF NOT EXISTS `user_logins` (
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `uuid` VARCHAR(36) NULL UNIQUE,
   `username` TEXT NOT NULL,
   `password` TEXT NOT NULL,
   `role` TEXT NOT NULL DEFAULT 'sales',
