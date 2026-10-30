@@ -284,8 +284,8 @@ class SyncController {
                 ['new_col' => 'user_uuid', 'old_col' => 'user_id', 'ref_table' => 'users'],
             ],
             'item_bundles' => [
-                ['new_col' => 'bundle_item_uuid', 'old_col' => 'bundle_item_id', 'ref_table' => 'items'],
-                ['new_col' => 'component_item_uuid', 'old_col' => 'component_item_id', 'ref_table' => 'items'],
+                ['new_col' => 'bundle_item_uuid', 'old_col' => 'parent_item_id', 'ref_table' => 'items'],
+                ['new_col' => 'component_item_uuid', 'old_col' => 'child_item_id', 'ref_table' => 'items'],
             ],
             'item_logs' => [
                 ['new_col' => 'item_uuid', 'old_col' => 'item_id', 'ref_table' => 'items'],
@@ -440,8 +440,8 @@ class SyncController {
                 'user_id' => ['ref_table' => 'users', 'uuid_col' => 'user_uuid']
             ],
             'item_bundles' => [
-                'bundle_item_id' => ['ref_table' => 'items', 'uuid_col' => 'bundle_item_uuid'],
-                'component_item_id' => ['ref_table' => 'items', 'uuid_col' => 'component_item_uuid']
+                'parent_item_id' => ['ref_table' => 'items', 'uuid_col' => 'bundle_item_uuid'],
+                'child_item_id' => ['ref_table' => 'items', 'uuid_col' => 'component_item_uuid']
             ],
             'item_logs' => [
                 'item_id' => ['ref_table' => 'items', 'uuid_col' => 'item_uuid'],
@@ -505,6 +505,24 @@ class SyncController {
         foreach (array_keys($rows[0]) as $col) {
             if ($col !== 'id') {
                 $columns[] = $col;
+            }
+        }
+
+        // Special handling for singleton 'settings' table to prevent duplicate rows across devices
+        if ($table === 'settings') {
+            $existingId = $this->pdo->query("SELECT id FROM settings ORDER BY id ASC LIMIT 1")->fetchColumn();
+            if ($existingId) {
+                $row = end($rows);
+                $setParts = [];
+                $values = [];
+                foreach ($columns as $col) {
+                    $setParts[] = "`$col` = ?";
+                    $values[] = ($col === 'sync_status') ? 1 : $row[$col];
+                }
+                $values[] = $existingId;
+                $stmt = $this->pdo->prepare("UPDATE `settings` SET " . implode(', ', $setParts) . " WHERE id = ?");
+                $stmt->execute($values);
+                return;
             }
         }
 

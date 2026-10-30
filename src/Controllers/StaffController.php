@@ -21,7 +21,7 @@ class StaffController {
                     u.created_at,
                     (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND voided = 0) as sales_count,
                     (SELECT SUM(total_amount) FROM sales WHERE user_id = u.id AND voided = 0) as total_revenue,
-                    (SELECT SUM(p.amount) FROM payments p JOIN sales s ON p.sale_id = s.id WHERE s.user_id = u.id AND s.voided = 0) as total_collected,
+                    (SELECT SUM(paid_amount) FROM sales WHERE user_id = u.id AND voided = 0) as total_collected,
                     (SELECT SUM(amount) FROM expenditures WHERE recorded_by = u.id AND is_deleted = 0) as total_expenses
                 FROM users u
                 WHERE u.is_deleted = 0
@@ -67,7 +67,7 @@ class StaffController {
         $stats = $stmt->fetch();
 
         // 3. Profit Calculation
-        $sqlProfit = "SELECT SUM(si.subtotal - (si.quantity * i.cost_price)) as profit
+        $sqlProfit = "SELECT SUM(si.subtotal - (si.quantity * COALESCE(si.cost_at_sale, i.cost_price))) as profit
                       FROM sale_items si 
                       JOIN items i ON si.item_id = i.id 
                       JOIN sales s ON si.sale_id = s.id 
@@ -90,7 +90,7 @@ class StaffController {
         $stmt->execute([$uid, $today]);
         $todayBasic = $stmt->fetch();
 
-        $sqlTodayProfit = "SELECT SUM(si.subtotal - (si.quantity * i.cost_price)) as profit
+        $sqlTodayProfit = "SELECT SUM(si.subtotal - (si.quantity * COALESCE(si.cost_at_sale, i.cost_price))) as profit
                            FROM sale_items si 
                            JOIN items i ON si.item_id = i.id 
                            JOIN sales s ON si.sale_id = s.id 

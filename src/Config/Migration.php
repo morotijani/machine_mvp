@@ -229,6 +229,7 @@ CREATE TABLE IF NOT EXISTS `sale_items` (
   `item_uuid` VARCHAR(36) NULL,
   `quantity` INTEGER NOT NULL,
   `price_at_sale` REAL NOT NULL,
+  `cost_at_sale` REAL DEFAULT NULL,
   `subtotal` REAL NOT NULL,
   `sync_status` INTEGER DEFAULT 0,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,

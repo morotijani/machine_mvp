@@ -21,7 +21,7 @@ class FinanceController {
 
         // 2. Total Profit (Realized)
         // Realized Profit = Sum over all items: (PaidAmount / TotalAmount) * Qty * (PriceAtSale - ItemCostPrice)
-        $stmt = $pdo->query("SELECT SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) 
+        $stmt = $pdo->query("SELECT SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - COALESCE(si.cost_at_sale, i.cost_price))) 
                             FROM sales s 
                             JOIN sale_items si ON s.id = si.sale_id 
                             JOIN items i ON si.item_id = i.id 
@@ -29,7 +29,7 @@ class FinanceController {
         $totalRealizedProfit = $stmt->fetchColumn() ?: 0;
 
         // 3. Total Expenses (Expenditures)
-        $stmt = $pdo->query("SELECT SUM(amount) FROM expenditures");
+        $stmt = $pdo->query("SELECT SUM(amount) FROM expenditures WHERE is_deleted = 0");
         $totalExpenses = $stmt->fetchColumn() ?: 0;
         
         // 4. Coffer Transactions (Withdrawals and Deposits)

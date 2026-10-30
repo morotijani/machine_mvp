@@ -498,8 +498,8 @@ class Item {
             }
 
             // Delete relations first
-            $stmt = $this->pdo->prepare("DELETE FROM item_bundles WHERE parent_item_id = :id OR child_item_id = :id");
-            $stmt->execute(['id' => $id]);
+            $stmt = $this->pdo->prepare("DELETE FROM item_bundles WHERE parent_item_id = :pid OR child_item_id = :cid");
+            $stmt->execute(['pid' => $id, 'cid' => $id]);
             
             $stmt = $this->pdo->prepare("DELETE FROM items WHERE id = :id");
             $stmt->execute(['id' => $id]);

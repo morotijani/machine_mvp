@@ -136,8 +136,8 @@ class CustomerController {
         AuthMiddleware::requireLogin(); 
         $query = $_GET['q'] ?? '';
         $pdo = Database::getInstance();
-        $stmt = $pdo->prepare("SELECT id, name, phone FROM customers WHERE name LIKE :q OR phone LIKE :q ORDER BY name ASC LIMIT 10");
-        $stmt->execute(['q' => "%$query%"]);
+        $stmt = $pdo->prepare("SELECT id, name, phone FROM customers WHERE name LIKE :q1 OR phone LIKE :q2 ORDER BY name ASC LIMIT 10");
+        $stmt->execute(['q1' => "%$query%", 'q2' => "%$query%"]);
         echo json_encode($stmt->fetchAll());
         exit;
     }

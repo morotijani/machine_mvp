@@ -12,15 +12,37 @@ class Payment {
 
     public function recordPayment($saleId, $amount, $userId) {
         try {
+            $amount = (float)$amount;
+            if ($amount <= 0) {
+                return false;
+            }
+
+            // Idempotency check against rapid double-submissions
+            $requestHash = md5($saleId . ':' . $amount . ':' . $userId);
+            $lastPay = $_SESSION['last_payment_submission'] ?? null;
+            if ($lastPay && $lastPay['hash'] === $requestHash && (time() - $lastPay['time'] < 5)) {
+                return true;
+            }
+
             $this->pdo->beginTransaction();
 
-            // 1. Get Sale Info
-            $stmt = $this->pdo->prepare("SELECT customer_id, total_amount, paid_amount FROM sales WHERE id = :id");
+            // 1. Get Sale Info (with row lock on MySQL)
+            $forUpdate = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "" : "FOR UPDATE";
+            $stmt = $this->pdo->prepare("SELECT customer_id, total_amount, paid_amount FROM sales WHERE id = :id $forUpdate");
             $stmt->execute(['id' => $saleId]);
             $sale = $stmt->fetch();
             
             if (!$sale) {
                 throw new \Exception("Sale not found");
+            }
+
+            $outstanding = max(0, (float)$sale['total_amount'] - (float)$sale['paid_amount']);
+            if ($outstanding <= 0) {
+                $this->pdo->rollBack();
+                return true;
+            }
+            if ($amount > $outstanding) {
+                $amount = $outstanding;
             }
 
             // 2. Create Debt Payment Event (only if we have a customer)
@@ -58,6 +80,10 @@ class Payment {
             $stmt->execute(['paid' => $newPaidAmount, 'status' => $status, 'id' => $saleId]);
 
             $this->pdo->commit();
+            $_SESSION['last_payment_submission'] = [
+                'hash' => $requestHash,
+                'time' => time()
+            ];
             return true;
         } catch (\Exception $e) {
             if ($this->pdo->inTransaction()) $this->pdo->rollBack();

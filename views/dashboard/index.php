@@ -205,7 +205,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                     <div class="widget-title">Total Net Collections</div>
                     <div class="widget-value text-warning-emphasis">
                         ₵<?php echo format_large_number($totalNetCollections); ?></div>
-                    <div class="widget-subtitle">New + Old - Refunds - Expenses</div>
+                    <div class="widget-subtitle">New + Old - Refunds</div>
                 </div>
             </div>
 
@@ -276,7 +276,7 @@ $isAdmin = ($_SESSION['role'] === 'admin');
                     <div class="col-md-3">
                         <div class="p-4 text-center">
                             <div class="text-muted small fw-medium mb-1">Daily Net Profit</div>
-                            <div class="fs-4 fw-normal text-danger">₵<?php echo format_large_number($dailyNetProfit); ?>
+                            <div class="fs-4 fw-normal <?php echo $dailyNetProfit >= 0 ? 'text-success' : 'text-danger'; ?>">₵<?php echo format_large_number($dailyNetProfit); ?>
                             </div>
                         </div>
                     </div>

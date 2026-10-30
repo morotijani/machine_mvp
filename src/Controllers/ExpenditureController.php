@@ -38,16 +38,29 @@ class ExpenditureController {
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = [
-                'category' => $_POST['category'],
-                'amount' => $_POST['amount'],
-                'description' => $_POST['description'],
-                'date' => $_POST['date'],
+                'category' => trim($_POST['category'] ?? ''),
+                'amount' => (float)($_POST['amount'] ?? 0),
+                'description' => trim($_POST['description'] ?? ''),
+                'date' => $_POST['date'] ?? date('Y-m-d'),
                 'recorded_by' => $_SESSION['user_id']
             ];
+
+            // Idempotency guard: prevent accidental double-click submissions within 10 seconds
+            $requestHash = md5(json_encode($data));
+            $lastSubmission = $_SESSION['last_expenditure_submission'] ?? null;
+            if ($lastSubmission && $lastSubmission['hash'] === $requestHash && (time() - $lastSubmission['time'] < 10)) {
+                header('Location: ' . BASE_URL . '/expenditures?success=Expenditure added successfully');
+                exit;
+            }
 
             $pdo = Database::getInstance();
             $model = new Expenditure($pdo);
             $model->create($data);
+
+            $_SESSION['last_expenditure_submission'] = [
+                'hash' => $requestHash,
+                'time' => time()
+            ];
 
             header('Location: ' . BASE_URL . '/expenditures?success=Expenditure added successfully');
             exit;

@@ -65,18 +65,21 @@ class Sale {
 
             // 4. Add Sale Items and Update Stock
             foreach ($items as $item) {
-                $stmt = $this->pdo->prepare("SELECT price FROM items WHERE id = :id");
+                $stmt = $this->pdo->prepare("SELECT price, cost_price FROM items WHERE id = :id");
                 $stmt->execute(['id' => $item['id']]);
-                $price = $stmt->fetchColumn();
+                $itemData = $stmt->fetch(PDO::FETCH_ASSOC);
+                $price = $itemData['price'];
+                $costAtSale = $itemData['cost_price'] ?? 0;
                 $subtotal = $price * $item['quantity'];
 
                 // Insert Line Item
-                $stmt = $this->pdo->prepare("INSERT INTO sale_items (sale_id, item_id, quantity, price_at_sale, subtotal) VALUES (:sid, :iid, :qty, :price, :subtotal)");
+                $stmt = $this->pdo->prepare("INSERT INTO sale_items (sale_id, item_id, quantity, price_at_sale, cost_at_sale, subtotal) VALUES (:sid, :iid, :qty, :price, :cost, :subtotal)");
                 $stmt->execute([
                     'sid' => $saleId,
                     'iid' => $item['id'],
                     'qty' => $item['quantity'],
                     'price' => $price,
+                    'cost' => $costAtSale,
                     'subtotal' => $subtotal
                 ]);
 
@@ -107,8 +110,9 @@ class Sale {
 
         if (!empty($filters['search'])) {
             $term = $filters['search'];
-            $where[] = "(s.id = :search OR s.invoice_number = :search OR c.name LIKE :searchLike)";
-            $params['search'] = $term; // For exact ID match if numeric
+            $where[] = "(s.id = :searchId OR s.invoice_number = :searchInv OR c.name LIKE :searchLike)";
+            $params['searchId'] = $term; // For exact ID match if numeric
+            $params['searchInv'] = $term;
             $params['searchLike'] = "%$term%";
         }
 
@@ -173,8 +177,9 @@ class Sale {
 
         if (!empty($filters['search'])) {
             $term = $filters['search'];
-            $where[] = "(s.id = :search OR s.invoice_number = :search OR c.name LIKE :searchLike)";
-            $params['search'] = $term;
+            $where[] = "(s.id = :searchId OR s.invoice_number = :searchInv OR c.name LIKE :searchLike)";
+            $params['searchId'] = $term;
+            $params['searchInv'] = $term;
             $params['searchLike'] = "%$term%";
         }
 

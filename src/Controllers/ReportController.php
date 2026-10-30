@@ -47,7 +47,7 @@ class ReportController
         $dailySales = $stmt->fetchColumn() ?: 0;
 
         // 2. Daily Gross Profit (Today)
-        $sqlProfit = "SELECT SUM(si.subtotal - (si.quantity * i.cost_price)) 
+        $sqlProfit = "SELECT SUM(si.subtotal - (si.quantity * COALESCE(si.cost_at_sale, i.cost_price))) 
                       FROM sale_items si 
                       JOIN items i ON si.item_id = i.id 
                       JOIN sales s ON si.sale_id = s.id 
@@ -110,36 +110,58 @@ class ReportController
         $stmtVoidedToday->execute(array_merge(['today' => $today], $params));
         $voidedRefundsToday = $stmtVoidedToday->fetchColumn() ?: 0;
 
-        // 6. Expenditures (Daily & Monthly) - Fetched early for Net Collections
+        $sqlVoidedNew = "SELECT SUM(p.amount) FROM payments p JOIN sales s ON p.sale_id = s.id WHERE s.voided = 1 AND DATE(s.voided_at) = :today_void AND DATE(s.created_at) = :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
+        $stmtVoidedNew = $pdo->prepare($sqlVoidedNew);
+        $stmtVoidedNew->execute(array_merge(['today_void' => $today, 'today_sale' => $today], $params));
+        $voidedRefundsTodayNew = $stmtVoidedNew->fetchColumn() ?: 0;
+
+        // 4d. Standalone Debt Repayments Today (if debt module enabled)
+        $todayStandaloneRepayments = 0;
+        if (!isset($settings['enable_debt_module']) || $settings['enable_debt_module'] == 1) {
+            $sqlStandaloneRep = "SELECT SUM(amount) FROM debt_repayments WHERE DATE(payment_date) = :today" . ($isLimitedView ? " AND recorded_by = :uid" : "");
+            $stmtStandaloneRep = $pdo->prepare($sqlStandaloneRep);
+            $stmtStandaloneRep->execute(array_merge(['today' => $today], $params));
+            $todayStandaloneRepayments = $stmtStandaloneRep->fetchColumn() ?: 0;
+        }
+
+        // 6. Expenditures (Daily & Monthly) - Fetched early for Net Profit calculations
         $expModel = new \App\Models\Expenditure($pdo);
         $userIdExp = $isAdmin ? null : $uid;
         $dailyExpenditures = $expModel->getDailyTotal($today, $userIdExp);
         $monthlyExpenditures = $expModel->getMonthlyTotal($month, $year, $userIdExp);
 
-        // Net Cash from New Sales = Gross Payments for Today's Sales - ALL Returns Today - ALL Voided Refunds Today
-        $todayNewSalesCollected = $todayNewSalesGross - $totalReturnsToday - $voidedRefundsToday;
+        // Net Cash from New Sales = Gross Payments for Today's Sales - Returns of Today's Sales - Voided Refunds of Today's Sales
+        $todayNewSalesCollected = $todayNewSalesGross - $todayReturnsValueNew - $voidedRefundsTodayNew;
 
-        // Total Net Collections = All payments today - all returns today - all voided refunds today - expenditures today
-        $totalNetCollections = $totalPaymentsToday - $totalReturnsToday - $voidedRefundsToday - $dailyExpenditures;
+        // Total Net Collections = All payments today (sales + standalone debt) - all returns today - all voided refunds today
+        $totalNetCollections = $totalPaymentsToday + $todayStandaloneRepayments - $totalReturnsToday - $voidedRefundsToday;
 
         // 2.b Realized Gross Profit (Actual earned profit from collections)
-        // Formula: SUM( (payment_amount / sale_total) * sale_potential_profit )
-        // This naturally accounts for returns because total_amount is reduced in the denominator.
+        // Formula: SUM( (effective_paid / sale_total) * sale_potential_profit )
         $sqlRealizedProfit = "
-    SELECT SUM( (p_agg.total_paid / s.total_amount) * (si.quantity * (si.price_at_sale - i.cost_price)) )
+    SELECT SUM(
+        (LEAST(s.paid_amount, GREATEST(0, p_agg.total_paid - COALESCE(r_agg.total_refunded, 0))) / s.total_amount)
+        * (si.quantity * (si.price_at_sale - COALESCE(si.cost_at_sale, i.cost_price)))
+    )
     FROM (
         SELECT sale_id, SUM(amount) as total_paid
         FROM payments
         WHERE DATE(payment_date) = :today " . ($isLimitedView ? " AND recorded_by = :uid" : "") . "
         GROUP BY sale_id
     ) p_agg
+    LEFT JOIN (
+        SELECT sale_id, SUM(cash_refunded) as total_refunded
+        FROM sale_returns
+        WHERE DATE(created_at) = :today_ret
+        GROUP BY sale_id
+    ) r_agg ON p_agg.sale_id = r_agg.sale_id
     JOIN sales s ON p_agg.sale_id = s.id
     JOIN sale_items si ON si.sale_id = s.id
     JOIN items i ON si.item_id = i.id
     WHERE s.voided = 0 AND s.total_amount > 0
 ";
         $stmtRealized = $pdo->prepare($sqlRealizedProfit);
-        $stmtRealized->execute(array_merge(['today' => $today], $params));
+        $stmtRealized->execute(array_merge(['today' => $today, 'today_ret' => $today], $params));
         $todayRealizedProfit = $stmtRealized->fetchColumn() ?: 0;
 
         // 3. Outstanding Debt (Sales-based)
@@ -211,13 +233,22 @@ class ReportController
 
             // Realized Profit for that month
             $sqlProfit = "
-                SELECT SUM( (p_agg.total_paid / s.total_amount) * (si.quantity * (si.price_at_sale - i.cost_price)) )
+                SELECT SUM(
+                    (LEAST(s.paid_amount, GREATEST(0, p_agg.total_paid - COALESCE(r_agg.total_refunded, 0))) / s.total_amount)
+                    * (si.quantity * (si.price_at_sale - COALESCE(si.cost_at_sale, i.cost_price)))
+                )
                 FROM (
                     SELECT sale_id, SUM(amount) as total_paid
                     FROM payments
                     WHERE payment_date BETWEEN :start AND :end " . ($isLimitedView ? " AND recorded_by = :uid" : "") . "
                     GROUP BY sale_id
                 ) p_agg
+                LEFT JOIN (
+                    SELECT sale_id, SUM(cash_refunded) as total_refunded
+                    FROM sale_returns
+                    WHERE created_at BETWEEN :start_ret AND :end_ret
+                    GROUP BY sale_id
+                ) r_agg ON p_agg.sale_id = r_agg.sale_id
                 JOIN sales s ON p_agg.sale_id = s.id
                 JOIN sale_items si ON si.sale_id = s.id
                 JOIN items i ON si.item_id = i.id
@@ -225,7 +256,7 @@ class ReportController
             ";
             
             $stmtProfit = $pdo->prepare($sqlProfit);
-            $stmtProfit->execute(array_merge(['start' => $start, 'end' => $end], $params));
+            $stmtProfit->execute(array_merge(['start' => $start, 'end' => $end, 'start_ret' => $start, 'end_ret' => $end], $params));
             $stats['profit'] = $stmtProfit->fetchColumn() ?: 0;
 
             return $stats;
@@ -283,7 +314,7 @@ class ReportController
             SELECT 
                 $monthSql as month, 
                 SUM(si.subtotal) as total,
-                SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) as profit
+                SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - COALESCE(si.cost_at_sale, i.cost_price))) as profit
             FROM sales s
             JOIN sale_items si ON s.id = si.sale_id
             JOIN items i ON si.item_id = i.id
@@ -314,7 +345,7 @@ class ReportController
         // Formula: COGS / Average Inventory
         // COGS = Cost of goods sold during the selected year
         $stmtCOGS = $pdo->prepare("
-            SELECT SUM(si.quantity * i.cost_price) 
+            SELECT SUM(si.quantity * COALESCE(si.cost_at_sale, i.cost_price)) 
             FROM sale_items si 
             JOIN items i ON si.item_id = i.id 
             JOIN sales s ON si.sale_id = s.id
@@ -344,7 +375,7 @@ class ReportController
         $stmtExp = $pdo->prepare("
             SELECT $monthSqlDate as month, SUM(amount) as total_expenses
             FROM expenditures
-            WHERE $yearSqlDate = :year
+            WHERE $yearSqlDate = :year AND is_deleted = 0
             GROUP BY $monthSqlDate
         ");
         $stmtExp->execute(['year' => $selectedYear]);
@@ -390,8 +421,8 @@ class ReportController
                 DATE(s.created_at) as sale_date, 
                 COUNT(DISTINCT s.id) as count, 
                 SUM(si.subtotal) as total,
-                SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - i.cost_price)) as profit,
-                (SELECT SUM(amount) FROM expenditures WHERE DATE(date) = DATE(s.created_at)) as total_expenditure
+                SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - COALESCE(si.cost_at_sale, i.cost_price))) as profit,
+                (SELECT SUM(amount) FROM expenditures WHERE DATE(date) = DATE(s.created_at) AND is_deleted = 0) as total_expenditure
             FROM sales s
             JOIN sale_items si ON s.id = si.sale_id
             JOIN items i ON si.item_id = i.id
@@ -556,25 +587,34 @@ class ReportController
         $dailyExpenditure = $stmt->fetchColumn() ?: 0;
 
         // g. Realized Gross Profit (Based on payments today)
-        // Using common logic: realized profit = (payment / total) * (selling - cost)
         $stmt = $pdo->prepare("
             SELECT SUM(
-                (p.amount / NULLIF(s.total_amount, 0)) * 
-                (SELECT SUM(si.quantity * (si.price_at_sale - i.cost_price)) 
-                 FROM sale_items si 
-                 JOIN items i ON si.item_id = i.id 
-                 WHERE si.sale_id = s.id)
+                (LEAST(s.paid_amount, GREATEST(0, p_agg.total_paid - COALESCE(r_agg.total_refunded, 0))) / s.total_amount) *
+                (si.quantity * (si.price_at_sale - COALESCE(si.cost_at_sale, i.cost_price)))
             )
-            FROM payments p
-            JOIN sales s ON p.sale_id = s.id
-            WHERE DATE(p.payment_date) = :date AND s.voided = 0
+            FROM (
+                SELECT sale_id, SUM(amount) as total_paid
+                FROM payments
+                WHERE DATE(payment_date) = :date
+                GROUP BY sale_id
+            ) p_agg
+            LEFT JOIN (
+                SELECT sale_id, SUM(cash_refunded) as total_refunded
+                FROM sale_returns
+                WHERE DATE(created_at) = :date_ret
+                GROUP BY sale_id
+            ) r_agg ON p_agg.sale_id = r_agg.sale_id
+            JOIN sales s ON p_agg.sale_id = s.id
+            JOIN sale_items si ON si.sale_id = s.id
+            JOIN items i ON si.item_id = i.id
+            WHERE s.voided = 0 AND s.total_amount > 0
         ");
-        $stmt->execute(['date' => $date]);
+        $stmt->execute(['date' => $date, 'date_ret' => $date]);
         $realizedGrossProfit = $stmt->fetchColumn() ?: 0;
 
         // h. Potential Profit
         $stmt = $pdo->prepare("
-            SELECT SUM(si.subtotal - (si.quantity * i.cost_price)) 
+            SELECT SUM(si.subtotal - (si.quantity * COALESCE(si.cost_at_sale, i.cost_price))) 
             FROM sale_items si 
             JOIN items i ON si.item_id = i.id 
             JOIN sales s ON si.sale_id = s.id 
