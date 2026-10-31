@@ -40,7 +40,7 @@ ob_start();
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label">SKU</label>
-                            <input type="text" name="sku" class="form-control" value="<?= isset($duplicateItem) ? strtoupper(substr(uniqid('BND'), 0, 10)) : '' ?>" required>
+                            <input type="text" name="sku" class="form-control" placeholder="Leave empty to auto-generate" value="<?= !empty($duplicateSku) ? htmlspecialchars($duplicateSku) : '' ?>">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Location (Shelf)</label>
@@ -67,7 +67,7 @@ ob_start();
                     <div class="row g-2 mb-3">
                         <div class="col-12">
                             <label class="form-label">Stock to Create (Pack Quantity)</label>
-                            <input type="number" name="quantity" class="form-control" required min="1" value="1">
+                            <input type="number" name="quantity" class="form-control" required min="0" value="1">
                             <div class="form-text">How many bundles to pack? This purely multiplies stock deduction.</div>
                         </div>
                     </div>
@@ -109,8 +109,8 @@ ob_start();
                                                 <option value="" data-price="0" data-cost="0">Select Item...</option>
                                                 <?php foreach ($items as $item): ?>
                                                     <?php if($item['type'] !== 'bundle'): ?>
-                                                    <option value="<?= $item['id'] ?>" 
-                                                        data-stock="<?= $item['quantity'] ?>" 
+                                                    <option value="<?= $item['id'] ?>"
+                                                        data-stock="<?= $item['quantity'] ?>"
                                                         data-price="<?= $item['price'] ?>"
                                                         data-cost="<?= $item['cost_price'] ?>"
                                                         <?= ($comp['child_item_id'] == $item['id']) ? 'selected' : '' ?>>
@@ -139,8 +139,8 @@ ob_start();
                                                 <option value="" data-price="0" data-cost="0">Select Item...</option>
                                                 <?php foreach ($items as $item): ?>
                                                     <?php if($item['type'] !== 'bundle'): ?>
-                                                    <option value="<?= $item['id'] ?>" 
-                                                        data-stock="<?= $item['quantity'] ?>" 
+                                                    <option value="<?= $item['id'] ?>"
+                                                        data-stock="<?= $item['quantity'] ?>"
                                                         data-price="<?= $item['price'] ?>"
                                                         data-cost="<?= $item['cost_price'] ?>">
                                                         <?= htmlspecialchars($item['name']) ?> (<?= $item['sku'] ?>)
@@ -188,22 +188,66 @@ document.addEventListener('DOMContentLoaded', function() {
     const bundleQuantityInput = document.querySelector('input[name="quantity"]');
     const submitBtn = document.querySelector('button[type="submit"]');
 
-    function calculateTotals() {
+    let isManualPrice = false;
+    if (bundlePriceInput) {
+        bundlePriceInput.addEventListener('input', function() {
+            isManualPrice = true;
+        });
+    }
+
+    function mergeDuplicateRowIfNeeded(changedSelect) {
+        const selectedVal = changedSelect.value;
+        if (!selectedVal) return;
+
+        const changedRow = changedSelect.closest('.component-row');
+        const changedQtyInput = changedRow.querySelector('.qty-input');
+        const addedQty = parseInt(changedQtyInput.value) || 1;
+
+        const rows = Array.from(tableBody.querySelectorAll('.component-row'));
+        for (const row of rows) {
+            if (row === changedRow) continue;
+            const sel = row.querySelector('.item-select');
+            if (sel && sel.value === selectedVal) {
+                const existingQtyInput = row.querySelector('.qty-input');
+                existingQtyInput.value = (parseInt(existingQtyInput.value) || 0) + addedQty;
+                if (rows.length > 1) {
+                    changedRow.remove();
+                } else {
+                    changedSelect.value = '';
+                    changedQtyInput.value = '1';
+                }
+                break;
+            }
+        }
+    }
+
+    function calculateTotals(updatePrice = true) {
         let totalSelling = 0;
         let totalCost = 0;
         let hasSelection = false;
         let isValidStock = true;
-        
-        const bundleQty = parseInt(bundleQuantityInput.value) || 0;
+
+        const bundleQty = Math.max(0, parseInt(bundleQuantityInput.value) || 0);
+
+        // First pass: sum required quantities per item ID across all rows
+        const totalQtyByItem = {};
+        tableBody.querySelectorAll('.component-row').forEach(row => {
+            const select = row.querySelector('.item-select');
+            const qtyInput = row.querySelector('.qty-input');
+            if (select && select.value) {
+                const qty = parseInt(qtyInput.value) || 0;
+                totalQtyByItem[select.value] = (totalQtyByItem[select.value] || 0) + qty;
+            }
+        });
 
         tableBody.querySelectorAll('.component-row').forEach(row => {
             const select = row.querySelector('.item-select');
             const qtyInput = row.querySelector('.qty-input');
             const stockBadge = row.querySelector('.current-stock');
             const priceSpan = row.querySelector('.item-price');
-            
+
             const selectedOption = select.options[select.selectedIndex];
-            
+
             // Reset styles for current row
             qtyInput.classList.remove('is-invalid');
             stockBadge.classList.remove('bg-danger');
@@ -215,16 +259,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const cost = parseFloat(selectedOption.dataset.cost) || 0;
                 const stock = parseInt(selectedOption.dataset.stock) || 0;
                 const qty = parseInt(qtyInput.value) || 0;
+                const totalRecipeQtyForItem = totalQtyByItem[selectedOption.value] || qty;
 
                 totalSelling += price * qty;
                 totalCost += cost * qty;
-                
+
                 // Update Price Display
                 priceSpan.textContent = '₵' + price.toFixed(2);
-                
+
                 // Validate Stock
-                const required = qty * bundleQty;
-                if (required > stock) {
+                const required = totalRecipeQtyForItem * bundleQty;
+                if (qty <= 0 || required > stock) {
                     isValidStock = false;
                     qtyInput.classList.add('is-invalid');
                     stockBadge.classList.remove('bg-secondary');
@@ -240,13 +285,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (hasSelection) {
-            bundlePriceInput.value = totalSelling.toFixed(2);
+            if (updatePrice && !isManualPrice) {
+                bundlePriceInput.value = totalSelling.toFixed(2);
+            }
             bundleCostInput.value = totalCost.toFixed(2);
         } else {
-            bundlePriceInput.value = '0.00';
+            if (updatePrice && !isManualPrice) {
+                bundlePriceInput.value = '0.00';
+            }
             bundleCostInput.value = '0.00';
         }
-        
+
         if (!isValidStock) {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Insufficient Stock';
@@ -256,22 +305,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initial calculation on page load
-    calculateTotals();
+    // Check if duplicated bundle had a custom selling price before initial calculation
+    const initialDuplicatePrice = parseFloat(bundlePriceInput.value);
+    calculateTotals(false);
+    const autoSumPrice = (() => {
+        let sum = 0;
+        tableBody.querySelectorAll('.component-row').forEach(row => {
+            const select = row.querySelector('.item-select');
+            const qtyInput = row.querySelector('.qty-input');
+            const opt = select.options[select.selectedIndex];
+            if (opt && opt.value) {
+                sum += (parseFloat(opt.dataset.price) || 0) * (parseInt(qtyInput.value) || 0);
+            }
+        });
+        return sum;
+    })();
+    if (!isNaN(initialDuplicatePrice) && initialDuplicatePrice > 0 && Math.abs(initialDuplicatePrice - autoSumPrice) > 0.01) {
+        isManualPrice = true;
+        bundlePriceInput.value = initialDuplicatePrice.toFixed(2);
+    } else {
+        calculateTotals(true);
+    }
 
     tableBody.addEventListener('change', function(e) {
         if (e.target.classList.contains('item-select')) {
-            calculateTotals();
+            mergeDuplicateRowIfNeeded(e.target);
+            calculateTotals(true);
         }
     });
 
     tableBody.addEventListener('input', function(e) {
         if (e.target.classList.contains('qty-input')) {
-            calculateTotals();
+            calculateTotals(true);
         }
     });
-    
-    bundleQuantityInput.addEventListener('input', calculateTotals);
+
+    bundleQuantityInput.addEventListener('input', function() {
+        calculateTotals(false);
+    });
 
     tableBody.addEventListener('click', function(e) {
         if (e.target.closest('.remove-row')) {

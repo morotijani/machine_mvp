@@ -177,15 +177,20 @@ class ItemController
                         $data['image_path'] = $item['image_path'];
                     }
 
-                    $newComponents = [];
+                    $mergedComponents = [];
                     if (isset($_POST['items']) && is_array($_POST['items'])) {
                         foreach ($_POST['items'] as $index => $itemId) {
-                            $qty = (int)$_POST['quantities'][$index];
-                            if (!empty($itemId) && $qty > 0) {
-                                $newComponents[] = ['id' => $itemId, 'quantity' => $qty];
+                            $cid = (int)$itemId;
+                            $qty = (int)($_POST['quantities'][$index] ?? 0);
+                            if ($cid > 0 && $qty > 0) {
+                                if (!isset($mergedComponents[$cid])) {
+                                    $mergedComponents[$cid] = ['id' => $cid, 'quantity' => 0];
+                                }
+                                $mergedComponents[$cid]['quantity'] += $qty;
                             }
                         }
                     }
+                    $newComponents = array_values($mergedComponents);
 
                     $oldQuantity = $item['quantity'];
                     $newQuantity = (int)$data['quantity'];
@@ -199,6 +204,7 @@ class ItemController
                         'category' => 'Category',
                         'sku' => 'SKU',
                         'price' => 'Price',
+                        'cost_price' => 'Cost Price',
                         'location' => 'Location'
                     ];
 
@@ -278,12 +284,12 @@ class ItemController
                     if (!is_dir($uploadDir)) {
                         mkdir($uploadDir, 0777, true);
                     }
-                    
+
                     $filename = uniqid('item_') . '.' . pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                    
+
                     if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename)) {
                         $data['image_path'] = 'uploads/items/' . $filename;
-                        
+
                         // Delete old image only if new one uploaded successfully
                         if (!empty($item['image_path'])) {
                             $old = __DIR__ . '/../../public/' . $item['image_path'];
@@ -350,7 +356,7 @@ class ItemController
                     ]);
                 }
 
-                $itemModel->updateParentBundlePrices($id);
+                $itemModel->updateParentBundlePrices($id, $item['price'], $data['price']);
                 $backUrl .= (strpos($backUrl, '?') !== false ? '&' : '?') . 'success=' . urlencode('Item successfully updated.');
                 header('Location: ' . $backUrl);
                 exit;
@@ -405,14 +411,20 @@ class ItemController
                     $data['image_path'] = 'uploads/items/' . $fileName;
                 }
 
-                $components = [];
+                $mergedComponents = [];
                 if (isset($_POST['items']) && is_array($_POST['items'])) {
                     foreach ($_POST['items'] as $index => $itemId) {
-                        if (!empty($itemId) && !empty($_POST['quantities'][$index])) {
-                            $components[] = ['id' => $itemId, 'quantity' => $_POST['quantities'][$index]];
+                        $cid = (int)$itemId;
+                        $qty = (int)($_POST['quantities'][$index] ?? 0);
+                        if ($cid > 0 && $qty > 0) {
+                            if (!isset($mergedComponents[$cid])) {
+                                $mergedComponents[$cid] = ['id' => $cid, 'quantity' => 0];
+                            }
+                            $mergedComponents[$cid]['quantity'] += $qty;
                         }
                     }
                 }
+                $components = array_values($mergedComponents);
 
                 if (empty($components))
                     throw new \Exception("A bundle must have at least one item.");
@@ -443,11 +455,13 @@ class ItemController
 
         $duplicateItem = null;
         $duplicateComponents = [];
+        $duplicateSku = '';
         if (isset($_GET['duplicate_from'])) {
             $duplicateId = (int)$_GET['duplicate_from'];
             $duplicateItem = $itemModel->find($duplicateId);
             if ($duplicateItem && $duplicateItem['type'] === 'bundle') {
                 $duplicateComponents = $itemModel->getBundleComponents($duplicateId);
+                $duplicateSku = $itemModel->generateUniqueSKU('BND');
             }
         }
 
@@ -489,7 +503,7 @@ class ItemController
 
     public function ungroupBundle()
     {
-        AuthMiddleware::requireLogin();
+        AuthMiddleware::requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $bundleId = $_POST['bundle_id'];
             $quantity = (int)$_POST['quantity'];
@@ -503,6 +517,9 @@ class ItemController
             $itemModel = new Item($pdo);
 
             try {
+                $bundle = $itemModel->find($bundleId);
+                $oldQty = $bundle ? (int)$bundle['quantity'] : null;
+
                 $itemModel->disassembleBundle($bundleId, $quantity);
 
                 // Add Log
@@ -510,7 +527,9 @@ class ItemController
                     'item_id' => $bundleId,
                     'user_id' => $_SESSION['user_id'],
                     'action' => 'stock_adjustment',
-                    'details' => "Ungrouped $quantity units of this bundle. Components restored to stock."
+                    'details' => "Ungrouped $quantity units of this bundle. Components restored to stock.",
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $oldQty !== null ? ($oldQty - $quantity) : null
                 ]);
 
                 header('Location: ' . BASE_URL . '/items?success=Ungrouped successfully');
@@ -529,15 +548,35 @@ class ItemController
             $id = $_POST['id'];
             $pdo = Database::getInstance();
 
-            // Check if item is part of a bundle
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM item_bundles WHERE child_item_id = :id");
+            // Check if item is part of an active (non-deleted) bundle
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) FROM item_bundles ib
+                JOIN items p ON ib.parent_item_id = p.id
+                WHERE ib.child_item_id = :id AND p.is_deleted = 0
+            ");
             $stmt->execute(['id' => $id]);
             if ($stmt->fetchColumn() > 0) {
-                header('Location: ' . BASE_URL . '/items?error=Cannot delete item. It is a component of one or more bundles.');
+                header('Location: ' . BASE_URL . '/items?error=Cannot delete item. It is a component of one or more active bundles.');
                 exit;
             }
 
             $itemModel = new \App\Models\Item($pdo);
+            $item = $itemModel->find($id);
+
+            // If deleting a bundle that currently holds packed stock, ungroup its components first so stock is not trapped in trash
+            if ($item && $item['type'] === 'bundle' && (int)$item['quantity'] > 0) {
+                $qtyToUngroup = (int)$item['quantity'];
+                $itemModel->disassembleBundle($id, $qtyToUngroup);
+                $itemModel->addLog([
+                    'item_id' => $id,
+                    'user_id' => $_SESSION['user_id'] ?? 1,
+                    'action' => 'stock_adjustment',
+                    'details' => "Auto-ungrouped {$qtyToUngroup} units prior to bundle deletion. Components restored to stock.",
+                    'old_quantity' => $qtyToUngroup,
+                    'new_quantity' => 0
+                ]);
+            }
+
             $itemModel->delete($id);
             $returnUrl = $_SESSION['last_items_url'] ?? (BASE_URL . '/items');
             header('Location: ' . $returnUrl . (strpos($returnUrl, '?') === false ? '?' : '&') . 'success=Item removed');
@@ -594,7 +633,7 @@ class ItemController
         $salesPage = isset($_GET['sales_page']) ? (int)$_GET['sales_page'] : 1;
         if ($salesPage < 1) $salesPage = 1;
         $salesOffset = ($salesPage - 1) * $salesLimit;
-        
+
         $totalSales = $itemModel->getSalesHistoryCount($id);
         $totalSalesPages = ceil($totalSales / $salesLimit);
         $salesHistory = $itemModel->getSalesHistoryPaginated($id, $salesLimit, $salesOffset);

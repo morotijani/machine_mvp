@@ -11,8 +11,8 @@ class ReportController
     public function dashboard()
     {
         AuthMiddleware::requireLogin();
-        
-        // Allowed: admin, sales_cashier. 
+
+        // Allowed: admin, sales_cashier.
         // Redirect: sales to /sales/create, cashier to /cashier.
         if ($_SESSION['role'] === 'sales') {
             header('Location: ' . BASE_URL . '/sales/create');
@@ -34,7 +34,7 @@ class ReportController
         $month = date('m');
         $year = date('Y');
         $uid = $_SESSION['user_id'];
-        
+
         // Helper for common filters
         $userFilter = $isLimitedView ? " AND user_id = :uid" : "";
         $userFilterS = $isLimitedView ? " AND s.user_id = :uid" : "";
@@ -47,10 +47,10 @@ class ReportController
         $dailySales = $stmt->fetchColumn() ?: 0;
 
         // 2. Daily Gross Profit (Today)
-        $sqlProfit = "SELECT SUM(si.subtotal - (si.quantity * COALESCE(si.cost_at_sale, i.cost_price))) 
-                      FROM sale_items si 
-                      JOIN items i ON si.item_id = i.id 
-                      JOIN sales s ON si.sale_id = s.id 
+        $sqlProfit = "SELECT SUM(si.subtotal - (si.quantity * COALESCE(si.cost_at_sale, i.cost_price)))
+                      FROM sale_items si
+                      JOIN items i ON si.item_id = i.id
+                      JOIN sales s ON si.sale_id = s.id
                       WHERE DATE(s.created_at) = :today AND s.voided = 0" . $userFilterS;
         $stmtProfit = $pdo->prepare($sqlProfit);
         $stmtProfit->execute(array_merge(['today' => $today], $params));
@@ -58,8 +58,8 @@ class ReportController
 
         // 2.a Realized Today (Collections & Refunds)
         // 1. Total Payments received TODAY
-        $sqlPayToday = "SELECT SUM(p.amount) 
-                        FROM payments p 
+        $sqlPayToday = "SELECT SUM(p.amount)
+                        FROM payments p
                         JOIN sales s ON p.sale_id = s.id
                         WHERE DATE(p.payment_date) = :today" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtPayToday = $pdo->prepare($sqlPayToday);
@@ -67,20 +67,20 @@ class ReportController
         $totalPaymentsToday = $stmtPayToday->fetchColumn() ?: 0;
 
         // 2. Debt Recovered Today (Payments today where sale was created BEFORE today)
-        $sqlDebtCol = "SELECT SUM(p.amount) 
-               FROM payments p 
-               JOIN sales s ON p.sale_id = s.id 
-               WHERE DATE(p.payment_date) = :today_pay 
+        $sqlDebtCol = "SELECT SUM(p.amount)
+               FROM payments p
+               JOIN sales s ON p.sale_id = s.id
+               WHERE DATE(p.payment_date) = :today_pay
                AND DATE(s.created_at) < :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtDebtCol = $pdo->prepare($sqlDebtCol);
         $stmtDebtCol->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
         $todayDebtCollected = $stmtDebtCol->fetchColumn() ?: 0;
 
         // 3. Gross Today's New Sales Payments (Payments today for sales created today)
-        $sqlNewPay = "SELECT SUM(p.amount) 
-              FROM payments p 
-              JOIN sales s ON p.sale_id = s.id 
-              WHERE DATE(p.payment_date) = :today_pay 
+        $sqlNewPay = "SELECT SUM(p.amount)
+              FROM payments p
+              JOIN sales s ON p.sale_id = s.id
+              WHERE DATE(p.payment_date) = :today_pay
               AND DATE(s.created_at) = :today_sale" . ($isLimitedView ? " AND p.recorded_by = :uid" : "");
         $stmtNewPay = $pdo->prepare($sqlNewPay);
         $stmtNewPay->execute(array_merge(['today_pay' => $today, 'today_sale' => $today], $params));
@@ -88,10 +88,10 @@ class ReportController
 
         // 4. Returns Partitioning
         // 4a. Returns of Today's Sales (New Business returns) - USE cash_refunded instead of total_deduction
-        $sqlNewReturns = "SELECT SUM(r.cash_refunded) 
-                  FROM sale_returns r 
-                  JOIN sales s ON r.sale_id = s.id 
-                  WHERE DATE(r.created_at) = :today_ret 
+        $sqlNewReturns = "SELECT SUM(r.cash_refunded)
+                  FROM sale_returns r
+                  JOIN sales s ON r.sale_id = s.id
+                  WHERE DATE(r.created_at) = :today_ret
                   AND DATE(s.created_at) = :today_sale" . ($isLimitedView ? " AND r.recorded_by = :uid" : "");
         $stmtNewReturns = $pdo->prepare($sqlNewReturns);
         $stmtNewReturns->execute(array_merge(['today_ret' => $today, 'today_sale' => $today], $params));
@@ -171,7 +171,7 @@ class ReportController
         $salesDebt = $stmt->fetchColumn() ?: 0;
 
         // 4. Standalone Debt (Global or Filtered?)
-        // Debtors are usually global, but if we want "what he/she has done so far", 
+        // Debtors are usually global, but if we want "what he/she has done so far",
         // we might filter by who recorded it. However, Debtor model doesn't have recorded_by for the debtor itself, only repayments.
         // Let's keep it global for now as per previous logic, but sum it with sales debt if needed.
         $totalStandaloneDebt = 0;
@@ -204,10 +204,10 @@ class ReportController
         }
 
         // 8. Cumulative Lifetime Stats
-        $sqlLife = "SELECT 
-            COUNT(id) as count, 
-            SUM(total_amount) as total, 
-            SUM(paid_amount) as collected 
+        $sqlLife = "SELECT
+            COUNT(id) as count,
+            SUM(total_amount) as total,
+            SUM(paid_amount) as collected
             FROM sales WHERE voided = 0" . $userFilter;
         $stmt = $pdo->prepare($sqlLife);
         $stmt->execute($params);
@@ -222,10 +222,10 @@ class ReportController
         // Helper to get stats for a date range
         $getMonthlyStats = function($start, $end) use ($pdo, $userFilter, $params, $isLimitedView) {
             // Sales Stats
-            $sql = "SELECT 
-                COUNT(id) as count, 
-                SUM(total_amount) as total, 
-                SUM(paid_amount) as collected 
+            $sql = "SELECT
+                COUNT(id) as count,
+                SUM(total_amount) as total,
+                SUM(paid_amount) as collected
                 FROM sales WHERE created_at BETWEEN :start AND :end AND voided = 0" . $userFilter;
             $stmt = $pdo->prepare($sql);
             $stmt->execute(array_merge(['start' => $start, 'end' => $end], $params));
@@ -254,7 +254,7 @@ class ReportController
                 JOIN items i ON si.item_id = i.id
                 WHERE s.voided = 0 AND s.total_amount > 0
             ";
-            
+
             $stmtProfit = $pdo->prepare($sqlProfit);
             $stmtProfit->execute(array_merge(['start' => $start, 'end' => $end, 'start_ret' => $start, 'end_ret' => $end], $params));
             $stats['profit'] = $stmtProfit->fetchColumn() ?: 0;
@@ -267,9 +267,9 @@ class ReportController
 
         // 10. Today's Returns List (Broken down by item)
         $sqlTodayReturns = "
-            SELECT 
-                i.name as item_name, 
-                ri.quantity, 
+            SELECT
+                i.name as item_name,
+                ri.quantity,
                 (ri.quantity * ri.price_at_sale) as deduction,
                 u.username as salesperson,
                 " . (\App\Config\Database::getDriver() === 'sqlite' ? "strftime('%H:%M', r.created_at)" : "DATE_FORMAT(r.created_at, '%H:%i')") . " as return_time
@@ -311,8 +311,8 @@ class ReportController
         $yearSql = \App\Config\Database::year('s.created_at');
 
         $stmt = $pdo->prepare("
-            SELECT 
-                $monthSql as month, 
+            SELECT
+                $monthSql as month,
                 SUM(si.subtotal) as total,
                 SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - COALESCE(si.cost_at_sale, i.cost_price))) as profit
             FROM sales s
@@ -332,7 +332,7 @@ class ReportController
         // 2.a Customer Retention (Repeat Rate)
         // Ratio of customers with more than 1 sale to total unique customers
         $stmtRet = $pdo->query("
-            SELECT 
+            SELECT
                 (SELECT COUNT(*) FROM (SELECT customer_id FROM sales WHERE customer_id IS NOT NULL AND voided = 0 GROUP BY customer_id HAVING COUNT(*) > 1) as repeats) as repeat_customers,
                 (SELECT COUNT(DISTINCT customer_id) FROM sales WHERE customer_id IS NOT NULL AND voided = 0) as total_customers
         ");
@@ -345,9 +345,9 @@ class ReportController
         // Formula: COGS / Average Inventory
         // COGS = Cost of goods sold during the selected year
         $stmtCOGS = $pdo->prepare("
-            SELECT SUM(si.quantity * COALESCE(si.cost_at_sale, i.cost_price)) 
-            FROM sale_items si 
-            JOIN items i ON si.item_id = i.id 
+            SELECT SUM(si.quantity * COALESCE(si.cost_at_sale, i.cost_price))
+            FROM sale_items si
+            JOIN items i ON si.item_id = i.id
             JOIN sales s ON si.sale_id = s.id
             WHERE " . \App\Config\Database::year('s.created_at') . " = :year AND s.voided = 0
         ");
@@ -387,8 +387,8 @@ class ReportController
         $monthSql = \App\Config\Database::month('created_at');
         $yearSql = \App\Config\Database::year('created_at');
         $stmt = $pdo->prepare("
-            SELECT $monthSql as month, SUM(total_amount) as total 
-            FROM sales 
+            SELECT $monthSql as month, SUM(total_amount) as total
+            FROM sales
             WHERE $yearSql = :lastYear AND voided = 0
             GROUP BY $monthSql
         ");
@@ -417,9 +417,9 @@ class ReportController
 
         // 4. Daily Reports (Table)
         $sqlDaily = "
-            SELECT 
-                DATE(s.created_at) as sale_date, 
-                COUNT(DISTINCT s.id) as count, 
+            SELECT
+                DATE(s.created_at) as sale_date,
+                COUNT(DISTINCT s.id) as count,
                 SUM(si.subtotal) as total,
                 SUM((s.paid_amount / s.total_amount) * si.quantity * (si.price_at_sale - COALESCE(si.cost_at_sale, i.cost_price))) as profit,
                 (SELECT SUM(amount) FROM expenditures WHERE DATE(date) = DATE(s.created_at) AND is_deleted = 0) as total_expenditure
@@ -427,8 +427,8 @@ class ReportController
             JOIN sale_items si ON s.id = si.sale_id
             JOIN items i ON si.item_id = i.id
             WHERE s.voided = 0 AND s.total_amount > 0
-            GROUP BY DATE(s.created_at) 
-            ORDER BY sale_date DESC 
+            GROUP BY DATE(s.created_at)
+            ORDER BY sale_date DESC
             LIMIT 30
         ";
         $stmt = $pdo->query($sqlDaily);
@@ -440,7 +440,7 @@ class ReportController
         $currentValue = $stmtWorth->fetchColumn() ?: 0;
 
         $runningValue = $currentValue;
-        // Since dailyReports is ordered by sale_date DESC (newest first), 
+        // Since dailyReports is ordered by sale_date DESC (newest first),
         // the FIRST entry is "end of today" (which is currentValue).
         // Each PREVIOUS entry should be the following day's value PLUS that day's sales.
         foreach ($dailyReports as &$report) {
@@ -455,8 +455,9 @@ class ReportController
             FROM sale_items si
             JOIN items i ON si.item_id = i.id
             JOIN sales s ON si.sale_id = s.id
-            WHERE s.voided = 0 AND " . \App\Config\Database::year('s.created_at') . " = :year
+            WHERE s.voided = 0 AND si.quantity > 0 AND " . \App\Config\Database::year('s.created_at') . " = :year
             GROUP BY si.item_id
+            HAVING total_qty > 0
             ORDER BY total_qty DESC
             LIMIT 5
         ");
@@ -469,8 +470,9 @@ class ReportController
             FROM sale_items si
             JOIN items i ON si.item_id = i.id
             JOIN sales s ON si.sale_id = s.id
-            WHERE s.voided = 0 AND " . \App\Config\Database::year('s.created_at') . " = :year
+            WHERE s.voided = 0 AND si.quantity > 0 AND " . \App\Config\Database::year('s.created_at') . " = :year
             GROUP BY si.item_id
+            HAVING total_revenue > 0
             ORDER BY total_revenue DESC
             LIMIT 5
         ");
@@ -549,9 +551,9 @@ class ReportController
 
         // b. Total Payments Received Today
         $stmt = $pdo->prepare("
-            SELECT SUM(p.amount) 
-            FROM payments p 
-            JOIN sales s ON p.sale_id = s.id 
+            SELECT SUM(p.amount)
+            FROM payments p
+            JOIN sales s ON p.sale_id = s.id
             WHERE DATE(p.payment_date) = :date
         ");
         $stmt->execute(['date' => $date]);
@@ -559,9 +561,9 @@ class ReportController
 
         // c. Debt Recovered (Sales) - Payments for OLD sales
         $stmt = $pdo->prepare("
-            SELECT SUM(p.amount) 
-            FROM payments p 
-            JOIN sales s ON p.sale_id = s.id 
+            SELECT SUM(p.amount)
+            FROM payments p
+            JOIN sales s ON p.sale_id = s.id
             WHERE DATE(p.payment_date) = :date AND DATE(s.created_at) < :date_ref
         ");
         $stmt->execute(['date' => $date, 'date_ref' => $date]);
@@ -614,10 +616,10 @@ class ReportController
 
         // h. Potential Profit
         $stmt = $pdo->prepare("
-            SELECT SUM(si.subtotal - (si.quantity * COALESCE(si.cost_at_sale, i.cost_price))) 
-            FROM sale_items si 
-            JOIN items i ON si.item_id = i.id 
-            JOIN sales s ON si.sale_id = s.id 
+            SELECT SUM(si.subtotal - (si.quantity * COALESCE(si.cost_at_sale, i.cost_price)))
+            FROM sale_items si
+            JOIN items i ON si.item_id = i.id
+            JOIN sales s ON si.sale_id = s.id
             WHERE DATE(s.created_at) = :date AND s.voided = 0
         ");
         $stmt->execute(['date' => $date]);

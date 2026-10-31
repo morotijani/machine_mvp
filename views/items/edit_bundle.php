@@ -73,7 +73,7 @@ ob_start();
                          <input type="number" name="quantity" class="form-control" value="<?= $item['quantity'] ?>" min="0">
                          <div class="form-text">Adjusting limits available stock of sub-items.</div>
                     </div>
-                    
+
                     <div class="mb-3">
                          <label class="form-label">Image</label>
                          <?php if (!empty($item['image_path'])): ?>
@@ -116,8 +116,8 @@ ob_start();
                                             <option value="">Select Item...</option>
                                             <?php foreach ($allItems as $itm): ?>
                                                 <?php if($itm['type'] !== 'bundle'): ?>
-                                                <option value="<?= $itm['id'] ?>" 
-                                                    data-stock="<?= $itm['quantity'] ?>" 
+                                                <option value="<?= $itm['id'] ?>"
+                                                    data-stock="<?= $itm['quantity'] ?>"
                                                     data-price="<?= $itm['price'] ?>"
                                                     data-cost="<?= $itm['cost_price'] ?>"
                                                     <?= ($itm['id'] == $comp['child_item_id']) ? 'selected' : '' ?>>
@@ -150,8 +150,8 @@ ob_start();
                      <div class="p-3 bg-light border-top">
                         <p class="mb-0 text-muted small">
                             <span class="material-symbols-outlined align-middle fs-6">warning</span>
-                            <strong>Warning:</strong> Changing quantity or composition checks "Net Stock". 
-                            If you increase usage, it deducts from spare items. 
+                            <strong>Warning:</strong> Changing quantity or composition checks "Net Stock".
+                            If you increase usage, it deducts from spare items.
                             If you decrease usage, it returns items to stock.
                         </p>
                     </div>
@@ -198,20 +198,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Safe PHP Injection
     const initialBundleQty = <?= (int)($item['quantity'] ?? 0) ?>;
-    
-    // Build Original Recipe Map
-    // Keys are quoted to handle potential non-numeric IDs safely
+
+    // Build Original Recipe Map (summing quantities in case of duplicate rows)
     const originalRecipe = {};
     <?php foreach ($components as $comp): ?>
-    originalRecipe['<?= $comp['child_item_id'] ?>'] = <?= (int)$comp['quantity'] ?>;
+    originalRecipe['<?= $comp['child_item_id'] ?>'] = (originalRecipe['<?= $comp['child_item_id'] ?>'] || 0) + <?= (int)$comp['quantity'] ?>;
     <?php endforeach; ?>
+
+    function mergeDuplicateRowIfNeeded(changedSelect) {
+        const selectedVal = changedSelect.value;
+        if (!selectedVal) return;
+
+        const changedRow = changedSelect.closest('.component-row');
+        const changedQtyInput = changedRow.querySelector('.qty-input');
+        const addedQty = parseInt(changedQtyInput.value) || 1;
+
+        const rows = Array.from(tableBody.querySelectorAll('.component-row'));
+        for (const row of rows) {
+            if (row === changedRow) continue;
+            const sel = row.querySelector('.item-select');
+            if (sel && sel.value === selectedVal) {
+                const existingQtyInput = row.querySelector('.qty-input');
+                existingQtyInput.value = (parseInt(existingQtyInput.value) || 0) + addedQty;
+                if (rows.length > 1) {
+                    changedRow.remove();
+                } else {
+                    changedSelect.value = '';
+                    changedQtyInput.value = '1';
+                    updateStockDisplay(changedRow);
+                }
+                break;
+            }
+        }
+    }
 
     function updateStockDisplay(row) {
         const select = row.querySelector('.item-select');
         const stockBadge = row.querySelector('.current-stock');
         const priceSpan = row.querySelector('.item-price');
         const selectedOption = select.options[select.selectedIndex];
-        
+
         if (selectedOption && selectedOption.value) {
             stockBadge.textContent = selectedOption.dataset.stock;
             const price = parseFloat(selectedOption.dataset.price) || 0;
@@ -222,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Flag to prevent auto-calculation if user manually edits price
+    // Flag to prevent auto-calculation if user manually edits price or if bundle had a custom price
     let isManualPrice = false;
     const bundlePriceInput = document.getElementById('bundle-price');
     const bundleCostInput = document.getElementById('bundle-cost');
@@ -233,24 +259,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Check if the saved bundle price differs from the initial sum of component prices
+    (function detectInitialCustomPrice() {
+        if (!bundlePriceInput) return;
+        const savedPrice = parseFloat(bundlePriceInput.value) || 0;
+        let initialSum = 0;
+        tableBody.querySelectorAll('.component-row').forEach(row => {
+            const select = row.querySelector('.item-select');
+            const qtyInput = row.querySelector('.qty-input');
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const qty = parseInt(qtyInput.value) || 0;
+                const price = parseFloat(selectedOption.dataset.price) || 0;
+                initialSum += price * qty;
+            }
+        });
+        if (savedPrice > 0 && Math.abs(savedPrice - initialSum) > 0.01) {
+            isManualPrice = true;
+        }
+    })();
+
     function calculatePrices() {
         let totalSelling = 0;
         let totalCost = 0;
         let hasSelection = false;
-        
+
         const rows = tableBody.querySelectorAll('.component-row');
-        
+
         rows.forEach(row => {
             const select = row.querySelector('.item-select');
             const qtyInput = row.querySelector('.qty-input');
             const selectedOption = select.options[select.selectedIndex];
-            
+
             if (selectedOption && selectedOption.value) {
                 hasSelection = true;
                 const qty = parseInt(qtyInput.value) || 0;
                 const price = parseFloat(selectedOption.dataset.price) || 0;
                 const cost = parseFloat(selectedOption.dataset.cost) || 0;
-                
+
                 totalSelling += price * qty;
                 totalCost += cost * qty;
             }
@@ -258,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (hasSelection) {
             if (bundleCostInput) bundleCostInput.value = totalCost.toFixed(2);
-            
+
             // Auto-update selling price ONLY if user hasn't manually edited it
             if (bundlePriceInput && !isManualPrice) {
                  bundlePriceInput.value = totalSelling.toFixed(2);
@@ -271,21 +317,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const rows = tableBody.querySelectorAll('.component-row');
         let isValid = true;
         let rejectReason = "";
-        
-        
-        // Price inputs not needed in validation
-        const bundlePriceInput = document.getElementById('bundle-price');
-        const bundleCostInput = document.getElementById('bundle-cost');
 
         // Reset UI first
         rows.forEach(row => {
             const qtyInput = row.querySelector('.qty-input');
             const stockBadge = row.querySelector('.current-stock');
-            
+
             qtyInput.classList.remove('is-invalid');
             stockBadge.classList.remove('bg-danger');
-            stockBadge.classList.remove('text-white'); // Ensure readability
+            stockBadge.classList.remove('text-white');
             stockBadge.classList.add('bg-secondary');
+        });
+
+        // Sum new recipe quantities per itemId across all rows
+        const newRecipeTotals = {};
+        rows.forEach(row => {
+            const select = row.querySelector('.item-select');
+            const qtyInput = row.querySelector('.qty-input');
+            if (select && select.value) {
+                const qty = parseInt(qtyInput.value) || 0;
+                newRecipeTotals[select.value] = (newRecipeTotals[select.value] || 0) + qty;
+            }
         });
 
         rows.forEach(row => {
@@ -293,40 +345,37 @@ document.addEventListener('DOMContentLoaded', function() {
             const qtyInput = row.querySelector('.qty-input');
             const stockBadge = row.querySelector('.current-stock');
             const selectedOption = select.options[select.selectedIndex];
-            
+
             if (selectedOption && selectedOption.value) {
-                // Price logic moved to calculatePrices()
-                // let hasSelection = true; // Not needed
                 const itemId = selectedOption.value;
-                const newRecipeQty = parseInt(qtyInput.value) || 0;
-                
+                const rowQty = parseInt(qtyInput.value) || 0;
+                const newRecipeQty = newRecipeTotals[itemId] || rowQty;
+
                 // 1. Strict Recipe Quantity Check
-                if (newRecipeQty <= 0) {
+                if (rowQty <= 0) {
                     isValid = false;
                     rejectReason = "Invalid Quantity";
-                    qtyInput.classList.add('is-invalid'); // Mark as problematic
-                    return; // Skip math for this invalid row
+                    qtyInput.classList.add('is-invalid');
+                    return;
                 }
-                
+
                 // 2. Net Stock Calculation
-                // Lookup old recipe qty
                 let oldRecipeQty = 0;
                 if (originalRecipe.hasOwnProperty(itemId)) {
                     oldRecipeQty = originalRecipe[itemId];
                 }
-                
+
                 const oldTotalUsed = initialBundleQty * oldRecipeQty;
                 const newTotalNeeded = newBundleQty * newRecipeQty;
-                
+
                 const netChange = newTotalNeeded - oldTotalUsed;
                 const spareStock = parseInt(selectedOption.dataset.stock) || 0;
 
                 if (netChange > 0) {
-                    // We need more stock.
                     if (spareStock < netChange) {
                         isValid = false;
                         rejectReason = "Insufficient Stock";
-                        qtyInput.classList.add('is-invalid'); // Mark as problematic
+                        qtyInput.classList.add('is-invalid');
                         stockBadge.classList.remove('bg-secondary');
                         stockBadge.classList.add('bg-danger');
                         stockBadge.classList.add('text-white');
@@ -334,10 +383,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         stockBadge.textContent = `${spareStock} (Using +${netChange})`;
                     }
-                } else {
-                    // Freeing stock or neutral
+                } else if (netChange < 0) {
                     const freeing = Math.abs(netChange);
                     stockBadge.textContent = `${spareStock} (Freeing ${freeing})`;
+                } else {
+                    stockBadge.textContent = `${spareStock}`;
                 }
             }
         });
@@ -381,7 +431,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Component Changes: Update Prices AND Validate
     tableBody.addEventListener('change', function(e) {
         if (e.target.classList.contains('item-select')) {
-            updateStockDisplay(e.target.closest('tr'));
+            mergeDuplicateRowIfNeeded(e.target);
+            const row = e.target.closest('tr');
+            if (row) updateStockDisplay(row);
             calculatePrices(); // Update Price
             validateStock();   // Validate Stock
         }
@@ -418,9 +470,9 @@ document.addEventListener('DOMContentLoaded', function() {
             newRow.querySelector('input').value = '1';
             newRow.querySelector('.current-stock').textContent = '-';
             newRow.querySelector('.item-price').textContent = '-';
-            newRow.removeAttribute('data-original-id'); 
+            newRow.removeAttribute('data-original-id');
             newRow.removeAttribute('data-original-qty');
-            
+
             // Clear Validation Classes on clone
             newRow.querySelector('.qty-input').classList.remove('is-invalid');
             newRow.querySelector('.current-stock').classList.remove('bg-danger');

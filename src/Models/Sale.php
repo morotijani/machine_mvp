@@ -24,10 +24,10 @@ class Sale {
                 $stmt = $this->pdo->prepare("SELECT price, quantity FROM items WHERE id = :id $forUpdate");
                 $stmt->execute(['id' => $item['id']]);
                 $dbItem = $stmt->fetch();
-                
+
                 if (!$dbItem) throw new Exception("Item not found: " . $item['id']);
                 if ($dbItem['quantity'] < $item['quantity']) throw new Exception("Insufficient stock for item ID: " . $item['id']);
-                
+
                 $totalAmount += $dbItem['price'] * $item['quantity'];
             }
 
@@ -65,7 +65,7 @@ class Sale {
 
             // 4. Add Sale Items and Update Stock
             foreach ($items as $item) {
-                $stmt = $this->pdo->prepare("SELECT price, cost_price FROM items WHERE id = :id");
+                $stmt = $this->pdo->prepare("SELECT type, price, cost_price FROM items WHERE id = :id");
                 $stmt->execute(['id' => $item['id']]);
                 $itemData = $stmt->fetch(PDO::FETCH_ASSOC);
                 $price = $itemData['price'];
@@ -82,9 +82,43 @@ class Sale {
                     'cost' => $costAtSale,
                     'subtotal' => $subtotal
                 ]);
+                $saleItemId = $this->pdo->lastInsertId();
+
+                // Snapshot bundle components at the time of sale so future recipe edits do not alter historical records
+                if (($itemData['type'] ?? '') === 'bundle') {
+                    try {
+                        $stmtComp = $this->pdo->prepare("
+                            SELECT ib.child_item_id, SUM(ib.quantity) as quantity, c.price, c.cost_price
+                            FROM item_bundles ib
+                            JOIN items c ON ib.child_item_id = c.id
+                            WHERE ib.parent_item_id = :pid
+                            GROUP BY ib.child_item_id, c.price, c.cost_price
+                        ");
+                        $stmtComp->execute(['pid' => $item['id']]);
+                        $bundleComponents = $stmtComp->fetchAll(PDO::FETCH_ASSOC);
+
+                        $stmtSnap = $this->pdo->prepare("
+                            INSERT INTO sale_bundle_items (sale_id, sale_item_id, bundle_item_id, child_item_id, quantity, price_at_sale, cost_at_sale)
+                            VALUES (:sid, :siid, :bid, :cid, :qty, :price, :cost)
+                        ");
+                        foreach ($bundleComponents as $bc) {
+                            $stmtSnap->execute([
+                                'sid' => $saleId,
+                                'siid' => $saleItemId,
+                                'bid' => $item['id'],
+                                'cid' => $bc['child_item_id'],
+                                'qty' => $bc['quantity'],
+                                'price' => $bc['price'] ?? 0,
+                                'cost' => $bc['cost_price'] ?? 0
+                            ]);
+                        }
+                    } catch (Exception $e) {
+                        // Ignore if sale_bundle_items table does not exist yet
+                    }
+                }
 
                 // Update Inventory
-                $stmt = $this->pdo->prepare("UPDATE items SET quantity = quantity - :qty WHERE id = :id");
+                $stmt = $this->pdo->prepare("UPDATE items SET quantity = quantity - :qty, sync_status = 0 WHERE id = :id");
                 $stmt->execute(['qty' => $item['quantity'], 'id' => $item['id']]);
             }
 
@@ -152,21 +186,21 @@ class Sale {
 
         $whereSql = implode(" AND ", $where);
 
-        $sql = "SELECT s.*, c.name as customer_name, c.is_deleted as customer_is_deleted, u.username as seller_name 
-                FROM sales s 
-                LEFT JOIN customers c ON s.customer_id = c.id 
-                JOIN users u ON s.user_id = u.id 
+        $sql = "SELECT s.*, c.name as customer_name, c.is_deleted as customer_is_deleted, u.username as seller_name
+                FROM sales s
+                LEFT JOIN customers c ON s.customer_id = c.id
+                JOIN users u ON s.user_id = u.id
                 WHERE $whereSql
                 ORDER BY s.created_at DESC
                 LIMIT :limit OFFSET :offset";
-        
+
         $stmt = $this->pdo->prepare($sql);
         foreach ($params as $key => $val) {
             $stmt->bindValue($key, $val);
         }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        
+
         $stmt->execute();
         return $stmt->fetchAll();
     }
@@ -219,26 +253,26 @@ class Sale {
 
         $whereSql = implode(" AND ", $where);
 
-        $sql = "SELECT COUNT(*) 
-                FROM sales s 
-                LEFT JOIN customers c ON s.customer_id = c.id 
+        $sql = "SELECT COUNT(*)
+                FROM sales s
+                LEFT JOIN customers c ON s.customer_id = c.id
                 WHERE $whereSql";
-        
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchColumn();
     }
 
     public function getById($id) {
-        $sql = "SELECT s.*, c.name as customer_name, c.is_deleted as customer_is_deleted, c.address as customer_address, c.phone as customer_phone, u.username as seller_name 
-                FROM sales s 
-                LEFT JOIN customers c ON s.customer_id = c.id 
-                JOIN users u ON s.user_id = u.id 
+        $sql = "SELECT s.*, c.name as customer_name, c.is_deleted as customer_is_deleted, c.address as customer_address, c.phone as customer_phone, u.username as seller_name
+                FROM sales s
+                LEFT JOIN customers c ON s.customer_id = c.id
+                JOIN users u ON s.user_id = u.id
                 WHERE s.id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['id' => $id]);
         $sale = $stmt->fetch();
-        
+
         if ($sale) {
             $stmtItems = $this->pdo->prepare("SELECT si.*, COALESCE(i.name, '[Deleted Item]') as item_name, i.sku FROM sale_items si LEFT JOIN items i ON si.item_id = i.id WHERE si.sale_id = :id");
             $stmtItems->execute(['id' => $id]);
@@ -313,7 +347,7 @@ class Sale {
 
             $stmt = $this->pdo->prepare("UPDATE sales SET voided = 0, delete_request_status = 'none', sync_status = 0 WHERE id = :id");
             $stmt->execute(['id' => $id]);
-            
+
             $this->pdo->commit();
             return true;
         } catch (\Exception $e) {
@@ -395,7 +429,7 @@ class Sale {
             // 5. Create sale_return_items records
             foreach ($returnedItems as $itemId => $qty) {
                 if ($qty <= 0) continue;
-                
+
                 $stmt = $this->pdo->prepare("SELECT price_at_sale FROM sale_items WHERE sale_id = :sid AND item_id = :iid");
                 $stmt->execute(['sid' => $saleId, 'iid' => $itemId]);
                 $priceAtSale = $stmt->fetchColumn();
@@ -437,7 +471,7 @@ class Sale {
         try {
             // 1. Create a Master Debt Payment Record
             $stmtMaster = $this->pdo->prepare("
-                INSERT INTO customer_debt_payments (customer_id, amount, recorded_by, notes) 
+                INSERT INTO customer_debt_payments (customer_id, amount, recorded_by, notes)
                 VALUES (:cid, :amount, :uid, :notes)
             ");
             $stmtMaster->execute([
@@ -450,11 +484,11 @@ class Sale {
 
             // Fetch all unpaid/partial sales for this customer, oldest first
             $stmt = $this->pdo->prepare("
-                SELECT id, total_amount, paid_amount 
-                FROM sales 
-                WHERE customer_id = :cid 
-                AND voided = 0 
-                AND payment_status != 'paid' 
+                SELECT id, total_amount, paid_amount
+                FROM sales
+                WHERE customer_id = :cid
+                AND voided = 0
+                AND payment_status != 'paid'
                 ORDER BY created_at ASC
             ");
             $stmt->execute(['cid' => $customerId]);
@@ -476,7 +510,7 @@ class Sale {
 
                 // Record Individual Sale Payment linked to Master Record
                 $stmtPay = $this->pdo->prepare("
-                    INSERT INTO payments (sale_id, amount, recorded_by, customer_debt_payment_id) 
+                    INSERT INTO payments (sale_id, amount, recorded_by, customer_debt_payment_id)
                     VALUES (:sid, :amount, :uid, :dpid)
                 ");
                 $stmtPay->execute([
@@ -493,7 +527,7 @@ class Sale {
                     'status' => $newStatus,
                     'id' => $sale['id']
                 ]);
-                
+
                 $affectedSales[] = [
                     'id' => $sale['id'],
                     'allocation' => $allocation,

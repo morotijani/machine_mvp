@@ -237,6 +237,19 @@ CREATE TABLE IF NOT EXISTS `sale_items` (
   FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS `sale_bundle_items` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `sale_id` INTEGER NOT NULL,
+  `sale_item_id` INTEGER NOT NULL,
+  `bundle_item_id` INTEGER NOT NULL,
+  `child_item_id` INTEGER NOT NULL,
+  `quantity` INTEGER NOT NULL,
+  `price_at_sale` REAL DEFAULT 0.00,
+  `cost_at_sale` REAL DEFAULT 0.00,
+  FOREIGN KEY (`sale_id`) REFERENCES `sales` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`sale_item_id`) REFERENCES `sale_items` (`id`) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS `sale_return_items` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `uuid` VARCHAR(36) NULL UNIQUE,
