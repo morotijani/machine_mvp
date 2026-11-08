@@ -390,7 +390,17 @@ ob_start();
                                     <div class="text-muted" style="font-size: 12px;"><?= date('h:i A', strtotime($log['created_at'])) ?></div>
                                 </td>
                                 <td>
-                                    <span class="google-badge <?= $log['action'] === 'created' ? 'badge-subtle-success' : ($log['action'] === 'stock_adjustment' ? 'badge-subtle-primary' : 'badge-subtle-warning') ?>">
+                                    <?php
+                                        $badgeClass = 'badge-subtle-warning';
+                                        if (in_array($log['action'], ['created', 'bundle_disassembly'])) {
+                                            $badgeClass = 'badge-subtle-success';
+                                        } elseif (in_array($log['action'], ['stock_adjustment', 'sale_return', 'sale_voided'])) {
+                                            $badgeClass = 'badge-subtle-primary';
+                                        } elseif (in_array($log['action'], ['sale', 'sale_restored'])) {
+                                            $badgeClass = 'badge-subtle-danger';
+                                        }
+                                    ?>
+                                    <span class="google-badge <?= $badgeClass ?>">
                                         <?= ucfirst(str_replace('_', ' ', $log['action'])) ?>
                                     </span>
                                 </td>

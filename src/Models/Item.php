@@ -757,7 +757,7 @@ class Item {
                 FROM item_logs l
                 LEFT JOIN users u ON l.user_id = u.id
                 WHERE l.item_id = :iid
-                ORDER BY l.created_at DESC
+                ORDER BY l.created_at DESC, l.id DESC
                 LIMIT :limit OFFSET :offset";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':iid', $itemId, \PDO::PARAM_INT);

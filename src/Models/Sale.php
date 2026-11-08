@@ -64,12 +64,18 @@ class Sale {
             $saleId = $this->pdo->lastInsertId();
 
             // 4. Add Sale Items and Update Stock
+            $stmtLog = $this->pdo->prepare("
+                INSERT INTO item_logs (item_id, user_id, action, details, old_quantity, new_quantity)
+                VALUES (:item_id, :user_id, :action, :details, :old_quantity, :new_quantity)
+            ");
             foreach ($items as $item) {
-                $stmt = $this->pdo->prepare("SELECT type, price, cost_price FROM items WHERE id = :id");
+                $stmt = $this->pdo->prepare("SELECT type, price, cost_price, quantity FROM items WHERE id = :id");
                 $stmt->execute(['id' => $item['id']]);
                 $itemData = $stmt->fetch(PDO::FETCH_ASSOC);
                 $price = $itemData['price'];
                 $costAtSale = $itemData['cost_price'] ?? 0;
+                $oldQty = (int)($itemData['quantity'] ?? 0);
+                $newQty = $oldQty - (int)$item['quantity'];
                 $subtotal = $price * $item['quantity'];
 
                 // Insert Line Item
@@ -120,6 +126,16 @@ class Sale {
                 // Update Inventory
                 $stmt = $this->pdo->prepare("UPDATE items SET quantity = quantity - :qty, sync_status = 0 WHERE id = :id");
                 $stmt->execute(['qty' => $item['quantity'], 'id' => $item['id']]);
+
+                // Record Stock Movement in Item Activity Logs
+                $stmtLog->execute([
+                    'item_id' => $item['id'],
+                    'user_id' => $userId,
+                    'action' => 'sale',
+                    'details' => "Sold {$item['quantity']} unit(s) on Invoice {$invoiceNumber} (Sale #{$saleId})",
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $newQty
+                ]);
             }
 
             // 5. Record Payment
@@ -291,7 +307,7 @@ class Sale {
 
             // 0. Check if already approved to prevent double restoration
             $forUpdate = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "" : "FOR UPDATE";
-            $stmt = $this->pdo->prepare("SELECT delete_request_status, voided FROM sales WHERE id = :id $forUpdate");
+            $stmt = $this->pdo->prepare("SELECT invoice_number, delete_request_status, voided FROM sales WHERE id = :id $forUpdate");
             $stmt->execute(['id' => $id]);
             $current = $stmt->fetch();
 
@@ -306,9 +322,27 @@ class Sale {
             $items = $stmt->fetchAll();
 
             // 2. Restore Stock
+            $stmtLog = $this->pdo->prepare("
+                INSERT INTO item_logs (item_id, user_id, action, details, old_quantity, new_quantity)
+                VALUES (:item_id, :user_id, :action, :details, :old_quantity, :new_quantity)
+            ");
+            $stmtCurQty = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id");
             foreach ($items as $item) {
+                if ((int)$item['quantity'] <= 0) continue;
+                $stmtCurQty->execute(['id' => $item['item_id']]);
+                $oldQty = (int)$stmtCurQty->fetchColumn();
+
                 $stmtStock = $this->pdo->prepare("UPDATE items SET quantity = quantity + :qty, sync_status = 0 WHERE id = :id");
                 $stmtStock->execute(['qty' => $item['quantity'], 'id' => $item['item_id']]);
+
+                $stmtLog->execute([
+                    'item_id' => $item['item_id'],
+                    'user_id' => $_SESSION['user_id'] ?? 1,
+                    'action' => 'sale_voided',
+                    'details' => "Restored {$item['quantity']} unit(s) from voided Invoice {$current['invoice_number']} (Sale #{$id})",
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $oldQty + (int)$item['quantity']
+                ]);
             }
 
             // 3. Mark as Approved and Voided
@@ -336,13 +370,35 @@ class Sale {
     public function restore($id) {
         $this->pdo->beginTransaction();
         try {
+            $stmtSale = $this->pdo->prepare("SELECT invoice_number FROM sales WHERE id = :id");
+            $stmtSale->execute(['id' => $id]);
+            $saleInv = $stmtSale->fetchColumn() ?: "#$id";
+
             $stmt = $this->pdo->prepare("SELECT si.* FROM sale_items si WHERE si.sale_id = :id");
             $stmt->execute(['id' => $id]);
             $items = $stmt->fetchAll();
 
+            $stmtLog = $this->pdo->prepare("
+                INSERT INTO item_logs (item_id, user_id, action, details, old_quantity, new_quantity)
+                VALUES (:item_id, :user_id, :action, :details, :old_quantity, :new_quantity)
+            ");
+            $stmtCurQty = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id");
             foreach ($items as $item) {
+                if ((int)$item['quantity'] <= 0) continue;
+                $stmtCurQty->execute(['id' => $item['item_id']]);
+                $oldQty = (int)$stmtCurQty->fetchColumn();
+
                 $stmtStock = $this->pdo->prepare("UPDATE items SET quantity = quantity - :qty, sync_status = 0 WHERE id = :id");
                 $stmtStock->execute(['qty' => $item['quantity'], 'id' => $item['item_id']]);
+
+                $stmtLog->execute([
+                    'item_id' => $item['item_id'],
+                    'user_id' => $_SESSION['user_id'] ?? 1,
+                    'action' => 'sale_restored',
+                    'details' => "Deducted {$item['quantity']} unit(s) for restored Invoice {$saleInv} (Sale #{$id})",
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $oldQty - (int)$item['quantity']
+                ]);
             }
 
             $stmt = $this->pdo->prepare("UPDATE sales SET voided = 0, delete_request_status = 'none', sync_status = 0 WHERE id = :id");
@@ -382,6 +438,12 @@ class Sale {
                 throw new Exception("Sale not found or voided.");
             }
 
+            $stmtLog = $this->pdo->prepare("
+                INSERT INTO item_logs (item_id, user_id, action, details, old_quantity, new_quantity)
+                VALUES (:item_id, :user_id, :action, :details, :old_quantity, :new_quantity)
+            ");
+            $stmtCurQty = $this->pdo->prepare("SELECT quantity FROM items WHERE id = :id");
+
             $totalDeduction = 0;
             foreach ($returnedItems as $itemId => $qty) {
                 if ($qty <= 0) continue;
@@ -407,8 +469,21 @@ class Sale {
                 $stmt->execute(['qty' => $qty, 'deduction' => $itemDeduction, 'id' => $originalItem['id']]);
 
                 // 3. Restore stock in items table
+                $stmtCurQty->execute(['id' => $itemId]);
+                $oldQty = (int)$stmtCurQty->fetchColumn();
+
                 $stmt = $this->pdo->prepare("UPDATE items SET quantity = quantity + :qty, sync_status = 0 WHERE id = :id");
                 $stmt->execute(['qty' => $qty, 'id' => $itemId]);
+
+                // Record Stock Restoration in Item Activity Logs
+                $stmtLog->execute([
+                    'item_id' => $itemId,
+                    'user_id' => $userId,
+                    'action' => 'sale_return',
+                    'details' => "Returned {$qty} unit(s) from Invoice {$sale['invoice_number']} (Sale #{$saleId})",
+                    'old_quantity' => $oldQty,
+                    'new_quantity' => $oldQty + (int)$qty
+                ]);
             }
 
             if ($totalDeduction <= 0) {
